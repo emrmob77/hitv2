@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## HitTags Web Uygulaması
 
-## Getting Started
+Bu depo, HitTags sosyal bookmark platformunun Next.js 14 (App Router) tabanlı web uygulaması için temel kurulumunu içerir. Tasarım, gereksinim ve uygulama planı `design.md`, `requirements.md` ve `tasks.md` dosyalarıyla uyumlu olacak şekilde kurgulanmıştır.
 
-First, run the development server:
+### Başlangıç
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Uygulama varsayılan olarak [http://localhost:3000](http://localhost:3000) adresinde çalışır.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Proje Yapısı
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/app/(marketing)`: Açılış sayfaları ve pazarlama içerikleri için route grubu.
+- `src/app/(app)`: Uygulama içi görünümler (ör. dashboard) için route grubu.
+- `src/components/layout`: Site genelinde kullanılan layout bileşenleri.
+- `src/config`: Uygulama genelinde paylaşılan konfigürasyonlar.
+- `src/lib`: Yardımcı fonksiyonlar ve ileride eklenecek servis katmanı.
+- `data`: Ön tasarım/prototip amaçlı HTML mockup dosyaları (canlı uygulama tarafından kullanılmaz).
 
-## Learn More
+Bu yapı, ilerleyen task'lerde eklenecek özelliklerin ayrıştırılmasını kolaylaştırır.
 
-To learn more about Next.js, take a look at the following resources:
+### Supabase Ortam Değişkenleri
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+NEXT_PUBLIC_SUPABASE_URL="https://your-project-ref.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="public-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="service-role-key"
+SUPABASE_JWT_SECRET="jwt-secret"
+SUPABASE_REDIRECT_URL="http://localhost:3000/auth/callback"
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. `.env.example` dosyasını `.env.local` olarak kopyalayın.
+2. Supabase projenize ait değerleri doldurun.
+3. Sunucu tarafı işlemler için servis anahtarlarını yalnızca güvenli ortamlarda kullanın.
 
-## Deploy on Vercel
+### Komutlar
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `npm run dev`: Geliştirme sunucusunu başlatır (Turbopack ile).
+- `npm run build`: Üretim derlemesi.
+- `npm run start`: Üretim sunucusunu başlatır.
+- `npm run lint`: ESLint çalıştırır.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Sonraki Adımlar
+
+- Shadcn/ui bileşenlerinin eklenmesi.
+- Supabase istemci yardımcılarının tanımlanması.
+- tasks.md dosyasındaki bir sonraki task'lerin uygulanması.
