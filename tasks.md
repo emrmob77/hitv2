@@ -7,13 +7,13 @@
   - [x] Temel klasör yapısını ve dosya organizasyonunu kur
   - _Gereksinimler: 1.1, 9.2, 9.5_
 
-- [ ] 2. Veritabanı şeması ve Supabase konfigürasyonu
-  - database-schema.sql dosyasını Supabase'de çalıştır (tüm tablolar ve ilişkiler)
-  - SEO fields (slug, meta_title, meta_description, canonical_url) ekle
-  - Otomatik slug generation triggers ve functions oluştur
-  - Row Level Security (RLS) politikalarını tanımla (premium özellikler ve abone sistemi için)
-  - SEO metrics tracking tabloları (seo_metrics, seo_performance) oluştur
-  - Supabase Auth konfigürasyonunu yap (Google, GitHub providers)
+- [x] 2. Veritabanı şeması ve Supabase konfigürasyonu
+  - [x] database-schema.sql dosyasını Supabase'de çalıştır (tüm tablolar ve ilişkiler)
+  - [x] SEO fields (slug, meta_title, meta_description, canonical_url) ekle
+  - [x] Otomatik slug generation triggers ve functions oluştur
+  - [x] Row Level Security (RLS) politikalarını tanımla (premium özellikler ve abone sistemi için)
+  - [x] SEO metrics tracking tabloları (seo_metrics, seo_performance) oluştur
+  - [x] Supabase Auth konfigürasyonunu yap (Google, GitHub providers)
   - _Gereksinimler: 1.2, 2.1, 4.1, 5.1, 12.1, 13.1, 14.1, 15.1, 16.1_
 
 - [ ] 3. Temel UI bileşenlerini ve layout yapısını oluştur

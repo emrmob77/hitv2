@@ -43,6 +43,12 @@ SUPABASE_REDIRECT_URL="http://localhost:3000/auth/callback"
 - `npm run start`: Üretim sunucusunu başlatır.
 - `npm run lint`: ESLint çalıştırır.
 
+### Supabase Kurulumu
+
+- Supabase projesini hazırlamak için `docs/supabase-setup.md` dosyasındaki adımları uygulayın.
+- `database-schema.sql` dosyası tüm tabloları, tetikleyicileri ve RLS politikalarını içerir.
+- `src/lib/supabase/` klasörü hem sunucu hem istemci tarafı için Supabase istemcilerini barındırır.
+
 ### Sonraki Adımlar
 
 - Shadcn/ui bileşenlerinin eklenmesi.
