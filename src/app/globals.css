@@ -120,10 +120,123 @@
     @apply bg-background text-foreground;
   }
   .data-html {
+    --hit-primary: #3B82F6;
+    --hit-primary-dark: #1D4ED8;
+    --hit-secondary: #10B981;
+    --hit-secondary-dark: #047857;
+    --hit-accent: #F59E0B;
     @apply bg-white text-neutral-900;
   }
   .data-html * {
     font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
       BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .data-html h1,
+  .data-html .text-5xl {
+    font-size: clamp(2.5rem, 2.2rem + 1vw, 3.25rem);
+    line-height: 1.15;
+    font-weight: 700;
+  }
+  .data-html h2,
+  .data-html .text-4xl {
+    font-size: clamp(2rem, 1.8rem + 0.6vw, 2.5rem);
+    line-height: 1.2;
+    font-weight: 600;
+  }
+  .data-html h3,
+  .data-html .text-3xl {
+    font-size: clamp(1.5rem, 1.3rem + 0.6vw, 2rem);
+    line-height: 1.25;
+    font-weight: 600;
+  }
+  .data-html p,
+  .data-html .text-base {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #4B5563;
+  }
+  .data-html small,
+  .data-html .text-sm,
+  .data-html .text-xs {
+    color: #6B7280;
+  }
+  .data-html nav .text-neutral-900 {
+    color: var(--hit-primary) !important;
+  }
+  .data-html nav .text-neutral-500:hover {
+    color: var(--hit-primary) !important;
+  }
+  .data-html .bg-neutral-600 {
+    background-color: var(--hit-primary) !important;
+  }
+  .data-html .hover\:bg-neutral-700:hover {
+    background-color: var(--hit-primary-dark) !important;
+  }
+  .data-html .border-2.border-neutral-300.text-neutral-700 {
+    border-color: var(--hit-primary) !important;
+    color: var(--hit-primary) !important;
+  }
+  .data-html .border-2.border-neutral-300.text-neutral-700:hover {
+    border-color: var(--hit-primary-dark) !important;
+    color: var(--hit-primary-dark) !important;
+    background-color: rgba(59, 130, 246, 0.08) !important;
+  }
+  .data-html .bg-neutral-100.text-neutral-700 {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: var(--hit-secondary-dark) !important;
+  }
+  .data-html .bg-neutral-100.text-neutral-700:hover {
+    background-color: rgba(16, 185, 129, 0.25) !important;
+  }
+  .data-html .text-neutral-500 {
+    color: #6B7280;
+  }
+  .data-html .text-neutral-600 {
+    color: #4B5563;
+  }
+  .data-html button,
+  .data-html .inline-flex.items-center.rounded-lg,
+  .data-html .rounded-lg.text-neutral-900,
+  .data-html .rounded-lg.text-neutral-700 {
+    border-radius: 0.5rem !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 600 !important;
+  }
+  .data-html button i {
+    margin-right: 0.5rem;
+  }
+  .data-html .bg-white.rounded-xl.border,
+  .data-html .bg-neutral-50.p-8.rounded-xl,
+  .data-html .bg-white.p-8.rounded-xl,
+  .data-html .bg-white.rounded-xl {
+    border-color: rgba(17, 24, 39, 0.08) !important;
+    box-shadow: 0 16px 40px -24px rgba(15, 23, 42, 0.25) !important;
+  }
+  .data-html .bg-neutral-50,
+  .data-html .bg-neutral-100 {
+    background-color: #F3F4F6 !important;
+  }
+  .data-html .bg-neutral-900,
+  .data-html footer {
+    background-color: #111827 !important;
+    color: #E5E7EB !important;
+  }
+  .data-html .bg-neutral-900,
+  .data-html footer {
+    background-color: #111827 !important;
+    color: #E5E7EB !important;
+  }
+  .data-html footer a:hover {
+    color: var(--hit-primary) !important;
+  }
+  .data-html .border-neutral-200 {
+    border-color: rgba(148, 163, 184, 0.35) !important;
+  }
+  .data-html section {
+    padding-block: clamp(3rem, 12vw, 5rem);
+  }
+  .data-html .grid.gap-8 > div,
+  .data-html .grid.gap-6 > div {
+    border-radius: 1rem;
   }
 }
