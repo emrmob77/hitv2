@@ -25,7 +25,7 @@ export function AppMobileNav() {
           variant="ghost"
           size="icon"
           className="md:hidden"
-          aria-label="Uygulama menüsünü aç"
+          aria-label="Open app navigation"
         >
           <Menu className="size-5" />
         </Button>
@@ -36,7 +36,7 @@ export function AppMobileNav() {
             <span className="rounded-full bg-neutral-900 px-2 py-1 text-xs uppercase tracking-tight text-neutral-50">
               {siteConfig.name}
             </span>
-            <span className="text-muted-foreground">Kontrol Paneli</span>
+            <span className="text-muted-foreground">Dashboard</span>
           </SheetTitle>
         </SheetHeader>
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-6">

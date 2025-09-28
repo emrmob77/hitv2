@@ -5,7 +5,8 @@ import parse, { HTMLReactParserOptions } from "html-react-parser";
 
 type RenderHtmlOptions = {
   removeScripts?: boolean;
-  stripChrome?: boolean;
+  stripHeader?: boolean;
+  stripFooter?: boolean;
 };
 
 const parserOptions: HTMLReactParserOptions = {
@@ -42,9 +43,13 @@ export function renderDataHtml(filename: string, options: RenderHtmlOptions = {}
     "Privacy Policy": "/privacy",
     "Terms of Service": "/terms",
     "API Docs": "/api",
+    Login: "/login",
+    Signup: "/signup",
+    "Sign In": "/login",
+    "Sign Up": "/signup",
   };
 
-  const htmlWithLinks = sanitized.replace(
+const htmlWithLinks = sanitized.replace(
     /<span class="([^"]*?)cursor-pointer([^"]*?)">([^<]+)<\/span>/g,
     (match, before, after, label) => {
       const trimmedLabel = label.trim();
@@ -56,18 +61,25 @@ export function renderDataHtml(filename: string, options: RenderHtmlOptions = {}
     }
   );
 
-  const withoutChrome = options.stripChrome === false
-    ? htmlWithLinks
-    : htmlWithLinks
-        .replace(/<header[\s\S]*?<\/header>/i, "")
-        .replace(/<footer[\s\S]*?<\/footer>/i, "");
+  const stripHeader = options.stripHeader ?? false;
+  const stripFooter = options.stripFooter ?? false;
+
+  let processed = htmlWithLinks;
+
+  if (stripHeader) {
+    processed = processed.replace(/<header[\s\S]*?<\/header>/gi, "");
+  }
+
+  if (stripFooter) {
+    processed = processed.replace(/<footer[\s\S]*?<\/footer>/gi, "");
+  }
 
   const withImports = `
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
       @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
     </style>
-    ${withoutChrome}
+    ${processed}
   `;
 
   return parse(withImports, parserOptions);

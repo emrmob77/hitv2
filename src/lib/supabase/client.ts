@@ -4,9 +4,7 @@ import { env } from "@/lib/env";
 
 export const createSupabaseBrowserClient = () => {
   if (!env.supabaseUrl || !env.supabaseAnonKey) {
-    throw new Error(
-      "Supabase istemcisi başlatılırken ortam değişkenleri eksik. Lütfen .env.local dosyasını güncelleyin."
-    );
+    return null;
   }
 
   return createBrowserClient(env.supabaseUrl, env.supabaseAnonKey);

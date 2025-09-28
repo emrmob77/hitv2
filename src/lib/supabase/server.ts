@@ -1,18 +1,29 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { env } from "@/lib/env";
+import type { Database } from "@/lib/supabase/types";
 
-export const createSupabaseServerClient = () => {
+type CreateSupabaseOptions = {
+  strict?: boolean;
+};
+
+export function createSupabaseServerClient(options?: { strict?: true }): Promise<SupabaseClient<Database>>;
+export function createSupabaseServerClient(options: { strict: false }): Promise<SupabaseClient<Database> | null>;
+export async function createSupabaseServerClient({ strict = true }: CreateSupabaseOptions = {}) {
   if (!env.supabaseUrl || !env.supabaseAnonKey) {
-    throw new Error(
-      "Supabase sunucu istemcisi başlatılırken ortam değişkenleri eksik. Lütfen .env.local dosyasını güncelleyin."
-    );
+    if (strict) {
+      throw new Error(
+        "Supabase sunucu istemcisi başlatılırken ortam değişkenleri eksik. Lütfen .env.local dosyasını güncelleyin."
+      );
+    }
+    return null;
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
-  return createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
+  return createServerClient<Database>(env.supabaseUrl, env.supabaseAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();

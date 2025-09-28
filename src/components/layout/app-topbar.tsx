@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
+import { signOutAction } from "@/lib/auth/actions";
+
 import { AppMobileNav } from "./app-mobile-nav";
 
 export function AppTopbar() {
@@ -14,44 +16,45 @@ export function AppTopbar() {
         <div className="flex flex-1 items-center gap-3">
           <AppMobileNav />
           <div className="hidden flex-col text-sm sm:flex">
-            <span className="font-semibold text-foreground">HitTags Paneli</span>
+            <span className="font-semibold text-foreground">HitTags Console</span>
             <span className="text-muted-foreground text-xs">
-              Koleksiyonlarını, etiketlerini ve premium içerik akışını burada yönet.
+              Manage your collections, tags, and premium drops from a single place.
             </span>
           </div>
         </div>
         <div className="flex flex-1 items-center gap-2 md:flex-none">
           <Input
             type="search"
-            placeholder="Bookmark, koleksiyon veya kullanıcı ara..."
+            placeholder="Search bookmarks, collections, or users..."
             className="bg-muted/40 text-sm"
-            aria-label="Panel içi arama"
+            aria-label="Dashboard search"
           />
         </div>
         <div className="flex items-center gap-2">
           <Button asChild size="sm" className="hidden sm:inline-flex">
             <Link href="/dashboard/bookmarks/new">
               <Plus className="mr-1.5 size-4" />
-              Yeni Bookmark
+              Add bookmark
             </Link>
           </Button>
           <Button variant="ghost" size="icon">
             <Bell className="size-4" />
-            <span className="sr-only">Bildirimler</span>
+            <span className="sr-only">Notifications</span>
           </Button>
-          <Link
-            href="/dashboard/settings"
-            className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background px-2 py-1 pr-3 text-sm transition-colors hover:border-border hover:bg-muted/60"
-          >
-            <Avatar className="size-8">
-              <AvatarFallback className="bg-neutral-900 text-neutral-50">
-                HT
-              </AvatarFallback>
-            </Avatar>
-            <span className="hidden text-sm font-medium text-foreground sm:inline">
-              Profilim
-            </span>
-          </Link>
+          <form action={signOutAction}>
+            <Button
+              type="submit"
+              variant="outline"
+              className="inline-flex items-center gap-2 border-neutral-300 text-sm font-medium text-neutral-700 hover:border-neutral-400 hover:bg-neutral-100"
+            >
+              <Avatar className="size-7">
+                <AvatarFallback className="bg-neutral-900 text-neutral-50">
+                  HT
+                </AvatarFallback>
+              </Avatar>
+              <span className="hidden sm:inline">Sign out</span>
+            </Button>
+          </form>
         </div>
       </div>
     </header>

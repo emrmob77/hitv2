@@ -14,7 +14,7 @@ export function AppSidebar() {
       <div className="flex w-full flex-col gap-6">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-            Genel bakış
+            Overview
           </p>
           <nav className="space-y-1">
             {siteConfig.appNav.map((item) => {
@@ -47,17 +47,16 @@ export function AppSidebar() {
         </div>
         <div className="space-y-3 rounded-2xl border border-border/70 bg-background/70 p-4 shadow-sm">
           <p className="text-sm font-semibold text-foreground">
-            Premium Studio&apos;ya geçiş yapın
+            Upgrade to Premium Studio
           </p>
           <p className="text-xs text-muted-foreground">
-            URL&apos;siz içerik stüdyosu ile abonelerinize özel içerikler sunun, link
-            analitiği ve gelir paylaşımı özelliklerinden yararlanın.
+            Deliver subscriber-only drops with the URL-free studio, tap into link analytics, and unlock revenue sharing tools.
           </p>
           <Link
             href="/pricing"
             className="inline-flex items-center gap-1 text-sm font-medium text-neutral-900 transition-colors hover:text-neutral-700"
           >
-            Planları incele →
+            Explore plans →
           </Link>
         </div>
       </div>

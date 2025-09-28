@@ -14,12 +14,8 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type Database = {
-  public: {
-    Tables: Record<string, unknown>;
-    Views: Record<string, unknown>;
-    Functions: Record<string, unknown>;
-    Enums: Record<string, unknown>;
-    CompositeTypes: Record<string, unknown>;
-  };
-};
+// Placeholder veritabanı tipleri Supabase CLI ile güncellenene kadar
+// Supabase client çağrılarının tür güvenliğini gevşetiyoruz.
+// CLI çıktısı eklendiğinde bu `any` yerine gerçek tiplerle değiştirilecek.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Database = any;

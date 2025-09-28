@@ -23,12 +23,12 @@
   - [x] Temel Button, Input, Card, Avatar bileşenlerini oluştur
   - _Gereksinimler: 11.1, 11.4_
 
-- [ ] 4. Authentication sistemini implement et
-  - Supabase Auth ile login/register sayfalarını oluştur
-  - Google ve GitHub OAuth entegrasyonunu yap
-  - Password reset işlevselliğini kodla
-  - AuthGuard bileşenini ve session yönetimini implement et
-  - Profile setup ve onboarding akışını oluştur
+- [x] 4. Authentication sistemini implement et
+  - [x] Supabase Auth ile login/register sayfalarını oluştur
+  - [x] Google ve GitHub OAuth entegrasyonunu yap
+  - [x] Password reset işlevselliğini kodla
+  - [x] AuthGuard bileşenini ve session yönetimini implement et
+  - [x] Profile setup ve onboarding akışını oluştur
   - _Gereksinimler: 1.1, 1.2, 1.3, 1.4, 1.5_
 
 - [ ] 5. Bookmark CRUD işlemlerini geliştir

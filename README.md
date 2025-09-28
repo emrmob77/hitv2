@@ -59,6 +59,7 @@ SUPABASE_REDIRECT_URL="http://localhost:3000/auth/callback"
 **Mevcut rotalar**
 
 - Public: `/`, `/explore`, `/trending`, `/pricing`, `/login`
+- Auth: `/signup`, `/reset-password`, `/onboarding`
 - İçerik detayları: `/tags/[slug]`, `/collections/[slug]`, `/bookmarks/[slug]`, `/users/[username]`
 - Uygulama statik akışı: `/app-static/bookmarks/add`
 - Admin panelleri: `/admin/dashboard`, `/admin/seo-settings`, `/admin/content-discovery`, `/admin/onboarding-settings`, `/admin/flows/bookmark-add`
