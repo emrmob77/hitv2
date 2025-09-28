@@ -16,11 +16,11 @@
   - [x] Supabase Auth konfigürasyonunu yap (Google, GitHub providers)
   - _Gereksinimler: 1.2, 2.1, 4.1, 5.1, 12.1, 13.1, 14.1, 15.1, 16.1_
 
-- [ ] 3. Temel UI bileşenlerini ve layout yapısını oluştur
-  - Shadcn/ui bileşenlerini kur ve özelleştir
-  - Header, Sidebar, Footer layout bileşenlerini kodla
-  - Responsive navigation ve mobile menu bileşenlerini implement et
-  - Temel Button, Input, Card, Avatar bileşenlerini oluştur
+- [x] 3. Temel UI bileşenlerini ve layout yapısını oluştur
+  - [x] Shadcn/ui bileşenlerini kur ve özelleştir
+  - [x] Header, Sidebar, Footer layout bileşenlerini kodla
+  - [x] Responsive navigation ve mobile menu bileşenlerini implement et
+  - [x] Temel Button, Input, Card, Avatar bileşenlerini oluştur
   - _Gereksinimler: 11.1, 11.4_
 
 - [ ] 4. Authentication sistemini implement et

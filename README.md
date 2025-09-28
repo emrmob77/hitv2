@@ -49,6 +49,20 @@ SUPABASE_REDIRECT_URL="http://localhost:3000/auth/callback"
 - `database-schema.sql` dosyası tüm tabloları, tetikleyicileri ve RLS politikalarını içerir.
 - `src/lib/supabase/` klasörü hem sunucu hem istemci tarafı için Supabase istemcilerini barındırır.
 
+### Statik Tasarım Sayfaları
+
+- `data/` klasöründeki HTML mockup dosyaları doğrudan `renderDataHtml` yardımcı fonksiyonu ile sayfalara gömülür.
+- `tailwind.config.ts` içerisinde `./data/**/*.html` yolu tanımlandığı için Tailwind, mockup dosyalarındaki sınıfları da build aşamasında işler.
+- FontAwesome ve Inter fontu otomatik olarak import edilir; ekstra ikon kütüphanesi eklemenize gerek yoktur.
+- Yeni bir sayfa eklemek için ilgili HTML dosyasını `data/` altına yerleştirin ve sayfa bileşeninde `renderDataHtml("dosya.html")` kullanın.
+
+**Mevcut rotalar**
+
+- Public: `/`, `/explore`, `/trending`, `/pricing`, `/login`
+- İçerik detayları: `/tags/[slug]`, `/collections/[slug]`, `/bookmarks/[slug]`, `/users/[username]`
+- Uygulama statik akışı: `/app-static/bookmarks/add`
+- Admin panelleri: `/admin/dashboard`, `/admin/seo-settings`, `/admin/content-discovery`, `/admin/onboarding-settings`, `/admin/flows/bookmark-add`
+
 ### Sonraki Adımlar
 
 - Shadcn/ui bileşenlerinin eklenmesi.
