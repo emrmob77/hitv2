@@ -9,7 +9,7 @@ export default function LoginPage() {
     <main className="relative overflow-hidden bg-neutral-50 py-20">
       <div className="pointer-events-none absolute inset-y-12 left-1/2 hidden w-[620px] -translate-x-1/2 rounded-full bg-gradient-to-br from-[rgba(63,32,251,0.08)] via-[rgba(55,48,163,0.05)] to-transparent blur-3xl lg:block" />
 
-      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-8 lg:grid-cols-2 lg:gap-20 lg:place-items-center">
+      <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-8 lg:grid-cols-2 lg:gap-20 lg:place-items-center">
         <section className="mx-auto max-w-xl space-y-8 text-center lg:mx-0 lg:text-left">
           <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-sm">
             HitTags Community
@@ -47,7 +47,7 @@ export default function LoginPage() {
           </p>
         </section>
 
-        <aside className="w-full max-w-md">
+        <aside className="w-full max-w-md mx-auto lg:mx-0">
           <div className="rounded-3xl border border-neutral-200 bg-white/95 p-8 shadow-xl backdrop-blur">
             <LoginForm />
           </div>

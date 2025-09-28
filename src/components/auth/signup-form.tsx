@@ -14,10 +14,10 @@ export function SignupForm() {
   const [state, formAction] = useActionState(signupAction, initialState);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <div className="text-center">
-        <h1 className="text-3xl font-semibold text-neutral-900">Create your HitTags account</h1>
-        <p className="mt-2 text-sm text-neutral-600">Join the community and start curating the web in minutes.</p>
+        <h1 className="text-xl font-semibold text-neutral-900">Create your HitTags account</h1>
+        <p className="mt-1 text-xs text-neutral-600">Join the community and start curating the web in minutes.</p>
       </div>
 
       <div className="flex gap-2 rounded-lg bg-neutral-100 p-1 text-sm font-medium">
@@ -35,9 +35,9 @@ export function SignupForm() {
         </Link>
       </div>
 
-      <form action={formAction} className="space-y-5">
-        <div className="space-y-2">
-          <label htmlFor="fullName" className="text-sm font-medium text-neutral-700">
+      <form action={formAction} className="space-y-3">
+        <div className="space-y-1">
+          <label htmlFor="fullName" className="text-xs font-medium text-neutral-700">
             Full name
           </label>
           <Input
@@ -45,12 +45,26 @@ export function SignupForm() {
             name="fullName"
             type="text"
             placeholder="Jane Doe"
-            className="h-12 rounded-lg border-neutral-300 bg-neutral-50 text-[15px]"
+            className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
           />
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium text-neutral-700">
+        <div className="space-y-1">
+          <label htmlFor="username" className="text-xs font-medium text-neutral-700">
+            Username
+          </label>
+          <Input
+            id="username"
+            name="username"
+            type="text"
+            placeholder="jane_doe"
+            required
+            className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="email" className="text-xs font-medium text-neutral-700">
             Email address
           </label>
           <Input
@@ -59,12 +73,12 @@ export function SignupForm() {
             type="email"
             placeholder="you@example.com"
             required
-            className="h-12 rounded-lg border-neutral-300 bg-neutral-50 text-[15px]"
+            className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
           />
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium text-neutral-700">
+        <div className="space-y-1">
+          <label htmlFor="password" className="text-xs font-medium text-neutral-700">
             Password
           </label>
           <Input
@@ -73,9 +87,9 @@ export function SignupForm() {
             type="password"
             placeholder="Create a password"
             required
-            className="h-12 rounded-lg border-neutral-300 bg-neutral-50 text-[15px]"
+            className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
           />
-          <ul className="space-y-1 text-xs text-neutral-500">
+          <ul className="space-y-0.5 text-xs text-neutral-500">
             <li>• Minimum 8 characters</li>
             <li>• Combine letters, numbers, and symbols</li>
           </ul>
@@ -87,11 +101,11 @@ export function SignupForm() {
           </p>
         ) : null}
 
-        <div className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-xs text-neutral-600">
+        <div className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600">
           <input
             type="checkbox"
             name="terms"
-            className="mt-1 size-4 rounded border-neutral-300 text-neutral-600 focus:ring-neutral-500"
+            className="mt-0.5 size-3 rounded border-neutral-300 text-neutral-600 focus:ring-neutral-500"
           />
           <span>
             By creating an account you agree to our{' '}
@@ -106,24 +120,24 @@ export function SignupForm() {
           </span>
         </div>
 
-        <Button type="submit" className="w-full bg-neutral-900 py-3 text-sm font-semibold text-white hover:bg-neutral-800">
+        <Button type="submit" className="w-full bg-neutral-900 py-2 text-xs font-semibold text-white hover:bg-neutral-800">
           Create Account
         </Button>
       </form>
 
-      <div className="flex items-center gap-3 text-xs text-neutral-400">
+      <div className="flex items-center gap-2 text-xs text-neutral-400">
         <span className="h-px flex-1 bg-neutral-200" />
         <span>Or sign up with</span>
         <span className="h-px flex-1 bg-neutral-200" />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         <form action={signInWithProvider}>
           <input type="hidden" name="provider" value="google" />
           <Button
             type="submit"
             variant="outline"
-            className="h-12 w-full justify-center gap-2 border-neutral-300 text-sm font-medium text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
+            className="h-8 w-full justify-center gap-1 border-neutral-300 text-xs font-medium text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
           >
             <span className="fa-brands fa-google text-neutral-500" aria-hidden />
             Google
@@ -134,7 +148,7 @@ export function SignupForm() {
           <Button
             type="submit"
             variant="outline"
-            className="h-12 w-full justify-center gap-2 border-neutral-300 text-sm font-medium text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
+            className="h-8 w-full justify-center gap-1 border-neutral-300 text-xs font-medium text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
           >
             <span className="fa-brands fa-github text-neutral-500" aria-hidden />
             GitHub
@@ -142,7 +156,7 @@ export function SignupForm() {
         </form>
       </div>
 
-      <p className="text-center text-sm text-neutral-600">
+      <p className="text-center text-xs text-neutral-600">
         Already have an account?{' '}
         <Link href="/login" className="font-semibold text-neutral-800 hover:text-neutral-900">
           Sign in
