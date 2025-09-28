@@ -6,10 +6,30 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 import { signOutAction } from "@/lib/auth/actions";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { AppMobileNav } from "./app-mobile-nav";
 
-export function AppTopbar() {
+export async function AppTopbar() {
+  let avatarLabel = "HT";
+
+  try {
+    const supabase = await createSupabaseServerClient({ strict: false });
+    if (supabase) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      avatarLabel = deriveInitials(
+        session?.user?.user_metadata?.full_name ||
+          session?.user?.user_metadata?.name ||
+          session?.user?.email ||
+          session?.user?.user_metadata?.email
+      );
+    }
+  } catch (error) {
+    console.warn("Kullanıcı avatar bilgisini getirirken hata oluştu", error);
+  }
+
   return (
     <header className="border-b border-border/80 bg-background/80 backdrop-blur">
       <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
@@ -49,7 +69,7 @@ export function AppTopbar() {
             >
               <Avatar className="size-7">
                 <AvatarFallback className="bg-neutral-900 text-neutral-50">
-                  HT
+                  {avatarLabel}
                 </AvatarFallback>
               </Avatar>
               <span className="hidden sm:inline">Sign out</span>
@@ -59,4 +79,19 @@ export function AppTopbar() {
       </div>
     </header>
   );
+}
+
+function deriveInitials(source?: string | null) {
+  if (!source) return "HT";
+  const cleaned = source.trim();
+  if (!cleaned) return "HT";
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    const [first] = parts;
+    return (first.slice(0, 2) || "HT").toUpperCase();
+  }
+  const first = parts[0]?.[0] ?? "";
+  const second = parts[1]?.[0] ?? "";
+  const result = `${first}${second}`.trim();
+  return (result || parts[0]?.slice(0, 2) || "HT").toUpperCase();
 }

@@ -11,6 +11,7 @@ const NAV_ITEMS = [
 
 export async function MarketingHeader() {
   let isAuthenticated = false;
+  let userInitials = 'HT';
 
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
@@ -18,7 +19,15 @@ export async function MarketingHeader() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      isAuthenticated = Boolean(session?.user);
+      if (session?.user) {
+        isAuthenticated = true;
+        userInitials = deriveInitials(
+          session.user.user_metadata?.full_name ||
+            session.user.user_metadata?.name ||
+            session.user.email ||
+            session.user.user_metadata?.email
+        );
+      }
     }
   } catch {
     isAuthenticated = false;
@@ -70,7 +79,7 @@ export async function MarketingHeader() {
                 </Link>
                 <Link href="/dashboard" className="flex items-center space-x-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
-                    HT
+                    {userInitials}
                   </span>
                 </Link>
               </>
@@ -95,4 +104,19 @@ export async function MarketingHeader() {
       </div>
     </header>
   );
+}
+
+function deriveInitials(source?: string | null) {
+  if (!source) return 'HT';
+  const cleaned = source.trim();
+  if (!cleaned) return 'HT';
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    const [first] = parts;
+    return (first.slice(0, 2) || 'HT').toUpperCase();
+  }
+  const first = parts[0]?.[0] ?? '';
+  const second = parts[1]?.[0] ?? '';
+  const result = `${first}${second}`.trim();
+  return (result || parts[0]?.slice(0, 2) || 'HT').toUpperCase();
 }
