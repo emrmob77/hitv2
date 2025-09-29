@@ -26,7 +26,7 @@
 - [x] 4. Authentication sistemini implement et
   - [x] Supabase Auth ile login/register sayfalarını oluştur
   - [x] Google ve GitHub OAuth entegrasyonunu yap
-  - Password reset işlevselliğini kodla
+  - [x] Password reset işlevselliğini kodla
   - [x] AuthGuard bileşenini ve session yönetimini implement et
   - [x] Profile setup ve onboarding akışını oluştur
   - _Gereksinimler: 1.1, 1.2, 1.3, 1.4, 1.5_
@@ -39,13 +39,13 @@
   - [x] Bookmark arama ve filtreleme özelliklerini geliştir
   - _Gereksinimler: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 6. Tag sistemi ve SEO optimizasyonunu implement et
-  - Tag oluşturma, düzenleme ve yönetim sistemini kodla
-  - SEO optimize edilmiş tag sayfalarını oluştur (/tag/[slug] formatında)
-  - Bookmark sayfaları için SEO-friendly URL yapısı (/bookmark/[id]/[slug]) implement et
-  - Otomatik slug generation ve uniqueness kontrolü geliştir
-  - Structured data (JSON-LD), Open Graph ve meta tags implementasyonunu yap
-  - Dynamic sitemap generation ve robots.txt optimizasyonu kodla
+- [x] 6. Tag sistemi ve SEO optimizasyonunu implement et
+  - [x] Tag oluşturma, düzenleme ve yönetim sistemini kodla
+  - [x] SEO optimize edilmiş tag sayfalarını oluştur (/tag/[slug] formatında)
+  - [x] Bookmark sayfaları için SEO-friendly URL yapısı (/bookmark/[id]/[slug]) implement et
+  - [x] Otomatik slug generation ve uniqueness kontrolü geliştir
+  - [x] Structured data (JSON-LD), Open Graph ve meta tags implementasyonunu yap
+  - [x] Dynamic sitemap generation ve robots.txt optimizasyonu kodla
   - _Gereksinimler: 3.1, 3.2, 3.3, 3.4, 3.5_
 
 - [ ] 7. Collection yönetim sistemini geliştir
