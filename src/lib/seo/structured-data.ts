@@ -153,6 +153,86 @@ export class StructuredDataGenerator {
     };
   }
 
+  // Collection Page Schema
+  static generateCollectionSchema(
+    collection: {
+      id: string;
+      name: string;
+      slug: string;
+      description: string | null;
+      bookmark_count: number;
+    },
+    username: string,
+    displayName: string | null,
+    bookmarks: Bookmark[]
+  ) {
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: collection.name,
+      description:
+        collection.description ||
+        `Curated collection of ${collection.bookmark_count} bookmarks`,
+      url: `https://hittags.com/collections/${username}/${collection.slug}`,
+      numberOfItems: collection.bookmark_count,
+      creator: {
+        '@type': 'Person',
+        name: displayName || username,
+        url: `https://hittags.com/users/${username}`,
+      },
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: bookmarks.length,
+        itemListElement: bookmarks.slice(0, 10).map((bookmark, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          item: {
+            '@type': 'WebPage',
+            name: bookmark.title,
+            description: bookmark.description,
+            url: bookmark.url,
+            author: bookmark.user
+              ? {
+                  '@type': 'Person',
+                  name: bookmark.user.display_name || bookmark.user.username,
+                  url: `https://hittags.com/users/${bookmark.user.username}`,
+                }
+              : undefined,
+          },
+        })),
+      },
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: 'https://hittags.com',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Collections',
+            item: 'https://hittags.com/collections',
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: displayName || username,
+            item: `https://hittags.com/users/${username}`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 4,
+            name: collection.name,
+            item: `https://hittags.com/collections/${username}/${collection.slug}`,
+          },
+        ],
+      },
+    };
+  }
+
   // Breadcrumb Schema
   static generateBreadcrumbSchema(items: Array<{ name: string; url: string }>) {
     return {

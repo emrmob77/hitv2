@@ -159,6 +159,67 @@ export interface Database {
           tag_id?: string;
         };
       };
+      collections: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          cover_image_url: string | null;
+          is_public: boolean;
+          is_collaborative: boolean;
+          bookmark_count: number;
+          follower_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          cover_image_url?: string | null;
+          is_public?: boolean;
+          is_collaborative?: boolean;
+          bookmark_count?: number;
+          follower_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          cover_image_url?: string | null;
+          is_public?: boolean;
+          is_collaborative?: boolean;
+          bookmark_count?: number;
+          follower_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      collection_bookmarks: {
+        Row: {
+          collection_id: string;
+          bookmark_id: string;
+          added_at: string;
+        };
+        Insert: {
+          collection_id: string;
+          bookmark_id: string;
+          added_at?: string;
+        };
+        Update: {
+          collection_id?: string;
+          bookmark_id?: string;
+          added_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

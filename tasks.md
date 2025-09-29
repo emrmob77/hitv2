@@ -48,12 +48,12 @@
   - [x] Dynamic sitemap generation ve robots.txt optimizasyonu kodla
   - _Gereksinimler: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 7. Collection yönetim sistemini geliştir
-  - Collection oluşturma, düzenleme ve silme işlevlerini kodla
-  - Collection sayfalarını ve SEO optimize edilmiş URL yapısını oluştur
-  - Collaborative collection özelliklerini ve izin sistemini implement et
-  - Collection'a bookmark ekleme/çıkarma işlevselliğini geliştir
-  - Collection sharing ve social media preview özelliklerini kodla
+- [x] 7. Collection yönetim sistemini geliştir
+  - [x] Collection oluşturma, düzenleme ve silme işlevlerini kodla
+  - [x] Collection sayfalarını ve SEO optimize edilmiş URL yapısını oluştur
+  - [x] Collaborative collection özelliklerini ve izin sistemini implement et
+  - [x] Collection'a bookmark ekleme/çıkarma işlevselliğini geliştir
+  - [x] Collection sharing ve social media preview özelliklerini kodla
   - _Gereksinimler: 4.1, 4.2, 4.3, 4.4, 4.5_
 
 - [ ] 8. Sosyal özellikler ve etkileşim sistemini kodla

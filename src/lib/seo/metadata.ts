@@ -114,6 +114,65 @@ export class MetadataGenerator {
     };
   }
 
+  static generateCollectionMetadata(
+    collection: {
+      name: string;
+      slug: string;
+      description: string | null;
+      cover_image_url: string | null;
+      bookmark_count: number;
+    },
+    username: string,
+    displayName?: string
+  ): Metadata {
+    const title = `${collection.name} - Curated by ${displayName || username} | HitTags`;
+    const description =
+      collection.description ||
+      `${collection.bookmark_count} carefully selected bookmarks - Curated collection by ${displayName || username}.`;
+
+    return {
+      title,
+      description,
+      keywords: [
+        collection.name,
+        'collection',
+        'bookmarks',
+        'curated',
+        username,
+        ...collection.name.split(' ').slice(0, 5),
+      ],
+      openGraph: {
+        title: collection.name,
+        description,
+        url: `https://hittags.com/collections/${username}/${collection.slug}`,
+        siteName: 'HitTags',
+        images: [
+          {
+            url:
+              collection.cover_image_url ||
+              `/api/og/collection/${collection.slug}`,
+            width: 1200,
+            height: 630,
+            alt: `${collection.name} collection`,
+          },
+        ],
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: collection.name,
+        description,
+        images: [
+          collection.cover_image_url ||
+            `/api/og/collection/${collection.slug}`,
+        ],
+      },
+      alternates: {
+        canonical: `https://hittags.com/collections/${username}/${collection.slug}`,
+      },
+    };
+  }
+
   static generateSlug(text: string): string {
     return text
       .toLowerCase()

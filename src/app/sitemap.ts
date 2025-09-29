@@ -46,7 +46,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-    return [...staticPages, ...tagPages];
+    // Fetch collections
+    const collectionsRes = await fetch(`${baseUrl}/api/collections?limit=1000`, {
+      next: { revalidate: 3600 },
+    });
+    const collectionsData = await collectionsRes.json();
+    const collections = collectionsData.collections || [];
+
+    const collectionPages = collections.map((collection: any) => ({
+      url: `${baseUrl}/collections/${collection.profiles?.username}/${collection.slug}`,
+      lastModified: new Date(collection.updated_at),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+
+    return [...staticPages, ...tagPages, ...collectionPages];
   } catch (error) {
     console.error('Error generating sitemap:', error);
     return staticPages;
