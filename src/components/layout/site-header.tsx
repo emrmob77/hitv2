@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
 
 const marketingNav = [
-  { title: "Anasayfa", href: "/" },
-  { title: "Keşfet", href: "/explore" },
+  { title: "Home", href: "/" },
+  { title: "Explore", href: "/explore" },
   { title: "Trending", href: "/trending" },
-  { title: "Fiyatlandırma", href: "/pricing" },
+  { title: "Pricing", href: "/pricing" },
 ];
 
 export async function SiteHeader() {
@@ -22,12 +22,12 @@ export async function SiteHeader() {
     const supabase = await createSupabaseServerClient({ strict: false });
     if (supabase) {
       const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      isAuthenticated = Boolean(session?.user);
+        data: { user },
+      } = await supabase.auth.getUser();
+      isAuthenticated = Boolean(user);
     }
   } catch (error) {
-    console.warn("Supabase session kontrolü başarısız", error);
+    console.warn("Supabase user check failed", error);
     isAuthenticated = false;
   }
 
@@ -62,7 +62,7 @@ export async function SiteHeader() {
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
             <input
               type="search"
-              placeholder="Bookmark ara..."
+              placeholder="Search bookmarks..."
               className="w-64 rounded-lg border border-neutral-300 bg-neutral-50 px-9 py-2 text-sm focus:border-[var(--hit-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--hit-primary)]"
             />
           </div>
@@ -74,13 +74,13 @@ export async function SiteHeader() {
                 className="hidden items-center gap-2 rounded-lg bg-[var(--hit-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--hit-primary-dark)] sm:flex"
               >
                 <Plus className="size-4" />
-                Bookmark ekle
+                Add bookmark
               </Link>
               <Link
                 href="/dashboard"
                 className="hidden rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 md:flex"
               >
-                Panel
+                Dashboard
               </Link>
               <Link
                 href="/dashboard/notifications"
@@ -93,7 +93,7 @@ export async function SiteHeader() {
                   type="submit"
                   className="rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-600 transition hover:border-neutral-400 hover:text-neutral-900"
                 >
-                  Çıkış yap
+                  Sign out
                 </button>
               </form>
             </>
@@ -103,13 +103,13 @@ export async function SiteHeader() {
                 href="/login"
                 className="text-sm font-medium text-neutral-500 transition hover:text-neutral-900"
               >
-                Giriş yap
+                Sign in
               </Link>
               <Link
                 href="/signup"
                 className="rounded-lg border-2 border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:text-neutral-900"
               >
-                Ücretsiz Başla
+                Start for free
               </Link>
             </>
           )}

@@ -17,13 +17,13 @@ export async function AppTopbar() {
     const supabase = await createSupabaseServerClient({ strict: false });
     if (supabase) {
       const {
-        data: { session },
-      } = await supabase.auth.getSession();
+        data: { user },
+      } = await supabase.auth.getUser();
       avatarLabel = deriveInitials(
-        session?.user?.user_metadata?.full_name ||
-          session?.user?.user_metadata?.name ||
-          session?.user?.email ||
-          session?.user?.user_metadata?.email
+        user?.user_metadata?.full_name ||
+          user?.user_metadata?.name ||
+          user?.email ||
+          user?.user_metadata?.email
       );
     }
   } catch (error) {

@@ -19,36 +19,36 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} | Sosyal Bookmark Platformu`,
+    default: `${siteConfig.name} | Social Bookmark Platform`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
   keywords: [
     "bookmark",
-    "sosyal bookmark",
-    "içerik kürasyonu",
+    "social bookmark",
+    "content curation",
     "HitTags",
-    "premium içerik",
+    "premium content",
   ],
   openGraph: {
-    title: `${siteConfig.name} | Sosyal Bookmark Platformu`,
+    title: `${siteConfig.name} | Social Bookmark Platform`,
     description: siteConfig.description,
     url: siteConfig.url,
     siteName: siteConfig.name,
-    locale: "tr_TR",
+    locale: "en_US",
     type: "website",
     images: [
       {
         url: siteConfig.ogImage,
         width: 1200,
         height: 630,
-        alt: `${siteConfig.name} ana görseli`,
+        alt: `${siteConfig.name} social image`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} | Sosyal Bookmark Platformu`,
+    title: `${siteConfig.name} | Social Bookmark Platform`,
     description: siteConfig.description,
     images: [siteConfig.ogImage],
     creator: "@hittags",
@@ -65,7 +65,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >

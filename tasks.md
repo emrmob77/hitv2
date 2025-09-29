@@ -26,17 +26,17 @@
 - [x] 4. Authentication sistemini implement et
   - [x] Supabase Auth ile login/register sayfalarını oluştur
   - [x] Google ve GitHub OAuth entegrasyonunu yap
-  - [x] Password reset işlevselliğini kodla
+  - Password reset işlevselliğini kodla
   - [x] AuthGuard bileşenini ve session yönetimini implement et
   - [x] Profile setup ve onboarding akışını oluştur
   - _Gereksinimler: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 5. Bookmark CRUD işlemlerini geliştir
-  - Bookmark ekleme formunu ve URL metadata çekme işlevini kodla
-  - Bookmark listeleme, görüntüleme ve düzenleme sayfalarını oluştur
-  - Grid ve liste görünümü bileşenlerini implement et
-  - Bookmark silme ve gizlilik ayarları işlevselliğini kodla
-  - Bookmark arama ve filtreleme özelliklerini geliştir
+- [x] 5. Bookmark CRUD işlemlerini geliştir
+  - [x] Bookmark ekleme formunu ve URL metadata çekme işlevini kodla
+  - [x] Bookmark listeleme, görüntüleme ve düzenleme sayfalarını oluştur
+  - [x] Grid ve liste görünümü bileşenlerini implement et
+  - [x] Bookmark silme ve gizlilik ayarları işlevselliğini kodla
+  - [x] Bookmark arama ve filtreleme özelliklerini geliştir
   - _Gereksinimler: 2.1, 2.2, 2.3, 2.4, 2.5_
 
 - [ ] 6. Tag sistemi ve SEO optimizasyonunu implement et
@@ -169,8 +169,9 @@
   - Monitoring ve logging sistemlerini kur (affiliate tracking, earnings)
   - Backup ve disaster recovery planını implement et
   - Performance monitoring ve alerting sistemini kur
-  - _Gereksinimler: 9.1, 9.5, 18.5_- [
- ] 22. Tarayıcı bookmark import ve veri geçiş sistemini implement et
+  - _Gereksinimler: 9.1, 9.5, 18.5_
+
+- [ ] 22. Tarayıcı bookmark import ve veri geçiş sistemini implement et
   - Browser bookmark parser (BrowserBookmarkParser) sistemini kodla
   - Chrome, Firefox, Safari HTML export dosyalarını parse etme özelliğini geliştir
   - Sosyal platform import (Twitter, Reddit, Pocket) sistemini implement et

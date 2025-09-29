@@ -17,15 +17,15 @@ export async function MarketingHeader() {
     const supabase = await createSupabaseServerClient({ strict: false });
     if (supabase) {
       const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session?.user) {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
         isAuthenticated = true;
         userInitials = deriveInitials(
-          session.user.user_metadata?.full_name ||
-            session.user.user_metadata?.name ||
-            session.user.email ||
-            session.user.user_metadata?.email
+          user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email ||
+            user.user_metadata?.email
         );
       }
     }

@@ -35,7 +35,7 @@ export const siteConfig = {
   description:
     "HitTags is a global social bookmarking platform designed with a SEO-first mindset to help you discover, save, and share the best content on the web.",
   url: "https://hittags.com",
-  ogImage: "https://hittags.com/og-image.jpg",
+  ogImage: "/api/og",
   mainNav: [
     { title: "Home", href: "/" },
     { title: "Explore", href: "/explore" },
@@ -170,7 +170,7 @@ export const siteConfig = {
       },
       {
         name: "Deniz Arman",
-        role: "Ürün Tasarımcısı",
+        role: "Product Designer",
         quote:
           "Premium Studio let me share recommendation packs with video and docs—my subscriber revenue doubled in weeks.",
       },

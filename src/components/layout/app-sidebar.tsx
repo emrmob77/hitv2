@@ -9,6 +9,17 @@ import { cn } from "@/lib/utils";
 export function AppSidebar() {
   const pathname = usePathname();
 
+  const isActive = (current: string | null, href: string) => {
+    if (!current) return false;
+    if (href === '/dashboard') {
+      return current === href;
+    }
+    if (current === href) {
+      return true;
+    }
+    return current.startsWith(`${href}/`);
+  };
+
   return (
     <aside className="hidden w-64 shrink-0 border-r border-border/80 bg-muted/20 px-4 py-6 md:flex lg:w-72">
       <div className="flex w-full flex-col gap-6">
@@ -19,8 +30,7 @@ export function AppSidebar() {
           <nav className="space-y-1">
             {siteConfig.appNav.map((item) => {
               const Icon = item.icon;
-              const active =
-                pathname === item.href || pathname?.startsWith(`${item.href}/`);
+              const active = isActive(pathname, item.href);
 
               return (
                 <Link
