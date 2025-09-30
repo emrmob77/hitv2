@@ -209,9 +209,14 @@ async function fetchCollectionBookmarks(collectionId: string): Promise<Bookmark[
     `
     )
     .eq('collection_id', collectionId)
-    .order('added_at', { ascending: false });
+    .order('created_at', { ascending: false });
 
-  if (error || !data) return [];
+  if (error) {
+    console.error('Collection bookmarks fetch error:', error);
+    return [];
+  }
+
+  if (!data) return [];
 
   return data.map((item: any) => item.bookmarks).filter(Boolean);
 }

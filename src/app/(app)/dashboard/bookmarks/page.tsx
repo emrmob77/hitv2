@@ -124,7 +124,33 @@ async function fetchBookmarks({
 
   let query = supabase
     .from('bookmarks')
-    .select('id, title, description, url, domain, created_at, privacy_level, image_url, favicon_url')
+    .select(`
+      id,
+      title,
+      description,
+      url,
+      domain,
+      created_at,
+      privacy_level,
+      image_url,
+      favicon_url,
+      collection_bookmarks (
+        collection_id,
+        collections (
+          id,
+          name,
+          slug
+        )
+      ),
+      bookmark_tags (
+        tag_id,
+        tags (
+          id,
+          name,
+          slug
+        )
+      )
+    `)
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
@@ -146,7 +172,7 @@ async function fetchBookmarks({
   }
 
   return {
-    bookmarks: data.map((item) => ({
+    bookmarks: data.map((item: any) => ({
       id: item.id,
       title: item.title,
       description: item.description,
@@ -156,6 +182,12 @@ async function fetchBookmarks({
       privacy_level: item.privacy_level,
       image_url: item.image_url,
       favicon_url: item.favicon_url,
+      collections: item.collection_bookmarks
+        ?.map((cb: any) => cb.collections)
+        .filter(Boolean) || [],
+      tags: item.bookmark_tags
+        ?.map((bt: any) => bt.tags)
+        .filter(Boolean) || [],
     })),
   };
 }

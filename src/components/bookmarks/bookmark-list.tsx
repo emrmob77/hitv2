@@ -18,6 +18,16 @@ export type BookmarkListItem = {
   privacy_level: 'public' | 'private' | 'subscribers';
   image_url: string | null;
   favicon_url: string | null;
+  collections?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>;
+  tags?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>;
 };
 
 type BookmarkListProps = {
@@ -123,7 +133,7 @@ function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
   return (
     <article className="group flex h-full flex-col justify-between rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md">
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-neutral-500">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
           <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-medium', privacyTone[bookmark.privacy_level])}>
             {privacyCopy[bookmark.privacy_level]}
           </span>
@@ -145,6 +155,13 @@ function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
               {bookmark.domain}
             </span>
           ) : null}
+          {bookmark.collections && bookmark.collections.length > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 font-medium text-blue-700">
+              <i className="fa-solid fa-folder text-[10px]"></i>
+              {bookmark.collections[0].name}
+              {bookmark.collections.length > 1 && ` +${bookmark.collections.length - 1}`}
+            </span>
+          )}
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -171,6 +188,25 @@ function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
           {bookmark.description ? (
             <p className="line-clamp-3 text-sm text-neutral-600">{bookmark.description}</p>
           ) : null}
+          {bookmark.tags && bookmark.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {bookmark.tags.slice(0, 3).map((tag) => (
+                <Link
+                  key={tag.id}
+                  href={`/tag/${tag.slug}`}
+                  className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs text-neutral-700 hover:border-neutral-300 hover:bg-neutral-100"
+                >
+                  <span className="text-neutral-400">#</span>
+                  {tag.name}
+                </Link>
+              ))}
+              {bookmark.tags.length > 3 && (
+                <span className="inline-flex items-center rounded-full border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs text-neutral-500">
+                  +{bookmark.tags.length - 3}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <div className="mt-6 flex items-center justify-between text-xs text-neutral-500">
@@ -259,6 +295,13 @@ function ListBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
                     {bookmark.domain}
                   </span>
                 ) : null}
+                {bookmark.collections && bookmark.collections.length > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700">
+                    <i className="fa-solid fa-folder text-[10px]"></i>
+                    {bookmark.collections[0].name}
+                    {bookmark.collections.length > 1 && ` +${bookmark.collections.length - 1}`}
+                  </span>
+                )}
                 <span
                   className={cn(
                     'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold',
@@ -268,6 +311,26 @@ function ListBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
                   {privacyCopy[bookmark.privacy_level]}
                 </span>
               </div>
+
+              {bookmark.tags && bookmark.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {bookmark.tags.slice(0, 4).map((tag) => (
+                    <Link
+                      key={tag.id}
+                      href={`/tag/${tag.slug}`}
+                      className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-xs text-neutral-700 hover:border-neutral-300 hover:bg-neutral-100"
+                    >
+                      <span className="text-neutral-400">#</span>
+                      {tag.name}
+                    </Link>
+                  ))}
+                  {bookmark.tags.length > 4 && (
+                    <span className="inline-flex items-center rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-xs text-neutral-500">
+                      +{bookmark.tags.length - 4}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-2 md:justify-end">
