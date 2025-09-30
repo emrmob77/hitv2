@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { MarketingHeader } from "@/components/layout/marketing-header";
+import { MarketingFooter } from "@/components/layout/marketing-footer";
 
 export default async function MarketingLayout({
   children,
@@ -11,6 +12,7 @@ export default async function MarketingLayout({
     <div className="marketing-html">
       <MarketingHeader />
       <div className="data-html">{children}</div>
+      <MarketingFooter />
     </div>
   );
 }

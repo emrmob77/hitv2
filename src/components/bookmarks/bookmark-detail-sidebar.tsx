@@ -112,14 +112,14 @@ export function BookmarkDetailSidebar({
                 key={collection.id}
                 className="flex items-center justify-between rounded-lg bg-neutral-50 p-3 hover:bg-neutral-100"
               >
-                <Link href={`/collections/${collection.slug}`}>
+                <div className="flex-1">
                   <div className="text-sm font-medium text-neutral-900">
                     {collection.name}
                   </div>
                   <div className="text-xs text-neutral-500">
                     {collection.bookmarkCount} bookmarks
                   </div>
-                </Link>
+                </div>
                 <button className="text-xs font-medium text-neutral-600 hover:text-neutral-800">
                   Add
                 </button>

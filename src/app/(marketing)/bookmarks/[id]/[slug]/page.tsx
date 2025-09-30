@@ -38,6 +38,13 @@ async function getBookmark(id: string) {
             name,
             slug
           )
+        ),
+        collection_bookmarks (
+          collections (
+            id,
+            name,
+            slug
+          )
         )
       `
       )
@@ -53,6 +60,43 @@ async function getBookmark(id: string) {
   } catch (error) {
     console.error('Error fetching bookmark:', error);
     return null;
+  }
+}
+
+async function getUserCollections(userId: string) {
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    const { data: collections, error } = await supabase
+      .from('collections')
+      .select('id, name, slug')
+      .eq('user_id', userId)
+      .eq('privacy_level', 'public')
+      .limit(3);
+
+    if (error || !collections) {
+      return [];
+    }
+
+    // Get bookmark counts for each collection
+    const collectionsWithCounts = await Promise.all(
+      collections.map(async (collection) => {
+        const { count } = await supabase
+          .from('collection_bookmarks')
+          .select('*', { count: 'exact', head: true })
+          .eq('collection_id', collection.id);
+
+        return {
+          ...collection,
+          bookmarkCount: count || 0,
+        };
+      })
+    );
+
+    return collectionsWithCounts;
+  } catch (error) {
+    console.error('Error fetching collections:', error);
+    return [];
   }
 }
 
@@ -90,12 +134,15 @@ export default async function BookmarkDetailPage({ params }: Props) {
     slug: bt.tags.slug,
   })) || [];
 
-  // Mock data for comments and sidebar (replace with real data from API)
+  // Get user collections
+  const userCollections = await getUserCollections(bookmark.user_id);
+
+  // Mock data for comments (replace with real data from API)
   const mockComments = [
     {
       id: '1',
       content: "This is incredibly useful! I've been looking for something like this to standardize our design process. The checklist format makes it easy to follow.",
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      createdAt: '2025-01-15T10:00:00.000Z',
       likes: 5,
       isLiked: false,
       author: {
@@ -107,7 +154,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
     {
       id: '2',
       content: 'Great resource! Would love to see a version specifically for mobile design systems too.',
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+      createdAt: '2025-01-15T08:00:00.000Z',
       likes: 12,
       isLiked: true,
       author: {
@@ -119,7 +166,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
         {
           id: '3',
           content: "@Emma Thompson That's a great idea! I'm actually working on a mobile-specific version. Will share it soon!",
-          createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+          createdAt: '2025-01-15T09:00:00.000Z',
           likes: 8,
           isLiked: false,
           author: {
@@ -141,26 +188,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
       comments: mockComments.length + 1,
       shares: 38,
     },
-    collections: [
-      {
-        id: '1',
-        name: 'Design Resources',
-        slug: 'design-resources',
-        bookmarkCount: 234,
-      },
-      {
-        id: '2',
-        name: 'UI Tools',
-        slug: 'ui-tools',
-        bookmarkCount: 87,
-      },
-      {
-        id: '3',
-        name: 'Inspiration',
-        slug: 'inspiration',
-        bookmarkCount: 156,
-      },
-    ],
+    collections: userCollections,
     relatedBookmarks: [
       {
         id: '1',
