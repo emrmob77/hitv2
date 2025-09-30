@@ -1,8 +1,13 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 import { MetadataGenerator } from '@/lib/seo/metadata';
 import { StructuredDataGenerator } from '@/lib/seo/structured-data';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { BookmarkDetailPreview } from '@/components/bookmarks/bookmark-detail-preview';
+import { BookmarkDetailSidebar } from '@/components/bookmarks/bookmark-detail-sidebar';
+import { BookmarkComments } from '@/components/bookmarks/bookmark-comments';
 
 interface Props {
   params: {
@@ -24,12 +29,20 @@ async function getBookmark(id: string) {
           id,
           username,
           display_name,
-          avatar_url
+          avatar_url,
+          bio
+        ),
+        bookmark_tags (
+          tags (
+            id,
+            name,
+            slug
+          )
         )
       `
       )
       .eq('id', id)
-      .eq('is_public', true)
+      .eq('privacy_level', 'public')
       .single();
 
     if (error || !bookmark) {
@@ -64,12 +77,120 @@ export default async function BookmarkDetailPage({ params }: Props) {
   }
 
   // Check if slug matches, redirect if not
-  const correctSlug = bookmark.slug || bookmark.id;
+  const correctSlug = bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   if (params.slug !== correctSlug) {
     redirect(`/bookmarks/${params.id}/${correctSlug}`);
   }
 
   const structuredData = StructuredDataGenerator.generateBookmarkSchema(bookmark);
+
+  // Extract tags from bookmark_tags relation
+  const tags = bookmark.bookmark_tags?.map((bt: any) => ({
+    name: bt.tags.name,
+    slug: bt.tags.slug,
+  })) || [];
+
+  // Mock data for comments and sidebar (replace with real data from API)
+  const mockComments = [
+    {
+      id: '1',
+      content: "This is incredibly useful! I've been looking for something like this to standardize our design process. The checklist format makes it easy to follow.",
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      likes: 5,
+      isLiked: false,
+      author: {
+        username: 'alexrivera',
+        displayName: 'Alex Rivera',
+        avatarUrl: 'https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=789',
+      },
+    },
+    {
+      id: '2',
+      content: 'Great resource! Would love to see a version specifically for mobile design systems too.',
+      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+      likes: 12,
+      isLiked: true,
+      author: {
+        username: 'emmathompson',
+        displayName: 'Emma Thompson',
+        avatarUrl: 'https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=321',
+      },
+      replies: [
+        {
+          id: '3',
+          content: "@Emma Thompson That's a great idea! I'm actually working on a mobile-specific version. Will share it soon!",
+          createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+          likes: 8,
+          isLiked: false,
+          author: {
+            username: bookmark.profiles?.username || 'unknown',
+            displayName: bookmark.profiles?.display_name || null,
+            avatarUrl: bookmark.profiles?.avatar_url || null,
+          },
+          isAuthor: true,
+        },
+      ],
+    },
+  ];
+
+  const sidebarData = {
+    stats: {
+      views: bookmark.view_count || 1234,
+      likes: bookmark.like_count || 24,
+      saves: 156,
+      comments: mockComments.length + 1,
+      shares: 38,
+    },
+    collections: [
+      {
+        id: '1',
+        name: 'Design Resources',
+        slug: 'design-resources',
+        bookmarkCount: 234,
+      },
+      {
+        id: '2',
+        name: 'UI Tools',
+        slug: 'ui-tools',
+        bookmarkCount: 87,
+      },
+      {
+        id: '3',
+        name: 'Inspiration',
+        slug: 'inspiration',
+        bookmarkCount: 156,
+      },
+    ],
+    relatedBookmarks: [
+      {
+        id: '1',
+        title: 'Figma Design Tokens',
+        slug: 'figma-design-tokens',
+        description: 'Complete guide to design tokens in Figma',
+        imageUrl: null,
+        likes: 89,
+        saves: 234,
+      },
+      {
+        id: '2',
+        title: 'Component Library Best Practices',
+        slug: 'component-library-best-practices',
+        description: 'Building scalable component libraries',
+        imageUrl: null,
+        likes: 156,
+        saves: 298,
+      },
+      {
+        id: '3',
+        title: 'Design System Documentation',
+        slug: 'design-system-documentation',
+        description: 'How to document your design system',
+        imageUrl: null,
+        likes: 67,
+        saves: 123,
+      },
+    ],
+  };
 
   return (
     <>
@@ -79,155 +200,58 @@ export default async function BookmarkDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Bookmark Header */}
-        <div className="mb-6">
-          <div className="flex items-start gap-4 mb-4">
-            {bookmark.favicon_url && (
-              <img
-                src={bookmark.favicon_url}
-                alt=""
-                className="w-12 h-12 rounded-lg"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
+      <main className="bg-neutral-50">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          {/* Breadcrumb */}
+          <nav className="mb-6 flex items-center space-x-2 text-sm text-neutral-500">
+            <Link href="/" className="hover:text-neutral-700">
+              Home
+            </Link>
+            <ChevronRight className="h-4 w-4" />
+            <Link href="/explore" className="hover:text-neutral-700">
+              Explore
+            </Link>
+            <ChevronRight className="h-4 w-4" />
+            <span className="text-neutral-900">{bookmark.title}</span>
+          </nav>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              {/* Bookmark Preview */}
+              <BookmarkDetailPreview
+                id={bookmark.id}
+                title={bookmark.title}
+                description={bookmark.description}
+                url={bookmark.url}
+                domain={bookmark.domain}
+                imageUrl={bookmark.image_url}
+                createdAt={bookmark.created_at}
+                viewCount={bookmark.view_count || 1234}
+                likeCount={bookmark.like_count || 24}
+                author={{
+                  username: bookmark.profiles?.username || 'unknown',
+                  displayName: bookmark.profiles?.display_name || null,
+                  avatarUrl: bookmark.profiles?.avatar_url || null,
+                  bio: bookmark.profiles?.bio || null,
                 }}
+                tags={tags}
+                isLiked={false}
+                isBookmarked={false}
               />
-            )}
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">{bookmark.title}</h1>
-              {bookmark.domain && (
-                <a
-                  href={bookmark.url}
-                  target="_blank"
-                  rel="nofollow ugc noopener noreferrer"
-                  className="text-blue-600 hover:underline text-sm"
-                >
-                  {bookmark.domain}
-                </a>
-              )}
+
+              {/* Comments */}
+              <BookmarkComments
+                comments={mockComments}
+                totalComments={mockComments.length + 1}
+                currentUser={undefined}
+              />
             </div>
-          </div>
 
-          {bookmark.description && (
-            <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-4">
-              {bookmark.description}
-            </p>
-          )}
-
-          {/* Preview Image */}
-          {bookmark.image_url && (
-            <img
-              src={bookmark.image_url}
-              alt={bookmark.title}
-              className="w-full rounded-lg mb-6"
-            />
-          )}
-
-          {/* Author Info */}
-          {bookmark.profiles && (
-            <div className="flex items-center gap-3 mb-6">
-              {bookmark.profiles.avatar_url && (
-                <img
-                  src={bookmark.profiles.avatar_url}
-                  alt={bookmark.profiles.username}
-                  className="w-10 h-10 rounded-full"
-                />
-              )}
-              <div>
-                <p className="text-sm text-neutral-500">Saved by</p>
-                <a
-                  href={`/users/${bookmark.profiles.username}`}
-                  className="font-medium hover:underline"
-                >
-                  {bookmark.profiles.display_name || bookmark.profiles.username}
-                </a>
-              </div>
-            </div>
-          )}
-
-          {/* Visit Link Button */}
-          <a
-            href={`/go/${bookmark.id}`}
-            target="_blank"
-            rel="nofollow ugc noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-              />
-            </svg>
-            Visit Link
-          </a>
-        </div>
-
-        {/* Stats */}
-        <div className="flex items-center gap-6 py-4 border-t border-neutral-200 dark:border-neutral-800">
-          <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              />
-            </svg>
-            <span className="text-sm">{bookmark.view_count} views</span>
-          </div>
-          <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-            <span className="text-sm">{bookmark.like_count} likes</span>
-          </div>
-          <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-              />
-            </svg>
-            <span className="text-sm">{bookmark.comment_count} comments</span>
+            {/* Sidebar */}
+            <BookmarkDetailSidebar {...sidebarData} />
           </div>
         </div>
-      </div>
+      </main>
     </>
   );
 }

@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Pencil, Trash2 } from 'lucide-react';
 
 import { deleteBookmarkAction } from '@/app/(app)/dashboard/bookmarks/actions';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 export type BookmarkListItem = {
   id: string;
   title: string;
+  slug?: string;
   description: string | null;
   url: string;
   domain: string | null;
@@ -88,35 +90,30 @@ export function BookmarkList({ items, view, redirectTo }: BookmarkListProps) {
 function BookmarkActions({
   id,
   redirectTo,
-  variant = 'default',
 }: {
   id: string;
   redirectTo: string;
-  variant?: 'default' | 'compact';
 }) {
-  const editClasses =
-    variant === 'compact'
-      ? 'inline-flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 transition hover:border-neutral-300 hover:bg-neutral-100'
-      : 'rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-600 transition hover:border-neutral-300 hover:bg-neutral-100';
-
-  const deleteClasses =
-    variant === 'compact'
-      ? 'inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50'
-      : 'bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500';
-
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       <Link
         href={`/dashboard/bookmarks/${id}/edit`}
-        className={editClasses}
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-700 transition hover:bg-neutral-100 hover:text-neutral-900"
+        title="Edit"
       >
-        Edit
+        <Pencil className="h-4 w-4" />
       </Link>
       <form action={deleteBookmarkAction}>
         <input type="hidden" name="bookmarkId" value={id} />
         <input type="hidden" name="redirectTo" value={redirectTo} />
-        <Button type="submit" variant={variant === 'compact' ? 'outline' : 'destructive'} className={deleteClasses}>
-          Delete
+        <Button
+          type="submit"
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 text-neutral-700 hover:bg-red-50 hover:text-red-600"
+          title="Delete"
+        >
+          <Trash2 className="h-4 w-4" />
         </Button>
       </form>
     </div>
@@ -131,7 +128,12 @@ function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
   const [faviconError, setFaviconError] = useState(false);
 
   return (
-    <article className="group flex h-full flex-col justify-between rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md">
+    <article className="group relative flex h-full flex-col justify-between rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md">
+      {/* Actions - Top Right */}
+      <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
+        <BookmarkActions id={bookmark.id} redirectTo={redirectTo} />
+      </div>
+
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
           <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-medium', privacyTone[bookmark.privacy_level])}>
@@ -179,7 +181,7 @@ function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
               )}
             </div>
             <Link
-              href={`/dashboard/bookmarks/${bookmark.id}`}
+              href={`/bookmarks/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
               className="line-clamp-1 text-base font-semibold text-neutral-900 transition hover:text-neutral-700"
             >
               {bookmark.title}
@@ -213,7 +215,16 @@ function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
         <Link href={bookmark.url} target="_blank" className="font-semibold text-neutral-700 hover:text-neutral-900">
           Open original →
         </Link>
-        <BookmarkActions id={bookmark.id} redirectTo={redirectTo} />
+        <Link
+          href={`/bookmarks/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+          className="text-neutral-500 hover:text-neutral-700"
+          title="View details"
+        >
+          {new Date(bookmark.created_at).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+          })}
+        </Link>
       </div>
     </article>
   );
@@ -233,7 +244,12 @@ function ListBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
   });
 
   return (
-    <article className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 shadow-sm transition hover:border-neutral-300 hover:shadow-md">
+    <article className="group relative rounded-2xl border border-neutral-200 bg-white px-4 py-5 shadow-sm transition hover:border-neutral-300 hover:shadow-md">
+      {/* Actions - Top Right */}
+      <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100">
+        <BookmarkActions id={bookmark.id} redirectTo={redirectTo} />
+      </div>
+
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-5">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 text-[11px] font-semibold uppercase text-neutral-500">
           {showImage ? (
@@ -249,70 +265,76 @@ function ListBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
           )}
         </div>
 
-        <div className="flex-1 space-y-4">
-          <div className="flex flex-col gap-4 md:flex-row md:justify-between">
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Link
-                  href={`/dashboard/bookmarks/${bookmark.id}`}
-                  className="text-base font-semibold text-neutral-900 transition hover:text-neutral-700"
-                >
-                  {bookmark.title}
-                </Link>
-                {bookmark.description ? (
-                  <p className="line-clamp-3 text-sm leading-6 text-neutral-600">{bookmark.description}</p>
-                ) : null}
-              </div>
+        <div className="flex flex-1 flex-col justify-between">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Link
+                href={`/bookmarks/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                className="text-base font-semibold text-neutral-900 transition hover:text-neutral-700"
+              >
+                {bookmark.title}
+              </Link>
+              {bookmark.description ? (
+                <p className="line-clamp-3 text-sm leading-6 text-neutral-600">{bookmark.description}</p>
+              ) : null}
+            </div>
 
-              <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
-                {bookmark.domain ? (
-                  <>
-                    <span className="inline-flex items-center gap-2">
-                      {bookmark.favicon_url && !faviconError ? (
-                        <img
-                          src={bookmark.favicon_url}
-                          alt="Favicon"
-                          className="size-4 rounded"
-                          loading="lazy"
-                          onError={() => setFaviconError(true)}
-                        />
-                      ) : (
-                        <span className="flex size-4 items-center justify-center rounded bg-neutral-200 text-[8px] font-bold text-neutral-600">
-                          {bookmark.domain.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      {bookmark.domain}
-                    </span>
-                    <span className="text-neutral-300">•</span>
-                  </>
-                ) : null}
-                <span>{formattedDate}</span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-neutral-600">
-                {bookmark.domain ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
+              {bookmark.domain ? (
+                <>
+                  <span className="inline-flex items-center gap-2">
+                    {bookmark.favicon_url && !faviconError ? (
+                      <img
+                        src={bookmark.favicon_url}
+                        alt="Favicon"
+                        className="size-4 rounded"
+                        loading="lazy"
+                        onError={() => setFaviconError(true)}
+                      />
+                    ) : (
+                      <span className="flex size-4 items-center justify-center rounded bg-neutral-200 text-[8px] font-bold text-neutral-600">
+                        {bookmark.domain.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                     {bookmark.domain}
                   </span>
-                ) : null}
-                {bookmark.collections && bookmark.collections.length > 0 && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700">
-                    <i className="fa-solid fa-folder text-[10px]"></i>
-                    {bookmark.collections[0].name}
-                    {bookmark.collections.length > 1 && ` +${bookmark.collections.length - 1}`}
-                  </span>
-                )}
-                <span
-                  className={cn(
-                    'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold',
-                    privacyTone[bookmark.privacy_level]
-                  )}
-                >
-                  {privacyCopy[bookmark.privacy_level]}
-                </span>
-              </div>
+                  <span className="text-neutral-300">•</span>
+                </>
+              ) : null}
+              <Link
+                href={`/bookmarks/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                className="hover:text-neutral-700 hover:underline"
+                title="View details"
+              >
+                {formattedDate}
+              </Link>
+            </div>
 
-              {bookmark.tags && bookmark.tags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-neutral-600">
+              {bookmark.domain ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1">
+                  {bookmark.domain}
+                </span>
+              ) : null}
+              {bookmark.collections && bookmark.collections.length > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700">
+                  <i className="fa-solid fa-folder text-[10px]"></i>
+                  {bookmark.collections[0].name}
+                  {bookmark.collections.length > 1 && ` +${bookmark.collections.length - 1}`}
+                </span>
+              )}
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold',
+                  privacyTone[bookmark.privacy_level]
+                )}
+              >
+                {privacyCopy[bookmark.privacy_level]}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {bookmark.tags && bookmark.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
                   {bookmark.tags.slice(0, 4).map((tag) => (
                     <Link
@@ -330,10 +352,10 @@ function ListBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
                     </span>
                   )}
                 </div>
+              ) : (
+                <div />
               )}
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2 md:justify-end">
               <Link
                 href={bookmark.url}
                 target="_blank"
@@ -341,7 +363,6 @@ function ListBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
               >
                 Open original →
               </Link>
-              <BookmarkActions id={bookmark.id} redirectTo={redirectTo} variant="compact" />
             </div>
           </div>
         </div>

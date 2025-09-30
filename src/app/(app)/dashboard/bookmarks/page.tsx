@@ -127,6 +127,7 @@ async function fetchBookmarks({
     .select(`
       id,
       title,
+      slug,
       description,
       url,
       domain,
@@ -175,6 +176,7 @@ async function fetchBookmarks({
     bookmarks: data.map((item: any) => ({
       id: item.id,
       title: item.title,
+      slug: item.slug || item.id,
       description: item.description,
       url: item.url,
       domain: item.domain,

@@ -1,7 +1,14 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 import { MetadataGenerator } from '@/lib/seo/metadata';
 import { StructuredDataGenerator } from '@/lib/seo/structured-data';
+import { TagHeader } from '@/components/tags/tag-header';
+import { TagFilters } from '@/components/tags/tag-filters';
+import { TagBookmarkCard } from '@/components/tags/tag-bookmark-card';
+import { TagSidebar } from '@/components/tags/tag-sidebar';
+import { Button } from '@/components/ui/button';
 
 interface Tag {
   id: string;
@@ -11,6 +18,7 @@ interface Tag {
   color: string;
   usage_count: number;
   is_trending: boolean;
+  created_at: string;
 }
 
 interface Bookmark {
@@ -30,6 +38,12 @@ interface Bookmark {
     display_name: string | null;
     avatar_url: string | null;
   };
+  bookmark_tags?: Array<{
+    tags: {
+      name: string;
+      slug: string;
+    };
+  }>;
 }
 
 async function getTagData(slug: string) {
@@ -84,6 +98,48 @@ export default async function TagDetailsPage({
     bookmarks || []
   );
 
+  // Mock data for sidebar (replace with real data from API)
+  const sidebarData = {
+    statistics: {
+      totalBookmarks: tag.usage_count || 0,
+      thisWeek: 234,
+      followers: 1234,
+      avgLikes: 45,
+    },
+    relatedTags: [
+      { name: 'ui-design', slug: 'ui-design', bookmarkCount: 1456 },
+      { name: 'ux-research', slug: 'ux-research', bookmarkCount: 987 },
+      { name: 'figma', slug: 'figma', bookmarkCount: 1234 },
+      { name: 'prototyping', slug: 'prototyping', bookmarkCount: 765 },
+    ],
+    topContributors: [
+      {
+        username: 'sarahchen',
+        displayName: 'Sarah Chen',
+        avatarUrl: 'https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=456',
+        bookmarkCount: 127,
+      },
+      {
+        username: 'alexrivera',
+        displayName: 'Alex Rivera',
+        avatarUrl: 'https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=789',
+        bookmarkCount: 98,
+      },
+      {
+        username: 'emmathompson',
+        displayName: 'Emma Thompson',
+        avatarUrl: 'https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=321',
+        bookmarkCount: 76,
+      },
+    ],
+    popularDomains: [
+      { domain: 'dribbble.com', bookmarkCount: 234 },
+      { domain: 'behance.net', bookmarkCount: 189 },
+      { domain: 'figma.com', bookmarkCount: 156 },
+      { domain: 'uxdesign.cc', bookmarkCount: 98 },
+    ],
+  };
+
   return (
     <>
       {/* Structured Data */}
@@ -92,96 +148,90 @@ export default async function TagDetailsPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Tag Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div
-              className="w-12 h-12 rounded-lg"
-              style={{ backgroundColor: tag.color }}
-            />
-            <div>
-              <h1 className="text-4xl font-bold">{tag.name}</h1>
-              {tag.is_trending && (
-                <span className="text-sm text-orange-500 font-medium">
-                  🔥 Trending
-                </span>
-              )}
-            </div>
-          </div>
-          {tag.description && (
-            <p className="text-lg text-neutral-600 dark:text-neutral-400">
-              {tag.description}
-            </p>
-          )}
-          <p className="text-sm text-neutral-500 mt-2">
-            {tag.usage_count} bookmark{tag.usage_count !== 1 ? 's' : ''}
-          </p>
-        </div>
+      <main className="bg-neutral-50">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          {/* Breadcrumb */}
+          <nav className="mb-6 flex items-center space-x-2 text-sm text-neutral-500">
+            <Link href="/" className="hover:text-neutral-700">
+              Home
+            </Link>
+            <ChevronRight className="h-4 w-4" />
+            <Link href="/tags" className="hover:text-neutral-700">
+              Tags
+            </Link>
+            <ChevronRight className="h-4 w-4" />
+            <span className="text-neutral-900">#{tag.name}</span>
+          </nav>
 
-        {/* Bookmarks Grid */}
-        {bookmarks && bookmarks.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bookmarks.map((bookmark: Bookmark) => (
-              <a
-                key={bookmark.id}
-                href={`/bookmarks/${bookmark.id}/${bookmark.slug || bookmark.id}`}
-                className="block p-6 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors"
-              >
-                {bookmark.image_url && (
-                  <img
-                    src={bookmark.image_url}
-                    alt={bookmark.title}
-                    className="w-full h-48 object-cover rounded-lg mb-4"
-                  />
-                )}
-                <div className="flex items-start gap-3 mb-3">
-                  {bookmark.favicon_url && (
-                    <img
-                      src={bookmark.favicon_url}
-                      alt=""
-                      className="w-5 h-5 rounded mt-1"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-lg mb-1 line-clamp-2">
-                      {bookmark.title}
-                    </h3>
-                    {bookmark.description && (
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2">
-                        {bookmark.description}
-                      </p>
-                    )}
+          {/* Tag Header */}
+          <TagHeader
+            name={tag.name}
+            description={tag.description}
+            bookmarkCount={tag.usage_count || 0}
+            followerCount={1234}
+            createdAt={tag.created_at}
+            color={tag.color || '#6b7280'}
+          />
+
+          <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-4">
+            <div className="lg:col-span-3">
+              {/* Filters */}
+              <div className="mb-6">
+                <TagFilters />
+              </div>
+
+              {/* Bookmarks List */}
+              <section className="space-y-4">
+                {bookmarks && bookmarks.length > 0 ? (
+                  <>
+                    {bookmarks.map((bookmark: Bookmark) => (
+                      <TagBookmarkCard
+                        key={bookmark.id}
+                        id={bookmark.id}
+                        title={bookmark.title}
+                        slug={bookmark.slug || bookmark.id}
+                        description={bookmark.description}
+                        domain={bookmark.domain}
+                        imageUrl={bookmark.image_url}
+                        createdAt={bookmark.created_at}
+                        author={{
+                          username: bookmark.profiles?.username || 'unknown',
+                          displayName: bookmark.profiles?.display_name || null,
+                          avatarUrl: bookmark.profiles?.avatar_url || null,
+                        }}
+                        tags={
+                          bookmark.bookmark_tags?.map((bt) => ({
+                            name: bt.tags.name,
+                            slug: bt.tags.slug,
+                          })) || []
+                        }
+                        likes={Math.floor(Math.random() * 200)}
+                        isLiked={false}
+                        isBookmarked={false}
+                      />
+                    ))}
+
+                    <div className="flex justify-center py-8">
+                      <Button className="rounded-lg bg-neutral-900 px-6 py-3 text-white hover:bg-neutral-800">
+                        Load More Bookmarks
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
+                    <p className="text-neutral-600">
+                      No bookmarks found for this tag yet.
+                    </p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-neutral-500">
-                  {bookmark.domain && <span>{bookmark.domain}</span>}
-                  {bookmark.profiles && (
-                    <>
-                      <span>•</span>
-                      <span>
-                        @
-                        {bookmark.profiles.display_name ||
-                          bookmark.profiles.username}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </a>
-            ))}
+                )}
+              </section>
+            </div>
+
+            {/* Sidebar */}
+            <TagSidebar {...sidebarData} />
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-neutral-600 dark:text-neutral-400">
-              No bookmarks found for this tag yet.
-            </p>
-          </div>
-        )}
-      </div>
+        </div>
+      </main>
     </>
   );
 }
