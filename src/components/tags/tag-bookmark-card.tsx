@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Heart, Bookmark, Share2 } from "lucide-react";
+import { Heart, Bookmark, Share2, Folder } from "lucide-react";
 
 interface TagBookmarkCardProps {
   id: string;

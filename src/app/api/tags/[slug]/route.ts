@@ -40,11 +40,7 @@ export async function GET(
           domain,
           favicon_url,
           image_url,
-          is_public,
           privacy_level,
-          view_count,
-          like_count,
-          comment_count,
           created_at,
           user_id,
           profiles (
@@ -52,6 +48,12 @@ export async function GET(
             username,
             display_name,
             avatar_url
+          ),
+          bookmark_tags (
+            tags (
+              name,
+              slug
+            )
           )
         )
       `
@@ -69,7 +71,7 @@ export async function GET(
     // Extract bookmarks from junction table
     const bookmarks = bookmarkTags
       ?.map((bt: any) => bt.bookmarks)
-      .filter((b: any) => b && b.is_public);
+      .filter((b: any) => b && b.privacy_level === 'public');
 
     return NextResponse.json({
       tag,

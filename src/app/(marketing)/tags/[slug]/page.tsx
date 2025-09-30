@@ -189,7 +189,7 @@ export default async function TagDetailsPage({
                         key={bookmark.id}
                         id={bookmark.id}
                         title={bookmark.title}
-                        slug={bookmark.slug || bookmark.id}
+                        slug={bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}
                         description={bookmark.description}
                         domain={bookmark.domain}
                         imageUrl={bookmark.image_url}
@@ -205,7 +205,7 @@ export default async function TagDetailsPage({
                             slug: bt.tags.slug,
                           })) || []
                         }
-                        likes={Math.floor(Math.random() * 200)}
+                        likes={24}
                         isLiked={false}
                         isBookmarked={false}
                       />
