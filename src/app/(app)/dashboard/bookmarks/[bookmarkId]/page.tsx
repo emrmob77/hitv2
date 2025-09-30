@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { deleteBookmarkAction } from '@/app/(app)/dashboard/bookmarks/actions';
 import { Button } from '@/components/ui/button';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { AddToCollectionButton } from '@/components/bookmarks/add-to-collection-button';
 
 type PageParams = {
   bookmarkId: string;
@@ -66,6 +67,7 @@ export default async function BookmarkDetailPage({ params }: { params: PageParam
               Open original
             </Link>
           </Button>
+          <AddToCollectionButton bookmarkId={bookmark.id} />
           <Button asChild>
             <Link href={`/dashboard/bookmarks/${bookmark.id}/edit`}>Edit</Link>
           </Button>

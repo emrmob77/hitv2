@@ -48,12 +48,23 @@
   - [x] Dynamic sitemap generation ve robots.txt optimizasyonu kodla
   - _Gereksinimler: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [x] 7. Collection yönetim sistemini geliştir
-  - [x] Collection oluşturma, düzenleme ve silme işlevlerini kodla
-  - [x] Collection sayfalarını ve SEO optimize edilmiş URL yapısını oluştur
-  - [x] Collaborative collection özelliklerini ve izin sistemini implement et
+- [ ] 7. Collection yönetim sistemini geliştir
+  - [x] Collection oluşturma işlevini kodla (/dashboard/collections/new)
+  - [x] Collection listeleme sayfasını oluştur (/dashboard/collections)
+  - [x] Collection detay sayfasını oluştur (/dashboard/collections/[id])
+  - [x] Collection düzenleme sayfası ve işlevselliğini ekle (/dashboard/collections/[id]/edit)
+  - [x] Collection silme işlemini modal ile düzelt (DeleteCollectionButton component)
   - [x] Collection'a bookmark ekleme/çıkarma işlevselliğini geliştir
-  - [x] Collection sharing ve social media preview özelliklerini kodla
+    - [x] AddToCollectionButton component (bookmark detay sayfasından)
+    - [x] RemoveBookmarkButton component (collection detay sayfasından)
+    - [x] Modal ile collection seçimi ve toggle işlevi
+  - [ ] Collection içinde bookmark sıralama (position) özelliğini implement et (drag-drop - dnd-kit gerekli)
+  - [x] Collection cover image upload işlevselliğini ekle (URL input ile - Supabase Storage entegrasyonu sonraya)
+  - [x] Public collection view sayfasını oluştur (/c/[username]/[slug])
+  - [x] SEO optimize edilmiş public collection sayfalarını geliştir (meta tags, Open Graph)
+  - [ ] Collaborative collection özelliklerini ve izin sistemini implement et (collection_collaborators tablosu)
+  - [ ] Collection istatistikleri (view_count, follower_count) tracking sistemini ekle
+  - [ ] Public collection view'da "View Public Page" butonu ekle (username bilgisi gerekli)
   - _Gereksinimler: 4.1, 4.2, 4.3, 4.4, 4.5_
 
 - [ ] 8. Sosyal özellikler ve etkileşim sistemini kodla

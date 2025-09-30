@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FolderIcon, LockIcon, UsersIcon, EyeIcon } from 'lucide-react';
+import { FolderIcon, LockIcon, UsersIcon, EyeIcon, ExternalLinkIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Collections • HitTags',
@@ -18,6 +18,7 @@ interface Collection {
   bookmark_count: number;
   created_at: string;
   cover_image_url: string | null;
+  username?: string;
 }
 
 export default async function CollectionsPage() {
@@ -56,33 +57,33 @@ export default async function CollectionsPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {collections.map((collection) => (
-              <Link
-                key={collection.id}
-                href={`/dashboard/collections/${collection.id}`}
-                className="group"
-              >
+              <div key={collection.id} className="group">
                 <Card className="overflow-hidden transition-shadow hover:shadow-lg">
                   {/* Cover Image */}
-                  <div className="aspect-video w-full overflow-hidden bg-gradient-to-br from-neutral-100 to-neutral-200">
-                    {collection.cover_image_url ? (
-                      <img
-                        src={collection.cover_image_url}
-                        alt={collection.name}
-                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <FolderIcon className="h-16 w-16 text-neutral-300" />
-                      </div>
-                    )}
-                  </div>
+                  <Link href={`/dashboard/collections/${collection.id}`}>
+                    <div className="aspect-video w-full overflow-hidden bg-gradient-to-br from-neutral-100 to-neutral-200">
+                      {collection.cover_image_url ? (
+                        <img
+                          src={collection.cover_image_url}
+                          alt={collection.name}
+                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <FolderIcon className="h-16 w-16 text-neutral-300" />
+                        </div>
+                      )}
+                    </div>
+                  </Link>
 
                   {/* Content */}
                   <CardContent className="p-4">
                     <div className="mb-2 flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-neutral-900 line-clamp-1 group-hover:text-neutral-700">
-                        {collection.name}
-                      </h3>
+                      <Link href={`/dashboard/collections/${collection.id}`}>
+                        <h3 className="font-semibold text-neutral-900 line-clamp-1 hover:text-neutral-700">
+                          {collection.name}
+                        </h3>
+                      </Link>
                       {collection.privacy_level === 'public' ? (
                         <EyeIcon className="h-4 w-4 flex-shrink-0 text-green-600" />
                       ) : (
@@ -119,9 +120,20 @@ export default async function CollectionsPage() {
                     <p className="mt-2 text-xs text-neutral-400">
                       Created {new Date(collection.created_at).toLocaleDateString()}
                     </p>
+
+                    {collection.privacy_level === 'public' && collection.username && (
+                      <div className="mt-3 pt-3 border-t border-neutral-200">
+                        <Button asChild variant="outline" size="sm" className="w-full">
+                          <Link href={`/c/${collection.username}/${collection.slug}`} target="_blank">
+                            <ExternalLinkIcon className="mr-2 h-3 w-3" />
+                            View Public Page
+                          </Link>
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-              </Link>
+              </div>
             ))}
           </div>
         )}
@@ -136,7 +148,19 @@ async function fetchCollections(): Promise<Collection[]> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return [];
+  if (!user) {
+    console.log('No user found for collections');
+    return [];
+  }
+
+  console.log('Fetching collections for user:', user.id);
+
+  // Get username from profiles
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', user.id)
+    .single();
 
   const { data, error } = await supabase
     .from('collections')
@@ -144,7 +168,16 @@ async function fetchCollections(): Promise<Collection[]> {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  if (error || !data) return [];
+  if (error) {
+    console.error('Collections fetch error:', error?.message ?? error);
+    return [];
+  }
 
-  return data;
+  console.log('Collections fetched:', data?.length || 0);
+
+  // Add username to each collection
+  return (data || []).map(collection => ({
+    ...collection,
+    username: profile?.username,
+  }));
 }

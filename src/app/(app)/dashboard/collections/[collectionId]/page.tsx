@@ -1,10 +1,12 @@
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FolderIcon, EyeIcon, LockIcon, EditIcon, TrashIcon } from 'lucide-react';
+import { FolderIcon, EyeIcon, LockIcon, EditIcon } from 'lucide-react';
+import { DeleteCollectionButton } from '@/components/collections/delete-collection-button';
+import { RemoveBookmarkButton } from '@/components/collections/remove-bookmark-button';
 
 interface CollectionDetail {
   id: string;
@@ -60,23 +62,6 @@ export default async function CollectionDetailPage({
 
   const bookmarks = await fetchCollectionBookmarks(collectionId);
 
-  async function deleteCollection() {
-    'use server';
-
-    const supabase = await createSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      redirect('/auth/login');
-    }
-
-    await supabase.from('collections').delete().eq('id', collectionId).eq('user_id', user.id);
-
-    redirect('/dashboard/collections');
-  }
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -114,12 +99,10 @@ export default async function CollectionDetailPage({
                 Edit
               </Link>
             </Button>
-            <form action={deleteCollection}>
-              <Button type="submit" variant="destructive" size="sm">
-                <TrashIcon className="mr-2 h-4 w-4" />
-                Delete
-              </Button>
-            </form>
+            <DeleteCollectionButton
+              collectionId={collection.id}
+              collectionName={collection.name}
+            />
           </div>
         </div>
       </header>
@@ -171,6 +154,10 @@ export default async function CollectionDetailPage({
                         </a>
                       </div>
                     </div>
+                    <RemoveBookmarkButton
+                      collectionId={collectionId}
+                      bookmarkId={bookmark.id}
+                    />
                   </div>
                 ))}
               </div>
