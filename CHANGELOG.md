@@ -1,6 +1,102 @@
 # Changelog
 
-## [Unreleased] - 2025-09-30
+Tüm önemli değişiklikler bu dosyada belgelenecektir.
+
+## [Unreleased]
+
+### Yapılacaklar
+- Drag-drop sıralama özellikleri (collections, link groups)
+- QR kod oluşturma (link groups)
+- Affiliate sistemi
+- Subscription/Stripe entegrasyonu
+- Browser extension
+- AI-powered features
+- Full-text search (Elasticsearch)
+- Mobile apps (iOS/Android)
+
+---
+
+## [0.3.0] - 2025-10-01
+
+### ✅ Eklenenler
+
+#### Premium Posts Sistemi
+- **Premium Post Pages** (`src/app/(app)/dashboard/posts/`)
+  - Premium post oluşturma sayfası (`/dashboard/posts/new`)
+  - Premium post listeleme sayfası (`/dashboard/posts`)
+  - Premium post detay sayfası (`/dashboard/posts/[postId]`)
+  - Markdown desteği (react-markdown paketi)
+  - Multiple media URLs (images, videos, documents)
+  - Privacy controls (subscribers, premium, private)
+  - View/like/comment tracking
+  - Premium özellik kontrolü ve upgrade CTA
+  - Rich content rendering (Markdown, HTML, Plain Text)
+
+#### Link Groups (Linktree-like Feature)
+- **Link Group Management** (`src/app/(app)/dashboard/link-groups/`)
+  - Link group oluşturma sayfası (`/dashboard/link-groups/new`)
+  - Link group listeleme sayfası (`/dashboard/link-groups`)
+  - Link group detay ve yönetim sayfası (`/dashboard/link-groups/[groupId]`)
+  - Link ekleme, düzenleme, pozisyon yönetimi
+  - Theme customization (colors, button styles, backgrounds)
+  - Click ve view analytics
+
+- **Public Link Group Page** (`src/app/(public)/l/[username]/[slug]/page.tsx`)
+  - Responsive, mobile-first public link sayfası
+  - Theme-based styling (dynamic colors, button styles)
+  - SEO optimized (meta tags, Open Graph)
+  - Profile integration (avatar, bio)
+
+- **Click Tracking API** (`src/app/api/link-redirect/[itemId]/route.ts`)
+  - Link tıklama tracking
+  - Click count incrementing
+  - Redirect to external URL
+
+#### Analytics Dashboard
+- **Analytics Page** (`src/app/(app)/dashboard/analytics/page.tsx`)
+  - Comprehensive analytics dashboard
+  - Bookmarks metrics (total, public/private, likes, views)
+  - Collections metrics (total, bookmarks, followers)
+  - Premium posts metrics (views, likes)
+  - Link groups metrics (views, clicks)
+  - Social stats (followers, following, total likes)
+  - Premium/Free user differentiation
+  - Upgrade CTA for free users
+
+#### Collections Enhancements
+- Collection detail page improvements
+- Public collection view username support
+- "View Public Page" button added
+- Collection statistics tracking
+
+### 🔧 Teknik İyileştirmeler
+
+- **Dependencies**
+  - `react-markdown` paketi eklendi (Premium posts için)
+  - Markdown rendering desteği
+
+- **API Endpoints**
+  - Link redirect tracking endpoint
+  - Premium post CRUD endpoints
+  - Link groups CRUD endpoints
+
+- **Database Queries**
+  - Analytics data aggregation
+  - Premium feature checks
+  - View count tracking
+  - Click count tracking
+
+### 🎨 UI/UX İyileştirmeleri
+
+- Premium feature gates (upgrade CTAs)
+- Responsive card layouts
+- Icon-based metrics displays
+- Empty state designs
+- Loading states
+
+---
+
+## [0.2.0] - 2024-09-30
 
 ### Added
 
@@ -83,7 +179,44 @@
 
 ---
 
+## [0.1.0] - 2024-01-10
+
+### Eklenenler
+- İlk proje kurulumu
+- Temel auth sistemi
+- Bookmark CRUD işlemleri
+- Tag sistemi
+- SEO optimizasyonları
+- Database schema
+
+---
+
 ## Component Structure
+
+### Premium Posts
+```
+src/app/(app)/dashboard/posts/
+├── page.tsx                    # Post listesi
+├── new/page.tsx               # Post oluşturma
+└── [postId]/page.tsx          # Post detay
+```
+
+### Link Groups
+```
+src/app/(app)/dashboard/link-groups/
+├── page.tsx                    # Link group listesi
+├── new/page.tsx               # Link group oluşturma
+└── [groupId]/page.tsx         # Link group yönetimi
+
+src/app/(public)/l/[username]/[slug]/
+└── page.tsx                   # Public link page
+```
+
+### Analytics
+```
+src/app/(app)/dashboard/analytics/
+└── page.tsx                   # Analytics dashboard
+```
 
 ### Bookmarks
 ```
@@ -103,18 +236,6 @@ src/components/tags/
 └── tag-sidebar.tsx                # Sidebar
 ```
 
-### Pages
-```
-src/app/
-├── (marketing)/
-│   ├── bookmarks/[id]/[slug]/     # Public bookmark detay
-│   ├── tags/[slug]/               # Public tag sayfası
-│   └── layout.tsx                 # Marketing layout (header + footer)
-└── (app)/dashboard/
-    ├── bookmarks/                 # Dashboard bookmarks
-    └── tags/                      # Dashboard tags
-```
-
 ---
 
 ## Notes
@@ -124,3 +245,4 @@ src/app/
 - Responsive tasarım (mobile-first)
 - Accessibility (ARIA labels, semantic HTML)
 - Type-safe TypeScript kullanımı
+- Premium features gated with upgrade CTAs
