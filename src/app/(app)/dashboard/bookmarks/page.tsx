@@ -173,7 +173,7 @@ async function fetchBookmarks({
   }
 
   return {
-    bookmarks: data.map((item: any) => ({
+    bookmarks: data.map((item) => ({
       id: item.id,
       title: item.title,
       slug: item.slug || item.id,
@@ -185,10 +185,10 @@ async function fetchBookmarks({
       image_url: item.image_url,
       favicon_url: item.favicon_url,
       collections: item.collection_bookmarks
-        ?.map((cb: any) => cb.collections)
+        ?.map((cb) => cb.collections)
         .filter(Boolean) || [],
       tags: item.bookmark_tags
-        ?.map((bt: any) => bt.tags)
+        ?.map((bt) => bt.tags)
         .filter(Boolean) || [],
     })),
   };

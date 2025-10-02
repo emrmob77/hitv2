@@ -5,6 +5,7 @@ import {
   BookmarkPlus,
   ChevronRight,
   Copy,
+  DollarSign,
   Folder,
   Lightbulb,
   Link as LinkIcon,
@@ -39,6 +40,8 @@ type FormValues = {
   faviconUrl: string;
   tags: string;
   collection: string;
+  affiliateUrl: string;
+  commissionRate: string;
 };
 
 type PrivacyOption = {
@@ -92,6 +95,8 @@ function useFormValues(initialValues?: Partial<FormValues>) {
       faviconUrl: initialValues?.faviconUrl ?? '',
       tags: initialValues?.tags ?? '',
       collection: initialValues?.collection ?? '',
+      affiliateUrl: initialValues?.affiliateUrl ?? '',
+      commissionRate: initialValues?.commissionRate ?? '',
     }),
     [initialValues]
   );
@@ -389,6 +394,55 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
                     onChange={(event) => updateValue('faviconUrl', event.target.value)}
                     className="mt-2 h-10 rounded-lg border-neutral-300 text-sm"
                   />
+                </div>
+              </div>
+            </details>
+
+            <details className="lg:col-span-2 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4">
+              <summary className="cursor-pointer text-sm font-semibold text-emerald-900 flex items-center gap-2">
+                <DollarSign className="size-4" />
+                Affiliate Settings (Pro)
+              </summary>
+              <p className="mt-2 text-xs text-emerald-700">
+                Track affiliate links and earn commissions. When visitors click your bookmark, they&apos;ll be redirected to your affiliate URL.
+              </p>
+              <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                  <label htmlFor="affiliateUrl" className="block text-sm font-medium text-neutral-700">
+                    Affiliate URL (optional)
+                  </label>
+                  <Input
+                    id="affiliateUrl"
+                    name="affiliateUrl"
+                    type="url"
+                    placeholder="https://affiliate-link.com/ref=yourcode"
+                    value={formValues.affiliateUrl}
+                    onChange={(event) => updateValue('affiliateUrl', event.target.value)}
+                    className="mt-2 h-10 rounded-lg border-neutral-300 text-sm"
+                  />
+                  <p className="mt-1 text-xs text-neutral-500">
+                    Your affiliate tracking URL that visitors will be redirected to
+                  </p>
+                </div>
+                <div>
+                  <label htmlFor="commissionRate" className="block text-sm font-medium text-neutral-700">
+                    Commission Rate %
+                  </label>
+                  <Input
+                    id="commissionRate"
+                    name="commissionRate"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    placeholder="10.00"
+                    value={formValues.commissionRate}
+                    onChange={(event) => updateValue('commissionRate', event.target.value)}
+                    className="mt-2 h-10 rounded-lg border-neutral-300 text-sm"
+                  />
+                  <p className="mt-1 text-xs text-neutral-500">
+                    Your commission percentage
+                  </p>
                 </div>
               </div>
             </details>

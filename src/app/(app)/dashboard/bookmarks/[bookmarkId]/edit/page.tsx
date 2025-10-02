@@ -16,14 +16,19 @@ type BookmarkRecord = {
   privacy_level: 'public' | 'private' | 'subscribers';
   image_url: string | null;
   favicon_url: string | null;
+  affiliate_links?: Array<{
+    affiliate_url: string;
+    commission_rate: number;
+  }>;
 };
 
 export const metadata: Metadata = {
   title: 'Edit bookmark • HitTags',
 };
 
-export default async function EditBookmarkPage({ params }: { params: PageParams }) {
-  const bookmark = await getBookmark(params.bookmarkId);
+export default async function EditBookmarkPage({ params }: { params: Promise<PageParams> }) {
+  const { bookmarkId } = await params;
+  const bookmark = await getBookmark(bookmarkId);
 
   if (!bookmark) {
     notFound();
@@ -47,6 +52,8 @@ export default async function EditBookmarkPage({ params }: { params: PageParams 
           privacy: bookmark.privacy_level,
           imageUrl: bookmark.image_url ?? '',
           faviconUrl: bookmark.favicon_url ?? '',
+          affiliateUrl: bookmark.affiliate_links?.[0]?.affiliate_url ?? '',
+          commissionRate: bookmark.affiliate_links?.[0]?.commission_rate?.toString() ?? '',
         }}
       />
     </div>
@@ -66,14 +73,33 @@ async function getBookmark(id: string): Promise<BookmarkRecord | null> {
 
   const { data, error } = await supabase
     .from('bookmarks')
-    .select('id, url, title, description, privacy_level, image_url, favicon_url')
+    .select(`
+      id,
+      url,
+      title,
+      description,
+      privacy_level,
+      image_url,
+      favicon_url
+    `)
     .eq('id', id)
     .eq('user_id', user.id)
     .single();
 
   if (error || !data) {
+    console.error('Bookmark fetch error:', error);
     return null;
   }
 
-  return data;
+  // Fetch affiliate links separately
+  const { data: affiliateLinks } = await supabase
+    .from('affiliate_links')
+    .select('affiliate_url, commission_rate')
+    .eq('bookmark_id', id)
+    .eq('user_id', user.id);
+
+  return {
+    ...data,
+    affiliate_links: affiliateLinks || [],
+  };
 }

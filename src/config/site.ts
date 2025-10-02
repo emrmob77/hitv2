@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   BookMarked,
-  Crown,
+  DollarSign,
   FileText,
   FolderClosed,
   LayoutDashboard,
@@ -112,6 +112,13 @@ export const siteConfig = {
       icon: Link2,
       badge: "Pro",
       description: "Your personal link-in-bio pages",
+    },
+    {
+      title: "Affiliate Links",
+      href: "/dashboard/affiliate",
+      icon: DollarSign,
+      badge: "Pro",
+      description: "Track affiliate links and earnings",
     },
     {
       title: "Analytics",

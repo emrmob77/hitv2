@@ -2,6 +2,9 @@ import { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookmarkIcon, FolderIcon, HeartIcon, EyeIcon, UsersIcon, TrendingUpIcon, LinkIcon, FileTextIcon } from 'lucide-react';
+import { ClickTrendChart } from '@/components/analytics/click-trend-chart';
+import { DeviceBreakdownChart } from '@/components/analytics/device-breakdown-chart';
+import { TopLinksChart } from '@/components/analytics/top-links-chart';
 
 export const metadata: Metadata = {
   title: 'Analytics • HitTags',
@@ -248,6 +251,72 @@ export default async function AnalyticsPage() {
           )}
         </div>
       </div>
+
+      {/* Charts Section */}
+      {profile?.is_premium && (
+        <div className="mx-auto w-full max-w-7xl space-y-6">
+          <h2 className="text-2xl font-semibold">Performance Insights</h2>
+
+          {/* Click Trend */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Click Trends (Last 7 Days)</CardTitle>
+              <CardDescription>Daily click performance across all your links</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ClickTrendChart
+                data={[
+                  { date: 'Mon', clicks: 45 },
+                  { date: 'Tue', clicks: 52 },
+                  { date: 'Wed', clicks: 38 },
+                  { date: 'Thu', clicks: 65 },
+                  { date: 'Fri', clicks: 78 },
+                  { date: 'Sat', clicks: 92 },
+                  { date: 'Sun', clicks: 71 },
+                ]}
+              />
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Device Breakdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Device Breakdown</CardTitle>
+                <CardDescription>Visitor distribution by device type</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DeviceBreakdownChart
+                  data={[
+                    { name: 'Mobile', value: 58 },
+                    { name: 'Desktop', value: 32 },
+                    { name: 'Tablet', value: 10 },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Top Links */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Performing Links</CardTitle>
+                <CardDescription>Your most clicked links this month</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TopLinksChart
+                  data={[
+                    { name: 'Product Launch', clicks: 234 },
+                    { name: 'Blog Post', clicks: 187 },
+                    { name: 'Newsletter', clicks: 156 },
+                    { name: 'Portfolio', clicks: 142 },
+                    { name: 'Contact', clicks: 98 },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {/* Upgrade CTA for Free Users */}
       {!profile?.is_premium && (

@@ -179,6 +179,8 @@ export async function createBookmarkAction(
   const privacy = sanitisePrivacyLevel(formData.get("privacy"));
   const imageUrlInput = safeTrim(formData.get("imageUrl"));
   const faviconUrlInput = safeTrim(formData.get("faviconUrl"));
+  const affiliateUrl = safeTrim(formData.get("affiliateUrl"));
+  const commissionRate = safeTrim(formData.get("commissionRate"));
 
   if (!url) {
     return {
@@ -249,6 +251,20 @@ export async function createBookmarkAction(
     };
   }
 
+  // Create affiliate link if provided
+  if (affiliateUrl && data.id) {
+    const commissionRateNum = parseFloat(commissionRate) || 0;
+    await supabase
+      .from("affiliate_links")
+      .insert({
+        user_id: user.id,
+        bookmark_id: data.id,
+        original_url: url,
+        affiliate_url: affiliateUrl,
+        commission_rate: commissionRateNum,
+      });
+  }
+
   revalidatePath("/dashboard/bookmarks");
   redirect(`/dashboard/bookmarks/${data.id}`);
 }
@@ -264,6 +280,8 @@ export async function updateBookmarkAction(
   const privacy = sanitisePrivacyLevel(formData.get("privacy"));
   const imageUrlInput = safeTrim(formData.get("imageUrl"));
   const faviconUrlInput = safeTrim(formData.get("faviconUrl"));
+  const affiliateUrl = safeTrim(formData.get("affiliateUrl"));
+  const commissionRate = safeTrim(formData.get("commissionRate"));
 
   if (!id) {
     return { error: "Bookmark identifier is missing." };
@@ -335,6 +353,49 @@ export async function updateBookmarkAction(
         faviconUrl: faviconUrl ?? undefined,
       },
     };
+  }
+
+  // Update or create affiliate link if provided
+  if (affiliateUrl) {
+    const commissionRateNum = parseFloat(commissionRate) || 0;
+
+    // Check if affiliate link exists
+    const { data: existingAffiliate } = await supabase
+      .from("affiliate_links")
+      .select("id")
+      .eq("bookmark_id", id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (existingAffiliate) {
+      // Update existing affiliate link
+      await supabase
+        .from("affiliate_links")
+        .update({
+          original_url: url,
+          affiliate_url: affiliateUrl,
+          commission_rate: commissionRateNum,
+        })
+        .eq("id", existingAffiliate.id);
+    } else {
+      // Create new affiliate link
+      await supabase
+        .from("affiliate_links")
+        .insert({
+          user_id: user.id,
+          bookmark_id: id,
+          original_url: url,
+          affiliate_url: affiliateUrl,
+          commission_rate: commissionRateNum,
+        });
+    }
+  } else {
+    // Delete affiliate link if URL is removed
+    await supabase
+      .from("affiliate_links")
+      .delete()
+      .eq("bookmark_id", id)
+      .eq("user_id", user.id);
   }
 
   revalidatePath("/dashboard/bookmarks");
