@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FileTextIcon, EyeIcon, HeartIcon, MessageCircleIcon, EditIcon, UsersIcon, LockIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { DeletePostButton } from '@/components/posts/delete-post-button';
+import { CopyPostLinkButton } from '@/components/posts/copy-post-link-button';
 
 interface PostDetail {
   id: string;
@@ -15,13 +16,14 @@ interface PostDetail {
   content: string;
   content_type: 'text' | 'markdown' | 'html';
   media_urls: string[];
-  visibility: 'subscribers' | 'premium' | 'private';
+  visibility: 'public' | 'subscribers' | 'premium' | 'private';
   like_count: number;
   comment_count: number;
   view_count: number;
   is_featured: boolean;
   created_at: string;
   updated_at: string;
+  slug: string | null;
 }
 
 export async function generateMetadata({
@@ -49,6 +51,7 @@ export default async function PostDetailPage({
 }) {
   const { postId } = await params;
   const post = await fetchPost(postId);
+  const profile = await fetchUserProfile();
 
   if (!post) {
     notFound();
@@ -67,6 +70,13 @@ export default async function PostDetailPage({
             <span>{post.title}</span>
           </div>
           <div className="flex gap-2">
+            {profile?.username && post.slug && (
+              <CopyPostLinkButton
+                username={profile.username}
+                slug={post.slug}
+                visibility={post.visibility}
+              />
+            )}
             <Button asChild variant="outline" size="sm">
               <Link href={`/dashboard/posts/${post.id}/edit`}>
                 <EditIcon className="mr-2 h-4 w-4" />
@@ -233,6 +243,23 @@ async function fetchPost(postId: string): Promise<PostDetail | null> {
     .from('exclusive_posts')
     .update({ view_count: data.view_count + 1 })
     .eq('id', postId);
+
+  return data;
+}
+
+async function fetchUserProfile() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', user.id)
+    .single();
 
   return data;
 }

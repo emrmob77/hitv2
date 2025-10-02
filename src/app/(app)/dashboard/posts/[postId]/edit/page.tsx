@@ -201,12 +201,13 @@ https://example.com/document.pdf
                 defaultValue={post.visibility}
                 className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
               >
+                <option value="public">Public (Anyone can view)</option>
                 <option value="subscribers">Subscribers Only</option>
                 <option value="premium">Premium Members Only</option>
                 <option value="private">Private (Only You)</option>
               </select>
               <p className="text-xs text-neutral-500">
-                Control who can see this premium post.
+                Control who can see this premium post. Public posts are visible to anyone with the link.
               </p>
             </div>
 

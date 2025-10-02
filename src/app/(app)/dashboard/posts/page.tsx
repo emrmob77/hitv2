@@ -17,13 +17,14 @@ interface ExclusivePost {
   content: string;
   content_type: 'text' | 'markdown' | 'html';
   media_urls: string[];
-  visibility: 'subscribers' | 'premium' | 'private';
+  visibility: 'public' | 'subscribers' | 'premium' | 'private';
   like_count: number;
   comment_count: number;
   view_count: number;
   is_featured: boolean;
   created_at: string;
   updated_at: string;
+  slug: string | null;
 }
 
 export default async function PostsPage({
@@ -39,6 +40,7 @@ export default async function PostsPage({
 
   const posts = await fetchPosts(query, visibilityFilter, sortBy);
   const profile = await fetchUserProfile();
+  const username = profile?.username || '';
 
   return (
     <div className="space-y-8">
@@ -144,13 +146,13 @@ export default async function PostsPage({
         ) : viewMode === 'grid' ? (
           <div className="grid gap-6 md:grid-cols-2">
             {posts.map((post) => (
-              <PostCardGrid key={post.id} post={post} />
+              <PostCardGrid key={post.id} post={post} username={username} />
             ))}
           </div>
         ) : (
           <div className="space-y-4">
             {posts.map((post) => (
-              <PostCardList key={post.id} post={post} />
+              <PostCardList key={post.id} post={post} username={username} />
             ))}
           </div>
         )}
@@ -159,7 +161,7 @@ export default async function PostsPage({
   );
 }
 
-function PostCardGrid({ post }: { post: ExclusivePost }) {
+function PostCardGrid({ post, username }: { post: ExclusivePost; username: string }) {
   return (
     <div className="group">
       <Card className="overflow-hidden transition-shadow hover:shadow-lg">
@@ -209,19 +211,33 @@ function PostCardGrid({ post }: { post: ExclusivePost }) {
             </span>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-xs text-neutral-400">
               {new Date(post.created_at).toLocaleDateString()}
             </span>
             <VisibilityBadge visibility={post.visibility} />
           </div>
+
+          {/* Public Link - Only show for public posts */}
+          {post.visibility === 'public' && post.slug && username && (
+            <div className="mt-3 pt-3 border-t">
+              <Link
+                href={`/p/${username}/${post.slug}`}
+                target="_blank"
+                className="flex items-center justify-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline"
+              >
+                <EyeIcon className="h-3 w-3" />
+                View Public Page
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
 
-function PostCardList({ post }: { post: ExclusivePost }) {
+function PostCardList({ post, username }: { post: ExclusivePost; username: string }) {
   return (
     <Card className="transition-shadow hover:shadow-md">
       <CardContent className="p-4">
@@ -255,7 +271,7 @@ function PostCardList({ post }: { post: ExclusivePost }) {
             <p className="mb-2 text-sm text-neutral-600 line-clamp-2">
               {post.content.substring(0, 120)}...
             </p>
-            <div className="flex items-center gap-4 text-xs text-neutral-500">
+            <div className="flex items-center flex-wrap gap-3 text-xs text-neutral-500">
               <span className="flex items-center gap-1">
                 <EyeIcon className="h-3 w-3" />
                 {post.view_count}
@@ -266,6 +282,18 @@ function PostCardList({ post }: { post: ExclusivePost }) {
               </span>
               <span>{new Date(post.created_at).toLocaleDateString()}</span>
               <VisibilityBadge visibility={post.visibility} />
+
+              {/* Public Link - Inline for list view */}
+              {post.visibility === 'public' && post.slug && username && (
+                <Link
+                  href={`/p/${username}/${post.slug}`}
+                  target="_blank"
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  <EyeIcon className="h-3 w-3" />
+                  Public
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -275,6 +303,14 @@ function PostCardList({ post }: { post: ExclusivePost }) {
 }
 
 function VisibilityBadge({ visibility }: { visibility: string }) {
+  if (visibility === 'public') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
+        <EyeIcon className="h-3 w-3" />
+        Public
+      </span>
+    );
+  }
   if (visibility === 'subscribers') {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
@@ -363,7 +399,7 @@ async function fetchUserProfile() {
 
   const { data } = await supabase
     .from('profiles')
-    .select('is_premium, subscription_tier')
+    .select('username, is_premium, subscription_tier')
     .eq('id', user.id)
     .single();
 

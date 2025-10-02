@@ -27,6 +27,7 @@ export function PostFilters({ visibilityFilter, sortBy }: PostFiltersProps) {
         onChange={(e) => updateFilter('visibility', e.target.value)}
       >
         <option value="all">All Posts</option>
+        <option value="public">Public</option>
         <option value="subscribers">Subscribers</option>
         <option value="premium">Premium</option>
         <option value="private">Private</option>
