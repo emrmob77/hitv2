@@ -1,11 +1,14 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GripVerticalIcon, ExternalLinkIcon, PlusIcon, SettingsIcon } from 'lucide-react';
+import { ExternalLinkIcon, PlusIcon, SettingsIcon } from 'lucide-react';
+import { SortableLinkList } from '@/components/link-groups/sortable-link-list';
+import { QRCodeGenerator } from '@/components/link-groups/qr-code-generator';
 
 interface LinkGroupDetail {
   id: string;
@@ -65,6 +68,10 @@ export default async function LinkGroupDetailPage({
   const items = await fetchLinkItems(groupId);
   const profile = await fetchUserProfile();
 
+  const publicUrl = profile?.username && group.is_active
+    ? `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/l/${profile.username}/${group.slug}`
+    : '';
+
   async function addLinkItem(formData: FormData) {
     'use server';
 
@@ -115,6 +122,110 @@ export default async function LinkGroupDetailPage({
     redirect(`/dashboard/link-groups/${groupId}`);
   }
 
+  async function handleReorder(reorderedItems: LinkItem[]) {
+    'use server';
+
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error('Unauthorized');
+    }
+
+    // Verify ownership
+    const { data: group } = await supabase
+      .from('link_groups')
+      .select('user_id')
+      .eq('id', groupId)
+      .single();
+
+    if (!group || group.user_id !== user.id) {
+      throw new Error('Forbidden');
+    }
+
+    // Update positions in batch
+    const updates = reorderedItems.map((item) =>
+      supabase
+        .from('link_group_items')
+        .update({ position: item.position })
+        .eq('id', item.id)
+        .eq('link_group_id', groupId)
+    );
+
+    await Promise.all(updates);
+
+    revalidatePath(`/dashboard/link-groups/${groupId}`);
+  }
+
+  async function handleToggleActive(itemId: string, isActive: boolean) {
+    'use server';
+
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase
+      .from('link_group_items')
+      .update({ is_active: isActive })
+      .eq('id', itemId);
+
+    if (error) {
+      throw new Error('Failed to toggle link status');
+    }
+
+    revalidatePath(`/dashboard/link-groups/${groupId}`);
+  }
+
+  async function handleDelete(itemId: string) {
+    'use server';
+
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase
+      .from('link_group_items')
+      .delete()
+      .eq('id', itemId);
+
+    if (error) {
+      throw new Error('Failed to delete link');
+    }
+
+    revalidatePath(`/dashboard/link-groups/${groupId}`);
+  }
+
+  async function handleUpdate(
+    itemId: string,
+    data: { title?: string; url?: string; description?: string }
+  ) {
+    'use server';
+
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error('Unauthorized');
+    }
+
+    const updateData: Record<string, string | null> = {};
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.url !== undefined) updateData.url = data.url;
+    if (data.description !== undefined) {
+      updateData.description = data.description || null;
+    }
+
+    const { error } = await supabase
+      .from('link_group_items')
+      .update(updateData)
+      .eq('id', itemId)
+      .eq('link_group_id', groupId);
+
+    if (error) {
+      throw new Error('Failed to update link');
+    }
+
+    revalidatePath(`/dashboard/link-groups/${groupId}`);
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -128,6 +239,9 @@ export default async function LinkGroupDetailPage({
             <span>{group.name}</span>
           </div>
           <div className="flex gap-2">
+            {publicUrl && (
+              <QRCodeGenerator url={publicUrl} title={group.name} />
+            )}
             <Button asChild variant="outline" size="sm">
               <Link href={`/dashboard/link-groups/${groupId}/edit`}>
                 <SettingsIcon className="mr-2 h-4 w-4" />
@@ -214,48 +328,20 @@ export default async function LinkGroupDetailPage({
         </Card>
       </div>
 
-      {/* Link Items */}
+      {/* Link Items with Drag & Drop */}
       <div className="mx-auto w-full max-w-4xl">
         <Card>
           <CardHeader>
             <CardTitle>Your Links ({items.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            {items.length === 0 ? (
-              <div className="py-8 text-center text-sm text-neutral-600">
-                No links added yet. Add your first link above to get started.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 rounded-lg border p-4 transition-colors hover:bg-neutral-50"
-                  >
-                    <GripVerticalIcon className="h-5 w-5 flex-shrink-0 text-neutral-400" />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-medium text-neutral-900">{item.title}</h3>
-                      {item.description && (
-                        <p className="mt-0.5 text-sm text-neutral-600 line-clamp-1">
-                          {item.description}
-                        </p>
-                      )}
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 text-xs text-blue-600 hover:underline"
-                      >
-                        {item.url}
-                      </a>
-                    </div>
-                    <div className="flex flex-shrink-0 items-center gap-2 text-sm text-neutral-500">
-                      <span>{item.click_count} clicks</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <SortableLinkList
+              items={items}
+              onReorder={handleReorder}
+              onToggleActive={handleToggleActive}
+              onDelete={handleDelete}
+              onUpdate={handleUpdate}
+            />
           </CardContent>
         </Card>
       </div>

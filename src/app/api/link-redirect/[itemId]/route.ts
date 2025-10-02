@@ -31,12 +31,26 @@ export async function GET(
       .eq('id', itemId);
 
     // Increment click count for the link group
-    await supabase.rpc('increment_link_group_clicks', {
-      group_id: item.link_group_id,
-    });
+    const { data: linkGroup } = await supabase
+      .from('link_groups')
+      .select('click_count')
+      .eq('id', item.link_group_id)
+      .single();
+
+    if (linkGroup) {
+      await supabase
+        .from('link_groups')
+        .update({ click_count: linkGroup.click_count + 1 })
+        .eq('id', item.link_group_id);
+    }
 
     // Redirect to the actual URL
-    return NextResponse.redirect(item.url);
+    // Ensure URL is absolute
+    const redirectUrl = item.url.startsWith('http')
+      ? item.url
+      : `https://${item.url}`;
+
+    return NextResponse.redirect(redirectUrl, 302);
   } catch (error) {
     console.error('Link redirect error:', error);
     return NextResponse.redirect(new URL('/', request.url));
