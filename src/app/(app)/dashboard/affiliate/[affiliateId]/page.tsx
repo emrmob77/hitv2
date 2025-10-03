@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { QRCodeGenerator } from '@/components/affiliate/qr-code-generator';
 import {
   DollarSignIcon,
   MousePointerClickIcon,
@@ -78,6 +79,10 @@ export default async function AffiliateLinkDetailPage({
     .single();
 
   const link = affiliateLink as AffiliateLinkDetail;
+
+  // Generate short URL
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hittags.com';
+  const shortUrl = `${baseUrl}/a/${affiliateLink.short_code}`;
 
   return (
     <div className="space-y-8">
@@ -222,6 +227,19 @@ export default async function AffiliateLinkDetailPage({
           </Card>
         )}
       </div>
+
+      {/* QR Code Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>QR Code</CardTitle>
+          <CardDescription>
+            Generate a QR code for easy sharing of your affiliate link
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <QRCodeGenerator url={shortUrl} linkTitle={bookmark?.title} />
+        </CardContent>
+      </Card>
 
       {/* Performance Note */}
       <Card className="border-blue-200 bg-blue-50">

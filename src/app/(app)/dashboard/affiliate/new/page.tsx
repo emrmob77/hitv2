@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeftIcon } from 'lucide-react';
+import { revalidatePath } from 'next/cache';
 
 export const metadata: Metadata = {
   title: 'Add Affiliate Link • HitTags',
@@ -45,19 +46,19 @@ export default async function NewAffiliateLinkPage() {
     const affiliateUrl = formData.get('affiliate_url') as string;
     const commissionRate = parseFloat(formData.get('commission_rate') as string);
 
-    if (!bookmarkId || !affiliateUrl || !commissionRate) {
-      return;
+    if (!bookmarkId || !affiliateUrl || isNaN(commissionRate)) {
+      throw new Error('Tüm alanları doldurun');
     }
 
     // Get bookmark original URL
-    const { data: bookmark } = await supabase
+    const { data: bookmark, error: bookmarkError } = await supabase
       .from('bookmarks')
       .select('url')
       .eq('id', bookmarkId)
       .single();
 
-    if (!bookmark) {
-      return;
+    if (bookmarkError || !bookmark) {
+      throw new Error('Yer imi bulunamadı');
     }
 
     const { error } = await supabase.from('affiliate_links').insert({
@@ -68,13 +69,16 @@ export default async function NewAffiliateLinkPage() {
       commission_rate: commissionRate,
       total_clicks: 0,
       total_earnings: 0,
+      conversion_count: 0,
+      is_active: true,
     });
 
     if (error) {
       console.error('Failed to create affiliate link:', error);
-      return;
+      throw new Error('Affiliate link oluşturulamadı: ' + error.message);
     }
 
+    revalidatePath('/dashboard/affiliate');
     redirect('/dashboard/affiliate');
   }
 

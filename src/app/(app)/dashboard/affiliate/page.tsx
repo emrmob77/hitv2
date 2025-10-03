@@ -3,12 +3,15 @@ import Link from 'next/link';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { AffiliateLinkItem } from '@/components/affiliate/affiliate-link-item';
 import {
   DollarSignIcon,
   MousePointerClickIcon,
   TrendingUpIcon,
-  ExternalLinkIcon,
-  PlusIcon
+  PlusIcon,
+  LinkIcon,
+  BarChartIcon
 } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -40,6 +43,9 @@ export default async function AffiliatePage() {
   if (!user) {
     return <div>Please login</div>;
   }
+
+  // Get base URL
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hittags.com';
 
   // Check if user is premium
   const { data: profile } = await supabase
@@ -91,12 +97,20 @@ export default async function AffiliatePage() {
           </p>
         </div>
         {isPremium && (
-          <Button asChild>
-            <Link href="/dashboard/affiliate/new">
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Add Affiliate Link
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+              <Link href="/dashboard/affiliate/analytics">
+                <BarChartIcon className="mr-2 h-4 w-4" />
+                Analytics
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/dashboard/affiliate/new">
+                <PlusIcon className="mr-2 h-4 w-4" />
+                Add Link
+              </Link>
+            </Button>
+          </div>
         )}
       </div>
 
@@ -175,55 +189,23 @@ export default async function AffiliatePage() {
           </CardHeader>
           <CardContent>
             {!affiliateLinks || affiliateLinks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <DollarSignIcon className="mb-4 h-12 w-12 text-neutral-400" />
-                <h3 className="mb-2 text-lg font-semibold">No affiliate links yet</h3>
-                <p className="mb-4 text-sm text-neutral-600">
-                  Start monetizing your bookmarks by adding affiliate links
-                </p>
-                <Button asChild>
-                  <Link href="/dashboard/affiliate/new">
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    Add Your First Affiliate Link
-                  </Link>
-                </Button>
-              </div>
+              <EmptyState
+                icon={LinkIcon}
+                title="No affiliate links yet"
+                description="Start monetizing your bookmarks by adding affiliate tracking links"
+                action={
+                  <Button asChild>
+                    <Link href="/dashboard/affiliate/new">
+                      <PlusIcon className="mr-2 h-4 w-4" />
+                      Add Your First Link
+                    </Link>
+                  </Button>
+                }
+              />
             ) : (
               <div className="space-y-4">
                 {affiliateLinks.map((link) => (
-                  <div
-                    key={link.id}
-                    className="flex items-center justify-between rounded-lg border p-4 hover:bg-neutral-50"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <h4 className="font-medium text-neutral-900">
-                        {link.bookmark?.title || 'Untitled'}
-                      </h4>
-                      <a
-                        href={link.affiliate_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                      >
-                        {link.affiliate_url.substring(0, 60)}...
-                        <ExternalLinkIcon className="h-3 w-3" />
-                      </a>
-                      <div className="mt-2 flex gap-4 text-xs text-neutral-600">
-                        <span>{link.total_clicks || 0} clicks</span>
-                        <span>•</span>
-                        <span>{link.commission_rate}% commission</span>
-                        <span>•</span>
-                        <span className="font-medium text-green-600">
-                          ${(link.total_earnings || 0).toFixed(2)} earned
-                        </span>
-                      </div>
-                    </div>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/dashboard/affiliate/${link.id}`}>
-                        View Details
-                      </Link>
-                    </Button>
-                  </div>
+                  <AffiliateLinkItem key={link.id} link={link} baseUrl={baseUrl} />
                 ))}
               </div>
             )}

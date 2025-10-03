@@ -66,17 +66,28 @@ export default async function EditAffiliateLinkPage({
 
     const affiliateUrl = formData.get('affiliateUrl') as string;
     const commissionRate = parseFloat(formData.get('commissionRate') as string);
+    const expiresAt = formData.get('expiresAt') as string;
+    const isActive = formData.get('isActive') === 'true';
 
     if (!affiliateUrl || isNaN(commissionRate)) {
       throw new Error('Invalid input');
     }
 
+    const updateData: any = {
+      affiliate_url: affiliateUrl,
+      commission_rate: commissionRate,
+      is_active: isActive,
+    };
+
+    if (expiresAt) {
+      updateData.expires_at = new Date(expiresAt).toISOString();
+    } else {
+      updateData.expires_at = null;
+    }
+
     const { error } = await supabase
       .from('affiliate_links')
-      .update({
-        affiliate_url: affiliateUrl,
-        commission_rate: commissionRate,
-      })
+      .update(updateData)
       .eq('id', affiliateId)
       .eq('user_id', user.id);
 
@@ -192,6 +203,37 @@ export default async function EditAffiliateLinkPage({
               <p className="text-xs text-neutral-500">
                 Your commission percentage for this affiliate program
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="expiresAt">Expiration Date (Optional)</Label>
+              <Input
+                id="expiresAt"
+                name="expiresAt"
+                type="datetime-local"
+                defaultValue={
+                  affiliateLink.expires_at
+                    ? new Date(affiliateLink.expires_at).toISOString().slice(0, 16)
+                    : ''
+                }
+              />
+              <p className="text-xs text-neutral-500">
+                Link will be automatically disabled after this date
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isActive"
+                name="isActive"
+                value="true"
+                defaultChecked={affiliateLink.is_active}
+                className="h-4 w-4 rounded border-neutral-300"
+              />
+              <Label htmlFor="isActive" className="cursor-pointer">
+                Link is active
+              </Label>
             </div>
 
             <div className="flex gap-3">
