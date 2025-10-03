@@ -6,13 +6,151 @@ Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
 ### Yapılacaklar
 - Drag-drop sıralama özellikleri (collections, link groups)
-- QR kod oluşturma (link groups)
-- Affiliate sistemi
 - Subscription/Stripe entegrasyonu
 - Browser extension
 - AI-powered features
 - Full-text search (Elasticsearch)
 - Mobile apps (iOS/Android)
+
+---
+
+## [0.5.0] - 2025-10-03
+
+### ✅ Eklenenler
+
+#### Affiliate Link Management System
+- **Affiliate Pages** (`src/app/(app)/dashboard/affiliate/`)
+  - Affiliate links list page (`/dashboard/affiliate`)
+  - Create new affiliate link page (`/dashboard/affiliate/new`)
+  - Affiliate link details page (`/dashboard/affiliate/[affiliateId]`)
+  - Edit affiliate link page (`/dashboard/affiliate/[affiliateId]/edit`)
+  - Analytics dashboard (`/dashboard/affiliate/analytics`)
+  - Public short link redirect (`/a/[shortCode]`)
+
+- **Affiliate Features**
+  - Link bookmarks to affiliate URLs
+  - Commission rate tracking
+  - Automatic short code generation
+  - Click tracking and analytics
+  - Conversion tracking (manual entry)
+  - Earnings calculation (automatic)
+  - Last 30 days click trends graph
+  - Top performing links leaderboard
+  - Total clicks, conversions, CVR metrics
+
+- **Security & Advanced Features**
+  - Click fraud detection (100 clicks/hour limit)
+  - Link expiration dates
+  - Auto-disable expired links
+  - Suspicious activity logging
+  - QR code generator for each link
+  - PNG download for QR codes
+  - Copy link functionality
+
+- **Affiliate Components**
+  - `affiliate-link-item.tsx` - Link card with copy
+  - `qr-code-generator.tsx` - QR code generation
+  - Loading, empty, and error states
+
+#### Link Groups Improvements
+- **UI/UX Enhancements**
+  - Better empty states with EmptyState component
+  - Clear call-to-action buttons
+  - Premium feature gating
+  - Improved link group cards
+  - Copy URL functionality with visual feedback
+  - Better hover effects
+  - Skeleton loading states
+  - Proper suspense boundaries
+
+- **Analytics Features**
+  - Total views metric
+  - Total clicks metric
+  - Click rate (engagement) calculation
+  - Top performing links (top 5)
+  - Individual link performance tracking
+
+#### Reusable UI Components
+- **New Components Created**
+  - `empty-state.tsx` - Consistent empty state design
+  - `loading-spinner.tsx` - Loading indicators
+  - `error-state.tsx` - Error handling UI
+  - `skeleton.tsx` - Loading placeholders
+
+### 🐛 Bug Fixes
+
+- Fixed hydration mismatch error in link groups
+  - Removed `window.location.origin` usage
+  - Use `baseUrl` prop from server instead
+  - Consistent URL rendering
+
+- Fixed affiliate link creation
+  - Added missing `bookmark_id` column
+  - Fixed earnings calculation
+  - Removed reliance on database triggers
+
+### 🗑️ Removed
+
+- Removed unused affiliate test endpoints
+  - `/api/affiliate/click` (unused)
+  - `/api/affiliate/test-conversion` (development only)
+  - Test conversion button from UI
+
+### 🔧 Database Migrations
+
+- **Migration 006**: `add_bookmark_id_to_affiliate_links.sql`
+  - Added `bookmark_id` column with foreign key
+  - Renamed `click_count` to `total_clicks`
+  - Added `short_code` auto-generation trigger
+  - Made `short_code` nullable
+  - Added index on `bookmark_id`
+
+### 📦 Dependencies Added
+
+```json
+{
+  "qrcode": "^1.5.x"
+}
+```
+
+### 🎨 UI/UX Patterns
+
+- Server/Client component separation
+- Proper data fetching patterns
+- Optimistic updates
+- Consistent loading states
+- Error boundaries
+- Premium feature gates
+
+### 📈 Performance Optimizations
+
+- **Database**
+  - Indexed columns for faster queries
+  - Efficient join operations
+  - Proper use of `select` for specific fields
+
+- **Frontend**
+  - Server-side rendering where possible
+  - Client components only when needed
+  - Lazy loading for heavy components
+  - Skeleton loaders for better UX
+
+### 🔐 Security Enhancements
+
+- Click fraud detection (rate limiting)
+- Link expiration dates
+- Auto-disable expired links
+- Server-side validation
+- RLS policies respected
+- User authentication checks
+- Input validation
+- SQL injection prevention
+
+### 📝 Documentation
+
+- Created `COMPLETED_FEATURES_v0.5.0.md`
+- Updated `tasks.md` (Task 11 complete, Task 13 enhanced)
+- Database migrations documented
 
 ---
 

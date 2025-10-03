@@ -1,6 +1,16 @@
 ## HitTags Web Uygulaması
 
-Bu depo, HitTags sosyal bookmark platformunun Next.js 14 (App Router) tabanlı web uygulaması için temel kurulumunu içerir. Tasarım, gereksinim ve uygulama planı `design.md`, `requirements.md` ve `tasks.md` dosyalarıyla uyumlu olacak şekilde kurgulanmıştır.
+Bu depo, HitTags sosyal bookmark platformunun Next.js 15.5.4 (App Router) tabanlı web uygulaması için temel kurulumunu içerir. Tasarım, gereksinim ve uygulama planı `design.md`, `requirements.md` ve `tasks.md` dosyalarıyla uyumlu olacak şekilde kurgulanmıştır.
+
+### ✨ Güncel Özellikler (v0.5.0)
+
+- ✅ **Affiliate Link Management** - Commission tracking, analytics, QR codes
+- ✅ **Link Groups** - Linktree-like pages with analytics
+- ✅ **Premium Posts** - URL-free content with Markdown support
+- ✅ **Collections** - Organize and share bookmark collections
+- ✅ **Analytics Dashboard** - Comprehensive metrics and insights
+- ✅ **SEO Optimized** - Meta tags, Open Graph, sitemap
+- ✅ **Authentication** - Supabase Auth with Google/GitHub OAuth
 
 ### Başlangıç
 

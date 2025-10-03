@@ -3,7 +3,9 @@ import { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { LinkIcon, EyeIcon, MousePointerClickIcon, ExternalLinkIcon, QrCodeIcon } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { LinkGroupCard } from '@/components/link-groups/link-group-card';
+import { LinkIcon, PlusIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Link Groups • HitTags',
@@ -25,6 +27,7 @@ interface LinkGroup {
 export default async function LinkGroupsPage() {
   const linkGroups = await fetchLinkGroups();
   const profile = await fetchUserProfile();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hittags.com';
 
   return (
     <div className="space-y-8">
@@ -56,87 +59,25 @@ export default async function LinkGroupsPage() {
       {/* Link Groups Grid */}
       <div className="mx-auto w-full max-w-5xl">
         {linkGroups.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <LinkIcon className="mx-auto mb-4 h-12 w-12 text-neutral-300" />
-              <h3 className="mb-2 text-lg font-semibold text-neutral-900">No link groups yet</h3>
-              <p className="mb-6 text-sm text-neutral-600">
-                Create your first link group to share all your important links in one beautiful page.
-              </p>
-              {profile?.is_premium && (
+          <EmptyState
+            icon={LinkIcon}
+            title="No link groups yet"
+            description="Create your first link group to share all your important links in one beautiful page."
+            action={
+              profile?.is_premium ? (
                 <Button asChild>
-                  <Link href="/dashboard/link-groups/new">Create Your First Link Group</Link>
+                  <Link href="/dashboard/link-groups/new">
+                    <PlusIcon className="mr-2 h-4 w-4" />
+                    Create Your First Link Group
+                  </Link>
                 </Button>
-              )}
-            </CardContent>
-          </Card>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {linkGroups.map((group) => (
-              <div key={group.id} className="group">
-                <Card className="overflow-hidden transition-shadow hover:shadow-lg">
-                  <CardContent className="p-6">
-                    <Link href={`/dashboard/link-groups/${group.id}`}>
-                      <h3 className="mb-2 text-xl font-semibold text-neutral-900 line-clamp-1 hover:text-neutral-700">
-                        {group.name}
-                      </h3>
-                    </Link>
-
-                    {group.description && (
-                      <p className="mb-4 text-sm text-neutral-600 line-clamp-2">
-                        {group.description}
-                      </p>
-                    )}
-
-                    <div className="mb-4 space-y-2 text-sm text-neutral-500">
-                      <div className="flex items-center gap-2">
-                        <EyeIcon className="h-4 w-4" />
-                        <span>{group.view_count} views</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MousePointerClickIcon className="h-4 w-4" />
-                        <span>{group.click_count} clicks</span>
-                      </div>
-                    </div>
-
-                    {group.is_active && group.username && (
-                      <div className="space-y-2">
-                        <div className="rounded-lg bg-neutral-50 p-3">
-                          <p className="mb-1 text-xs text-neutral-500">Public URL:</p>
-                          <code className="text-xs text-blue-600">
-                            hittags.com/l/{group.username}/{group.slug}
-                          </code>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button asChild variant="outline" size="sm" className="flex-1">
-                            <Link href={`/l/${group.username}/${group.slug}`} target="_blank">
-                              <ExternalLinkIcon className="mr-2 h-3 w-3" />
-                              View
-                            </Link>
-                          </Button>
-                          <Button asChild variant="outline" size="sm" className="flex-1">
-                            <Link href={`/dashboard/link-groups/${group.id}/qr`}>
-                              <QrCodeIcon className="mr-2 h-3 w-3" />
-                              QR
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {!group.is_active && (
-                      <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-                        <p className="text-xs text-amber-700">Inactive - Not visible to public</p>
-                      </div>
-                    )}
-
-                    <p className="mt-4 text-xs text-neutral-400">
-                      Created {new Date(group.created_at).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+              <LinkGroupCard key={group.id} group={group} baseUrl={baseUrl} />
             ))}
           </div>
         )}

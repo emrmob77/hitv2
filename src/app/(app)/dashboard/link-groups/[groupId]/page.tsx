@@ -5,8 +5,8 @@ import { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ExternalLinkIcon, PlusIcon, SettingsIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ExternalLinkIcon, PlusIcon, SettingsIcon, EyeIcon, MousePointerClickIcon, TrendingUpIcon } from 'lucide-react';
 import { SortableLinkList } from '@/components/link-groups/sortable-link-list';
 import { QRCodeGenerator } from '@/components/link-groups/qr-code-generator';
 
@@ -264,12 +264,89 @@ export default async function LinkGroupDetailPage({
           <p className="text-sm text-neutral-600">{group.description}</p>
         )}
 
-        <div className="mt-4 flex items-center gap-4 text-sm text-neutral-500">
-          <span>{group.view_count} views</span>
-          <span>•</span>
-          <span>{group.click_count} total clicks</span>
-        </div>
       </header>
+
+      {/* Analytics Stats */}
+      <div className="mx-auto w-full max-w-4xl">
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+              <EyeIcon className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{group.view_count}</div>
+              <p className="text-xs text-neutral-500">Page visits</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
+              <MousePointerClickIcon className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{group.click_count}</div>
+              <p className="text-xs text-neutral-500">Link clicks</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Click Rate</CardTitle>
+              <TrendingUpIcon className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {group.view_count > 0 ? ((group.click_count / group.view_count) * 100).toFixed(1) : 0}%
+              </div>
+              <p className="text-xs text-neutral-500">Engagement rate</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Top Performing Links */}
+      {items.length > 0 && (
+        <div className="mx-auto w-full max-w-4xl">
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Performing Links</CardTitle>
+              <CardDescription>Most clicked links in this group</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {items
+                  .filter(item => item.is_active)
+                  .sort((a, b) => b.click_count - a.click_count)
+                  .slice(0, 5)
+                  .map((item, index) => (
+                    <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-sm font-bold text-neutral-600">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{item.title}</p>
+                          <p className="text-xs text-neutral-500 truncate max-w-md">{item.url}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-neutral-900">{item.click_count}</p>
+                        <p className="text-xs text-neutral-500">clicks</p>
+                      </div>
+                    </div>
+                  ))}
+                {items.filter(item => item.is_active).length === 0 && (
+                  <p className="text-center text-sm text-neutral-500 py-4">
+                    No active links yet
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Add Link Form */}
       <div className="mx-auto w-full max-w-4xl">

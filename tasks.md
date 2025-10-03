@@ -91,12 +91,15 @@
   - Billing history, usage indicators ve invoice generation işlevlerini kodla
   - _Gereksinimler: 7.1, 7.2, 7.3, 7.4, 7.5, 15.1, 15.2, 15.3, 15.4, 15.5_
 
-- [ ] 11. Affiliate sistemi ve link takibini implement et
-  - Affiliate link oluşturma ve yönetim sistemini kodla
-  - Link tıklama takibi (AffiliateTracker class) ve analytics sistemini geliştir
-  - Komisyon hesaplama (EarningsCalculator) ve kazanç raporlama sistemini implement et
-  - Fraud detection ve güvenlik önlemlerini kodla
-  - Affiliate dashboard ve performance analytics sayfalarını oluştur
+- [x] 11. Affiliate sistemi ve link takibini implement et ✅
+  - [x] Affiliate link oluşturma ve yönetim sistemini kodla
+  - [x] Link tıklama takibi (AffiliateTracker class) ve analytics sistemini geliştir
+  - [x] Komisyon hesaplama (EarningsCalculator) ve kazanç raporlama sistemini implement et
+  - [x] Fraud detection (100 clicks/hour limit) ve güvenlik önlemlerini kodla
+  - [x] Affiliate dashboard ve performance analytics sayfalarını oluştur
+  - [x] QR code generator ve short link system ekle
+  - [x] Link expiration ve auto-disable özelliği ekle
+  - [x] Click trends, CVR, top performing links analytics
   - _Gereksinimler: 12.1, 12.2, 12.3, 12.4, 12.5_
 
 - [x] 12. Premium content creation sistemini geliştir ✅
@@ -114,9 +117,12 @@
   - [x] Public link grubu sayfalarını (/l/[username]/[slug]) ve SEO optimizasyonunu kodla
   - [x] Link ekleme, düzenleme ve pozisyon yönetimi implement et
   - [x] Click tracking API endpoint (/api/link-redirect/[itemId]) geliştir
-  - [x] Link group analytics (views, clicks) sistemini ekle
+  - [x] Link group analytics (views, clicks, click rate) sistemini ekle
+  - [x] Top performing links (top 5) leaderboard ekle
+  - [x] Copy URL functionality ve visual feedback
+  - [x] Better empty states ve loading states
+  - [x] QR kod oluşturma özelliği (public page için)
   - [ ] Drag-drop link sıralama özelliği (dnd-kit gerekli)
-  - [ ] QR kod oluşturma özelliği
   - _Gereksinimler: 14.1, 14.2, 14.3, 14.4, 14.5_
 
 - [ ] 14. Abone sistemi ve özel içerik paylaşımını implement et
