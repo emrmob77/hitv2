@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ProfileSettingsForm } from '@/components/settings/profile-settings-form';
 import { AccountSettingsSection } from '@/components/settings/account-settings-section';
 import { PrivacySettingsSection } from '@/components/settings/privacy-settings-section';
+import { NotificationSettingsSection } from '@/components/settings/notification-settings-section';
+import { DataExportSection } from '@/components/settings/data-export-section';
+import { DangerZoneSection } from '@/components/settings/danger-zone-section';
 
 export const metadata: Metadata = {
   title: 'Settings • HitTags',
@@ -113,6 +116,51 @@ export default async function SettingsPage() {
                 )}
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Notification Settings */}
+      <div className="mx-auto w-full max-w-5xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Notifications</CardTitle>
+            <CardDescription>
+              Manage your notification preferences
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <NotificationSettingsSection profile={profile} />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Data & Privacy */}
+      <div className="mx-auto w-full max-w-5xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Data Export</CardTitle>
+            <CardDescription>
+              Download your data and content
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DataExportSection userId={user.id} />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="mx-auto w-full max-w-5xl">
+        <Card className="border-red-200 bg-red-50/50">
+          <CardHeader>
+            <CardTitle className="text-red-900">Danger Zone</CardTitle>
+            <CardDescription className="text-red-700">
+              Irreversible actions - proceed with caution
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DangerZoneSection userId={user.id} />
           </CardContent>
         </Card>
       </div>
