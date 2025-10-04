@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
+import { Toaster } from "sonner";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
@@ -24,6 +25,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+      <Toaster position="top-right" />
     </div>
   );
 }
