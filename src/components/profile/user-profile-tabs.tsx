@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bookmark, Folder, Heart, Users } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { BookmarkCard } from '@/components/bookmark/bookmark-card';
+import { BookmarkCard } from '@/components/bookmarks/bookmark-card';
 import { CollectionCard } from '@/components/collections/collection-card';
 
 interface UserProfileTabsProps {

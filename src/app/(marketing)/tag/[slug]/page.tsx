@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { MetadataGenerator } from '@/lib/seo/metadata';
 import { StructuredDataGenerator } from '@/lib/seo/structured-data';
-import { TagHeader } from '@/components/tag/tag-header';
-import { TagFilters } from '@/components/tag/tag-filters';
-import { TagBookmarkCard } from '@/components/tag/tag-bookmark-card';
-import { TagSidebar } from '@/components/tag/tag-sidebar';
+import { TagHeader } from '@/components/tags/tag-header';
+import { TagFilters } from '@/components/tags/tag-filters';
+import { TagBookmarkCard } from '@/components/tags/tag-bookmark-card';
+import { TagSidebar } from '@/components/tags/tag-sidebar';
 import { Button } from '@/components/ui/button';
 
 interface Tag {

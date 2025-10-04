@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { BookmarkEditForm } from '@/components/bookmark/bookmark-form';
+import { BookmarkEditForm } from '@/components/bookmarks/bookmark-form';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 type PageParams = {

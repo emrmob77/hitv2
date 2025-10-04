@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
 
-import { BookmarkList, type BookmarkListItem } from '@/components/bookmark/bookmark-list';
+import { BookmarkList, type BookmarkListItem } from '@/components/bookmarks/bookmark-list';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
