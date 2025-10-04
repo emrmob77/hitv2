@@ -212,7 +212,7 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
             </div>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid gap-5 md:grid-cols-2 lg:[grid-template-columns:minmax(0,2.1fr)_minmax(260px,0.8fr)]">
             <div className="lg:col-span-2">
               <label htmlFor="url" className="block text-sm font-medium text-neutral-700">
                 Bookmark URL
@@ -284,7 +284,7 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
               />
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 lg:col-span-2 lg:max-w-3xl">
               <label htmlFor="tags" className="block text-sm font-medium text-neutral-700">
                 Tags
               </label>
@@ -317,7 +317,7 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
               </div>
             </div>
 
-            <div>
+            <div className="lg:col-span-2">
               <label htmlFor="collection" className="block text-sm font-medium text-neutral-700">
                 Collection
               </label>
@@ -334,7 +334,10 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
                 <option value="inspiration">Inspiration</option>
                 <option value="learning">Learning materials</option>
               </select>
-              <button type="button" className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-neutral-600 transition hover:text-neutral-800">
+              <button
+                type="button"
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-neutral-600 transition hover:text-neutral-800"
+              >
                 <Plus className="size-4" /> Create new collection
               </button>
             </div>
@@ -456,7 +459,7 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
         </form>
       </section>
 
-      <aside className="space-y-5 lg:sticky lg:top-24">
+      <aside className="space-y-5 lg:sticky lg:top-24 lg:max-w-xs">
         <div className="rounded-2xl border border-neutral-200 bg-white/95 p-5 shadow-sm">
           <h3 className="text-base font-semibold text-neutral-900">Preview</h3>
           <div className="mt-3 rounded-2xl border border-neutral-100 bg-neutral-50/70 p-4">

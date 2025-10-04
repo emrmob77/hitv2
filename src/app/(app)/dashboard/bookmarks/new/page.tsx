@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function NewBookmarkPage() {
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 pt-2 pb-12 lg:pt-0">
       <nav className="flex items-center gap-2 text-sm text-neutral-500">
         <Link href="/dashboard" className="font-medium text-neutral-500 transition hover:text-neutral-700">
           Dashboard
