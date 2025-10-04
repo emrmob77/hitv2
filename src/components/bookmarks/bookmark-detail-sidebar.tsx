@@ -146,7 +146,7 @@ export function BookmarkDetailSidebar({
             {relatedBookmarks.map((bookmark) => (
               <Link
                 key={bookmark.id}
-                href={`/bookmarks/${bookmark.id}/${bookmark.slug}`}
+                href={`/bookmark/${bookmark.id}/${bookmark.slug}`}
                 className="flex items-start space-x-3 rounded-lg p-3 hover:bg-neutral-50"
               >
                 {bookmark.imageUrl ? (

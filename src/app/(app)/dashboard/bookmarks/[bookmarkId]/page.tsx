@@ -6,7 +6,7 @@ import { DollarSign } from 'lucide-react';
 import { deleteBookmarkAction } from '@/app/(app)/dashboard/bookmarks/actions';
 import { Button } from '@/components/ui/button';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { AddToCollectionButton } from '@/components/bookmarks/add-to-collection-button';
+import { AddToCollectionButton } from '@/components/bookmark/add-to-collection-button';
 
 type PageParams = {
   bookmarkId: string;

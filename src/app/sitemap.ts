@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const tags = tagsData.tags || [];
 
     const tagPages = tags.map((tag: any) => ({
-      url: `${baseUrl}/tags/${tag.slug}`,
+      url: `${baseUrl}/tag/${tag.slug}`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.8,

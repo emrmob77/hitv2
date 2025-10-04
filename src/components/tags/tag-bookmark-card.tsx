@@ -89,7 +89,7 @@ export function TagBookmarkCard({
           <div className="flex items-start justify-between">
             <div>
               <Link
-                href={`/bookmarks/${id}/${slug}`}
+                href={`/bookmark/${id}/${slug}`}
                 className="mb-2 block text-lg font-semibold text-neutral-900 hover:text-neutral-700"
               >
                 {title}
@@ -117,7 +117,7 @@ export function TagBookmarkCard({
                 {tags.slice(0, 3).map((tag) => (
                   <Link
                     key={tag.slug}
-                    href={`/tags/${tag.slug}`}
+                    href={`/tag/${tag.slug}`}
                     className="rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-200"
                   >
                     #{tag.name}

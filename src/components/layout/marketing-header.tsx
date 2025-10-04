@@ -65,7 +65,7 @@ export async function MarketingHeader() {
             {isAuthenticated ? (
               <>
                 <Link
-                  href="/dashboard/bookmarks/new"
+                  href="/dashboard/bookmark/new"
                   className="bg-neutral-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-neutral-700"
                 >
                   <i className="fa-solid fa-plus mr-2" />

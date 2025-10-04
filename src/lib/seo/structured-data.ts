@@ -72,7 +72,7 @@ export class StructuredDataGenerator {
       '@type': 'CollectionPage',
       name: `${tag.name} Bookmarks`,
       description: tag.description || `Curated collection of ${tag.name} bookmarks and resources`,
-      url: `https://hittags.com/tags/${tag.slug}`,
+      url: `https://hittags.com/tag/${tag.slug}`,
       numberOfItems: tag.usage_count,
       about: {
         '@type': 'Thing',
@@ -94,7 +94,7 @@ export class StructuredDataGenerator {
               ? {
                   '@type': 'Person',
                   name: bookmark.user.display_name || bookmark.user.username,
-                  url: `https://hittags.com/users/${bookmark.user.username}`,
+                  url: `https://hittags.com/${bookmark.user.username}`,
                 }
               : undefined,
           },
@@ -119,7 +119,7 @@ export class StructuredDataGenerator {
             '@type': 'ListItem',
             position: 3,
             name: tag.name,
-            item: `https://hittags.com/tags/${tag.slug}`,
+            item: `https://hittags.com/tag/${tag.slug}`,
           },
         ],
       },
@@ -138,7 +138,7 @@ export class StructuredDataGenerator {
         ? {
             '@type': 'Person',
             name: bookmark.user.display_name || bookmark.user.username,
-            url: `https://hittags.com/users/${bookmark.user.username}`,
+            url: `https://hittags.com/${bookmark.user.username}`,
           }
         : undefined,
       datePublished: bookmark.created_at,
@@ -178,7 +178,7 @@ export class StructuredDataGenerator {
       creator: {
         '@type': 'Person',
         name: displayName || username,
-        url: `https://hittags.com/users/${username}`,
+        url: `https://hittags.com/${username}`,
       },
       mainEntity: {
         '@type': 'ItemList',
@@ -195,7 +195,7 @@ export class StructuredDataGenerator {
               ? {
                   '@type': 'Person',
                   name: bookmark.user.display_name || bookmark.user.username,
-                  url: `https://hittags.com/users/${bookmark.user.username}`,
+                  url: `https://hittags.com/${bookmark.user.username}`,
                 }
               : undefined,
           },
@@ -220,7 +220,7 @@ export class StructuredDataGenerator {
             '@type': 'ListItem',
             position: 3,
             name: displayName || username,
-            item: `https://hittags.com/users/${username}`,
+            item: `https://hittags.com/${username}`,
           },
           {
             '@type': 'ListItem',

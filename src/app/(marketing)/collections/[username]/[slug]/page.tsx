@@ -100,7 +100,7 @@ export default async function CollectionPage({ params }: Props) {
               <h1 className="text-4xl font-bold mb-2">{collection.name}</h1>
               <div className="flex items-center gap-3 text-sm text-neutral-600 dark:text-neutral-400">
                 <Link
-                  href={`/users/${params.username}`}
+                  href={`/${params.username}`}
                   className="hover:underline"
                 >
                   by {collection.user?.display_name || params.username}
@@ -143,7 +143,7 @@ export default async function CollectionPage({ params }: Props) {
             {bookmarks.map((bookmark: any) => (
               <Link
                 key={bookmark.id}
-                href={`/bookmarks/${bookmark.id}/${bookmark.slug || bookmark.id}`}
+                href={`/bookmark/${bookmark.id}/${bookmark.slug || bookmark.id}`}
                 className="block group"
               >
                 <div className="p-6 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:border-neutral-300 dark:hover:border-neutral-700 transition-all hover:shadow-md">

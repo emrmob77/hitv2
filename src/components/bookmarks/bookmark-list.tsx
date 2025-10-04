@@ -181,7 +181,7 @@ function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
               )}
             </div>
             <Link
-              href={`/bookmarks/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+              href={`/bookmark/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
               className="line-clamp-1 text-base font-semibold text-neutral-900 transition hover:text-neutral-700"
             >
               {bookmark.title}
@@ -216,7 +216,7 @@ function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
           Open original →
         </Link>
         <Link
-          href={`/bookmarks/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+          href={`/bookmark/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
           className="text-neutral-500 hover:text-neutral-700"
           title="View details"
         >
@@ -269,7 +269,7 @@ function ListBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
           <div className="space-y-3">
             <div className="space-y-2">
               <Link
-                href={`/bookmarks/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                href={`/bookmark/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
                 className="text-base font-semibold text-neutral-900 transition hover:text-neutral-700"
               >
                 {bookmark.title}
@@ -302,7 +302,7 @@ function ListBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
                 </>
               ) : null}
               <Link
-                href={`/bookmarks/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                href={`/bookmark/${bookmark.id}/${bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
                 className="hover:text-neutral-700 hover:underline"
                 title="View details"
               >

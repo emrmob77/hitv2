@@ -60,7 +60,7 @@ export function ExploreBookmarkListItem({
 
   return (
     <Link
-      href={`/bookmarks/${id}/${slug}`}
+      href={`/bookmark/${id}/${slug}`}
       className="flex gap-4 rounded-xl border border-neutral-200 bg-white p-4 transition-shadow hover:shadow-lg"
     >
       <div className="h-32 w-32 flex-shrink-0 overflow-hidden rounded-lg bg-neutral-300">

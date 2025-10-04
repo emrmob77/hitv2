@@ -20,7 +20,7 @@ export function TrendingTags({ tags }: TrendingTagsProps) {
         {tags.map((tag) => (
           <Link
             key={tag.slug}
-            href={`/tags/${tag.slug}`}
+            href={`/tag/${tag.slug}`}
             className="cursor-pointer rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-700 transition hover:bg-neutral-200"
           >
             #{tag.name}

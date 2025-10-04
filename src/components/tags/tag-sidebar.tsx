@@ -85,7 +85,7 @@ export function TagSidebar({
               className="flex items-center justify-between rounded-lg bg-neutral-50 p-3 hover:bg-neutral-100"
             >
               <Link
-                href={`/tags/${tag.slug}`}
+                href={`/tag/${tag.slug}`}
                 className="flex items-center space-x-3"
               >
                 <span className="text-sm font-medium text-neutral-900">

@@ -5,9 +5,9 @@ import { ChevronRight } from 'lucide-react';
 import { MetadataGenerator } from '@/lib/seo/metadata';
 import { StructuredDataGenerator } from '@/lib/seo/structured-data';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { BookmarkDetailPreview } from '@/components/bookmarks/bookmark-detail-preview';
-import { BookmarkDetailSidebar } from '@/components/bookmarks/bookmark-detail-sidebar';
-import { BookmarkComments } from '@/components/bookmarks/bookmark-comments';
+import { BookmarkDetailPreview } from '@/components/bookmark/bookmark-detail-preview';
+import { BookmarkDetailSidebar } from '@/components/bookmark/bookmark-detail-sidebar';
+import { BookmarkComments } from '@/components/bookmark/bookmark-comments';
 
 interface Props {
   params: {
@@ -123,7 +123,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
   // Check if slug matches, redirect if not
   const correctSlug = bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   if (params.slug !== correctSlug) {
-    redirect(`/bookmarks/${params.id}/${correctSlug}`);
+    redirect(`/bookmark/${params.id}/${correctSlug}`);
   }
 
   const structuredData = StructuredDataGenerator.generateBookmarkSchema(bookmark);

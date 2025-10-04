@@ -61,7 +61,7 @@ export function ExploreBookmarkCard({
 
   return (
     <Link
-      href={`/bookmarks/${id}/${slug}`}
+      href={`/bookmark/${id}/${slug}`}
       className="block rounded-xl border border-neutral-200 bg-white transition-shadow hover:shadow-lg"
     >
       <div className="h-48 overflow-hidden rounded-t-xl bg-neutral-300">

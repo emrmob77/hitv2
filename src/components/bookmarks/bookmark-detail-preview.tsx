@@ -111,7 +111,7 @@ export function BookmarkDetailPreview({
                 {tags.map((tag) => (
                   <Link
                     key={tag.slug}
-                    href={`/tags/${tag.slug}`}
+                    href={`/tag/${tag.slug}`}
                     className="rounded-full bg-neutral-100 px-3 py-1 text-sm text-neutral-700 hover:bg-neutral-200"
                   >
                     #{tag.name}

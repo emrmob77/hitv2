@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
 
-import { BookmarkCreateForm } from '@/components/bookmarks/bookmark-form';
+import { BookmarkCreateForm } from '@/components/bookmark/bookmark-form';
 
 export const metadata: Metadata = {
   title: 'Add Bookmark • HitTags',

@@ -43,7 +43,7 @@ export class MetadataGenerator {
       openGraph: {
         title: `${tag.name} Bookmarks - HitTags`,
         description,
-        url: `https://hittags.com/tags/${tag.slug}`,
+        url: `https://hittags.com/tag/${tag.slug}`,
         siteName: 'HitTags',
         images: [
           {
@@ -64,7 +64,7 @@ export class MetadataGenerator {
         site: '@hittags',
       },
       alternates: {
-        canonical: `https://hittags.com/tags/${tag.slug}`,
+        canonical: `https://hittags.com/tag/${tag.slug}`,
       },
       other: {
         'theme-color': tag.color,
@@ -88,7 +88,7 @@ export class MetadataGenerator {
       openGraph: {
         title: bookmark.title,
         description: description,
-        url: `https://hittags.com/bookmarks/${bookmark.id}/${bookmarkSlug}`,
+        url: `https://hittags.com/bookmark/${bookmark.id}/${bookmarkSlug}`,
         siteName: 'HitTags',
         type: 'article',
         images: bookmark.domain
@@ -109,7 +109,7 @@ export class MetadataGenerator {
         images: bookmark.domain ? [`/api/og/bookmark/${bookmark.id}`] : [],
       },
       alternates: {
-        canonical: `https://hittags.com/bookmarks/${bookmark.id}/${bookmarkSlug}`,
+        canonical: `https://hittags.com/bookmark/${bookmark.id}/${bookmarkSlug}`,
       },
     };
   }

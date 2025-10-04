@@ -266,7 +266,7 @@ export async function createBookmarkAction(
   }
 
   revalidatePath("/dashboard/bookmarks");
-  redirect(`/dashboard/bookmarks/${data.id}`);
+  redirect(`/dashboard/bookmark/${data.id}`);
 }
 
 export async function updateBookmarkAction(
@@ -399,8 +399,8 @@ export async function updateBookmarkAction(
   }
 
   revalidatePath("/dashboard/bookmarks");
-  revalidatePath(`/dashboard/bookmarks/${id}`);
-  redirect(`/dashboard/bookmarks/${id}`);
+  revalidatePath(`/dashboard/bookmark/${id}`);
+  redirect(`/dashboard/bookmark/${id}`);
 }
 
 export async function deleteBookmarkAction(formData: FormData): Promise<void> {
@@ -425,7 +425,7 @@ export async function deleteBookmarkAction(formData: FormData): Promise<void> {
   }
 
   revalidatePath("/dashboard/bookmarks");
-  if (!redirectTo.includes(`/dashboard/bookmarks/${id}`)) {
+  if (!redirectTo.includes(`/dashboard/bookmark/${id}`)) {
     revalidatePath(redirectTo);
   }
   redirect(redirectTo || "/dashboard/bookmarks");
