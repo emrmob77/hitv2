@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   title: 'Tags • HitTags',
 };
 
+export const dynamic = 'force-dynamic';
+
 interface Tag {
   id: string;
   name: string;
@@ -134,7 +136,7 @@ export default async function TagsPage() {
                     <div>
                       <div className="flex items-center space-x-2">
                         <Link
-                          href={`/tags/${tag.slug}`}
+                          href={`/tag/${tag.slug}`}
                           className="text-lg font-semibold text-neutral-900 hover:text-neutral-700"
                         >
                           {tag.name}
@@ -171,7 +173,7 @@ export default async function TagsPage() {
                       size="sm"
                       className="text-neutral-700"
                     >
-                      <Link href={`/tags/${tag.slug}`}>View Tag</Link>
+                      <Link href={`/tag/${tag.slug}`}>View Tag</Link>
                     </Button>
                     <Button
                       asChild

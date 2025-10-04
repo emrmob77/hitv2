@@ -32,14 +32,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    // Fetch tags
-    const tagsRes = await fetch(`${baseUrl}/api/tags?limit=1000`, {
-      next: { revalidate: 3600 },
-    });
-    const tagsData = await tagsRes.json();
-    const tags = tagsData.tags || [];
+    // Fetch tags from Supabase directly
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
-    const tagPages = tags.map((tag: any) => ({
+    // Fetch tags
+    const { data: tags } = await supabase
+      .from('tags')
+      .select('slug')
+      .limit(1000);
+
+    const tagPages = (tags || []).map((tag: any) => ({
       url: `${baseUrl}/tag/${tag.slug}`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
@@ -47,13 +53,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     // Fetch collections
-    const collectionsRes = await fetch(`${baseUrl}/api/collections?limit=1000`, {
-      next: { revalidate: 3600 },
-    });
-    const collectionsData = await collectionsRes.json();
-    const collections = collectionsData.collections || [];
+    const { data: collections } = await supabase
+      .from('collections')
+      .select('slug, updated_at, profiles!inner(username)')
+      .eq('is_public', true)
+      .limit(1000);
 
-    const collectionPages = collections.map((collection: any) => ({
+    const collectionPages = (collections || []).map((collection: any) => ({
       url: `${baseUrl}/collections/${collection.profiles?.username}/${collection.slug}`,
       lastModified: new Date(collection.updated_at),
       changeFrequency: 'weekly' as const,
