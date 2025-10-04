@@ -1,84 +1,359 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { MetadataGenerator } from '@/lib/seo/metadata';
-import { StructuredDataGenerator } from '@/lib/seo/structured-data';
-import { TagHeader } from '@/components/tags/tag-header';
-import { TagFilters } from '@/components/tags/tag-filters';
+
 import { TagBookmarkCard } from '@/components/tags/tag-bookmark-card';
+import { TagFilters } from '@/components/tags/tag-filters';
+import { TagHeader } from '@/components/tags/tag-header';
 import { TagSidebar } from '@/components/tags/tag-sidebar';
 import { Button } from '@/components/ui/button';
+import { MetadataGenerator } from '@/lib/seo/metadata';
+import { StructuredDataGenerator } from '@/lib/seo/structured-data';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
-interface Tag {
+type TagRecord = {
   id: string;
   name: string;
   slug: string;
   description: string | null;
-  color: string;
+  color: string | null;
   usage_count: number;
   is_trending: boolean;
   created_at: string;
-}
+};
 
-interface Bookmark {
+type BookmarkRecord = {
   id: string;
   title: string;
   description: string | null;
   url: string;
   slug: string | null;
   domain: string | null;
-  favicon_url: string | null;
   image_url: string | null;
   created_at: string;
-  user_id: string;
-  profiles?: {
-    id: string;
+  like_count: number | null;
+  save_count: number | null;
+  click_count: number | null;
+  profiles: {
     username: string;
     display_name: string | null;
     avatar_url: string | null;
-  };
-  bookmark_tags?: Array<{
+  } | null;
+  bookmark_tags: Array<{
     tags: {
       name: string;
       slug: string;
+    } | null;
+  }> | null;
+};
+
+type TagBookmarkCardData = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  domain: string | null;
+  imageUrl: string | null;
+  createdAt: string;
+  likes: number;
+  author: {
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+  tags: Array<{ name: string; slug: string }>;
+};
+
+type SidebarData = {
+  statistics: {
+    totalBookmarks: number;
+    thisWeek: number;
+    followers: number;
+    avgLikes: number;
+  };
+  relatedTags: Array<{ name: string; slug: string; bookmarkCount: number }>;
+  topContributors: Array<{
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+    bookmarkCount: number;
+  }>;
+  popularDomains: Array<{ domain: string; bookmarkCount: number }>;
+};
+
+type TagPageData = {
+  tag: TagRecord;
+  bookmarks: TagBookmarkCardData[];
+  sidebar: SidebarData;
+  structuredBookmarks: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    url: string;
+    created_at: string;
+    user?: {
+      username: string;
+      display_name: string | null;
     };
   }>;
-}
+};
 
-async function getTagData(slug: string) {
+const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> => {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/tag/${slug}`, {
-      next: { revalidate: 3600 }, // Revalidate every hour
-    });
+    const supabase = await createSupabaseServerClient({ strict: false });
 
-    if (!res.ok) {
+    if (!supabase) {
       return null;
     }
 
-    const data = await res.json();
-    return data;
+    const { data: tag, error: tagError } = await supabase
+      .from('tags')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (tagError || !tag) {
+      return null;
+    }
+
+    const { data: bookmarkRows, error: bookmarksError } = await supabase
+      .from('bookmark_tags')
+      .select(
+        `
+        bookmarks (
+          id,
+          title,
+          description,
+          url,
+          slug,
+          domain,
+          image_url,
+          created_at,
+          privacy_level,
+          like_count,
+          save_count,
+          click_count,
+          profiles (
+            username,
+            display_name,
+            avatar_url
+          ),
+          bookmark_tags (
+            tags (
+              name,
+              slug
+            )
+          )
+        )
+      `
+      )
+      .eq('tag_id', tag.id)
+      .order('created_at', { ascending: false, foreignTable: 'bookmarks' })
+      .limit(40);
+
+    if (bookmarksError) {
+      console.error('Failed to load bookmarks for tag:', bookmarksError.message);
+      return {
+        tag,
+        bookmarks: [],
+        sidebar: {
+          statistics: {
+            totalBookmarks: tag.usage_count ?? 0,
+            thisWeek: 0,
+            followers: 0,
+            avgLikes: 0,
+          },
+          relatedTags: [],
+          topContributors: [],
+          popularDomains: [],
+        },
+        structuredBookmarks: [],
+      };
+    }
+
+    const bookmarkList = (bookmarkRows ?? [])
+      .map((row) => row.bookmarks)
+      .filter((bookmark): bookmark is BookmarkRecord & { privacy_level: string } => {
+        return Boolean(bookmark && bookmark.privacy_level === 'public');
+      });
+
+    const uniqueBookmarksMap = new Map<string, BookmarkRecord & { privacy_level: string }>();
+    for (const bookmark of bookmarkList) {
+      uniqueBookmarksMap.set(bookmark.id, bookmark);
+    }
+
+    const uniqueBookmarks = Array.from(uniqueBookmarksMap.values());
+
+    const weekCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const relatedTagMap = new Map<string, { name: string; count: number }>();
+    const contributorMap = new Map<
+      string,
+      { username: string; displayName: string | null; avatarUrl: string | null; count: number }
+    >();
+    const domainMap = new Map<string, number>();
+
+    let totalLikes = 0;
+    let thisWeek = 0;
+
+    const cardBookmarks: TagBookmarkCardData[] = uniqueBookmarks.map((bookmark) => {
+      const normalizedSlug =
+        bookmark.slug && bookmark.slug.trim().length > 0
+          ? bookmark.slug
+          : bookmark.title
+              .toLowerCase()
+              .trim()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/(^-|-$)/g, '') || bookmark.id;
+
+      const tags = (bookmark.bookmark_tags ?? [])
+        .map((relation) => relation?.tags)
+        .filter((tagRelation): tagRelation is { name: string; slug: string } => Boolean(tagRelation))
+        .map((tagRelation) => ({ name: tagRelation.name, slug: tagRelation.slug }));
+
+      const author = {
+        username: bookmark.profiles?.username ?? 'unknown',
+        displayName: bookmark.profiles?.display_name ?? null,
+        avatarUrl: bookmark.profiles?.avatar_url ?? null,
+      };
+
+      const likeCount = bookmark.like_count ?? 0;
+      totalLikes += likeCount;
+
+      if (new Date(bookmark.created_at) >= weekCutoff) {
+        thisWeek += 1;
+      }
+
+      if (author.username !== 'unknown') {
+        const existing = contributorMap.get(author.username);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          contributorMap.set(author.username, {
+            username: author.username,
+            displayName: author.displayName,
+            avatarUrl: author.avatarUrl,
+            count: 1,
+          });
+        }
+      }
+
+      if (bookmark.domain) {
+        domainMap.set(bookmark.domain, (domainMap.get(bookmark.domain) ?? 0) + 1);
+      }
+
+      for (const relatedTag of tags) {
+        if (relatedTag.slug !== tag.slug) {
+          const existing = relatedTagMap.get(relatedTag.slug);
+          if (existing) {
+            existing.count += 1;
+          } else {
+            relatedTagMap.set(relatedTag.slug, {
+              name: relatedTag.name,
+              count: 1,
+            });
+          }
+        }
+      }
+
+      return {
+        id: bookmark.id,
+        title: bookmark.title,
+        slug: normalizedSlug,
+        description: bookmark.description,
+        domain: bookmark.domain,
+        imageUrl: bookmark.image_url,
+        createdAt: bookmark.created_at,
+        likes: likeCount,
+        author,
+        tags,
+      } satisfies TagBookmarkCardData;
+    });
+
+    const structuredBookmarks = cardBookmarks.map((bookmark) => ({
+      id: bookmark.id,
+      title: bookmark.title,
+      description: bookmark.description,
+      url: uniqueBookmarksMap.get(bookmark.id)?.url ?? '',
+      created_at: bookmark.createdAt,
+      user:
+        bookmark.author.username !== 'unknown'
+          ? {
+              username: bookmark.author.username,
+              display_name: bookmark.author.displayName,
+            }
+          : undefined,
+    }));
+
+    const followers = contributorMap.size;
+    const avgLikes = cardBookmarks.length
+      ? Math.round(totalLikes / cardBookmarks.length)
+      : 0;
+
+    const relatedTags = Array.from(relatedTagMap.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5)
+      .map(([slug, value]) => ({
+        name: value.name,
+        slug,
+        bookmarkCount: value.count,
+      }));
+
+    const topContributors = Array.from(contributorMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3)
+      .map((contributor) => ({
+        username: contributor.username,
+        displayName: contributor.displayName,
+        avatarUrl: contributor.avatarUrl,
+        bookmarkCount: contributor.count,
+      }));
+
+    const popularDomains = Array.from(domainMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([domain, count]) => ({ domain, bookmarkCount: count }));
+
+    return {
+      tag,
+      bookmarks: cardBookmarks,
+      sidebar: {
+        statistics: {
+          totalBookmarks: tag.usage_count ?? cardBookmarks.length,
+          thisWeek,
+          followers,
+          avgLikes,
+        },
+        relatedTags,
+        topContributors,
+        popularDomains,
+      },
+      structuredBookmarks,
+    } satisfies TagPageData;
   } catch (error) {
-    console.error('Error fetching tag:', error);
+    console.error('Failed to build tag page data:', error);
     return null;
   }
-}
+});
 
 export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const data = await getTagData(params.slug);
+  const data = await getTagPageData(params.slug);
 
-  if (!data || !data.tag) {
+  if (!data) {
     return {
       title: 'Tag Not Found | HitTags',
     };
   }
 
-  return MetadataGenerator.generateTagPageMetadata(data.tag);
+  return MetadataGenerator.generateTagPageMetadata({
+    ...data.tag,
+    color: data.tag.color ?? '#6b7280',
+  });
 }
 
 export default async function TagDetailsPage({
@@ -86,59 +361,26 @@ export default async function TagDetailsPage({
 }: {
   params: { slug: string };
 }) {
-  const data = await getTagData(params.slug);
+  const data = await getTagPageData(params.slug);
 
-  if (!data || !data.tag) {
+  if (!data) {
     notFound();
   }
 
-  const { tag, bookmarks } = data;
+  const { tag, bookmarks, sidebar, structuredBookmarks } = data;
   const structuredData = StructuredDataGenerator.generateTagCollectionSchema(
-    tag,
-    bookmarks || []
-  );
-
-  // Mock data for sidebar (replace with real data from API)
-  const sidebarData = {
-    statistics: {
-      totalBookmarks: tag.usage_count || 0,
-      thisWeek: 234,
-      followers: 1234,
-      avgLikes: 45,
+    {
+      id: tag.id,
+      name: tag.name,
+      slug: tag.slug,
+      description: tag.description,
+      usage_count: tag.usage_count ?? bookmarks.length,
     },
-    relatedTags: [
-      { name: 'ui-design', slug: 'ui-design', bookmarkCount: 1456 },
-      { name: 'ux-research', slug: 'ux-research', bookmarkCount: 987 },
-      { name: 'figma', slug: 'figma', bookmarkCount: 1234 },
-      { name: 'prototyping', slug: 'prototyping', bookmarkCount: 765 },
-    ],
-    topContributors: [
-      {
-        username: 'sarahchen',
-        displayName: 'Sarah Chen',
-        avatarUrl: 'https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=456',
-        bookmarkCount: 127,
-      },
-      {
-        username: 'alexrivera',
-        displayName: 'Alex Rivera',
-        avatarUrl: 'https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=789',
-        bookmarkCount: 98,
-      },
-      {
-        username: 'emmathompson',
-        displayName: 'Emma Thompson',
-        avatarUrl: 'https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=321',
-        bookmarkCount: 76,
-      },
-    ],
-    popularDomains: [
-      { domain: 'dribbble.com', bookmarkCount: 234 },
-      { domain: 'behance.net', bookmarkCount: 189 },
-      { domain: 'figma.com', bookmarkCount: 156 },
-      { domain: 'uxdesign.cc', bookmarkCount: 98 },
-    ],
-  };
+    structuredBookmarks.map((bookmark) => ({
+      ...bookmark,
+      user: bookmark.user,
+    }))
+  );
 
   return (
     <>
@@ -167,8 +409,8 @@ export default async function TagDetailsPage({
           <TagHeader
             name={tag.name}
             description={tag.description}
-            bookmarkCount={tag.usage_count || 0}
-            followerCount={1234}
+            bookmarkCount={sidebar.statistics.totalBookmarks}
+            followerCount={sidebar.statistics.followers}
             createdAt={tag.created_at}
             color={tag.color || '#6b7280'}
           />
@@ -184,28 +426,19 @@ export default async function TagDetailsPage({
               <section className="space-y-4">
                 {bookmarks && bookmarks.length > 0 ? (
                   <>
-                    {bookmarks.map((bookmark: Bookmark) => (
+                    {bookmarks.map((bookmark) => (
                       <TagBookmarkCard
                         key={bookmark.id}
                         id={bookmark.id}
                         title={bookmark.title}
-                        slug={bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}
+                        slug={bookmark.slug}
                         description={bookmark.description}
                         domain={bookmark.domain}
-                        imageUrl={bookmark.image_url}
-                        createdAt={bookmark.created_at}
-                        author={{
-                          username: bookmark.profiles?.username || 'unknown',
-                          displayName: bookmark.profiles?.display_name || null,
-                          avatarUrl: bookmark.profiles?.avatar_url || null,
-                        }}
-                        tags={
-                          bookmark.bookmark_tags?.map((bt) => ({
-                            name: bt.tags.name,
-                            slug: bt.tags.slug,
-                          })) || []
-                        }
-                        likes={24}
+                        imageUrl={bookmark.imageUrl}
+                        createdAt={bookmark.createdAt}
+                        author={bookmark.author}
+                        tags={bookmark.tags}
+                        likes={bookmark.likes}
                         isLiked={false}
                         isBookmarked={false}
                       />
@@ -228,7 +461,7 @@ export default async function TagDetailsPage({
             </div>
 
             {/* Sidebar */}
-            <TagSidebar {...sidebarData} />
+            <TagSidebar {...sidebar} />
           </div>
         </div>
       </main>

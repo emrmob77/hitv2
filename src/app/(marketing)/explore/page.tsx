@@ -1,45 +1,88 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Grid3x3, List } from 'lucide-react';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { ExploreFilters } from '@/components/explore/explore-filters';
+
 import { ExploreBookmarkCard } from '@/components/explore/explore-bookmark-card';
 import { ExploreBookmarkListItem } from '@/components/explore/explore-bookmark-list-item';
-import { TrendingTags } from '@/components/explore/trending-tags';
+import { ExploreFilters } from '@/components/explore/explore-filters';
 import { SuggestedUsers } from '@/components/explore/suggested-users';
+import { TrendingTags } from '@/components/explore/trending-tags';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
   title: 'Explore Bookmarks | HitTags',
   description: 'Discover popular content curated by the community',
 };
 
-type SearchParams = {
-  view?: string;
+type RawBookmark = {
+  id: string;
+  title: string;
+  slug: string | null;
+  description: string | null;
+  image_url: string | null;
+  created_at: string;
+  profiles: {
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
+  bookmark_tags: Array<{
+    tags: {
+      name: string;
+      slug: string;
+    } | null;
+  }> | null;
 };
 
-interface Bookmark {
+type ExploreBookmark = {
   id: string;
   title: string;
   slug: string;
   description: string | null;
-  image_url: string | null;
-  created_at: string;
-  profiles?: {
+  imageUrl: string | null;
+  author: {
     username: string;
-    display_name: string | null;
-    avatar_url: string | null;
+    displayName: string | null;
+    avatarUrl: string | null;
   };
-  bookmark_tags?: Array<{
-    tags: {
-      name: string;
-      slug: string;
-    };
+  tags: Array<{
+    name: string;
+    slug: string;
   }>;
+};
+
+type TrendingTag = {
+  name: string;
+  slug: string;
+  count: number;
+};
+
+type SuggestedUser = {
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+};
+
+type ExploreSearchParams = Record<string, string | string[] | undefined>;
+
+const FALLBACK_VIEW = 'list' as const;
+
+function normaliseSlug(source: string): string {
+  return source
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 }
 
-async function getPublicBookmarks() {
+async function getPublicBookmarks(): Promise<ExploreBookmark[]> {
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient({ strict: false });
+
+    if (!supabase) {
+      return [];
+    }
 
     const { data: bookmarks, error } = await supabase
       .from('bookmarks')
@@ -68,20 +111,49 @@ async function getPublicBookmarks() {
       .order('created_at', { ascending: false })
       .limit(12);
 
-    if (error || !bookmarks) {
+    if (error || !Array.isArray(bookmarks)) {
       return [];
     }
 
-    return bookmarks;
+    return bookmarks.map((bookmark: RawBookmark) => {
+      const generatedSlug = normaliseSlug(bookmark.title);
+      const slugCandidate = bookmark.slug && bookmark.slug.trim().length > 0
+        ? bookmark.slug
+        : generatedSlug;
+      const slug = slugCandidate && slugCandidate.length > 0 ? slugCandidate : bookmark.id;
+
+      const tags = (bookmark.bookmark_tags ?? [])
+        .map((bt) => bt?.tags)
+        .filter((tag): tag is { name: string; slug: string } => Boolean(tag))
+        .map((tag) => ({ name: tag.name, slug: tag.slug }));
+
+      return {
+        id: bookmark.id,
+        title: bookmark.title,
+        slug,
+        description: bookmark.description,
+        imageUrl: bookmark.image_url,
+        author: {
+          username: bookmark.profiles?.username ?? 'unknown',
+          displayName: bookmark.profiles?.display_name ?? null,
+          avatarUrl: bookmark.profiles?.avatar_url ?? null,
+        },
+        tags,
+      } satisfies ExploreBookmark;
+    });
   } catch (error) {
     console.error('Error fetching bookmarks:', error);
     return [];
   }
 }
 
-async function getTrendingTags() {
+async function getTrendingTags(): Promise<TrendingTag[]> {
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient({ strict: false });
+
+    if (!supabase) {
+      return [];
+    }
 
     const { data: tags, error } = await supabase
       .from('tags')
@@ -89,32 +161,45 @@ async function getTrendingTags() {
       .order('usage_count', { ascending: false })
       .limit(8);
 
-    if (error || !tags) {
+    if (error || !Array.isArray(tags)) {
       return [];
     }
 
-    return tags;
+    return tags.map((tag) => ({
+      name: tag.name,
+      slug: tag.slug,
+      count: Number(tag.usage_count) || 0,
+    }));
   } catch (error) {
     console.error('Error fetching trending tags:', error);
     return [];
   }
 }
 
-async function getSuggestedUsers() {
+async function getSuggestedUsers(): Promise<SuggestedUser[]> {
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient({ strict: false });
 
-    // Get users with most public bookmarks
-    const { data: users, error } = await supabase
-      .from('profiles')
-      .select('username, display_name, avatar_url, bio')
-      .limit(3);
-
-    if (error || !users) {
+    if (!supabase) {
       return [];
     }
 
-    return users;
+    const { data: users, error } = await supabase
+      .from('profiles')
+      .select('username, display_name, avatar_url, bio, bookmark_count')
+      .order('bookmark_count', { ascending: false })
+      .limit(3);
+
+    if (error || !Array.isArray(users)) {
+      return [];
+    }
+
+    return users.map((user) => ({
+      username: user.username,
+      displayName: user.display_name ?? null,
+      avatarUrl: user.avatar_url ?? null,
+      bio: user.bio ?? null,
+    }));
   } catch (error) {
     console.error('Error fetching suggested users:', error);
     return [];
@@ -124,10 +209,12 @@ async function getSuggestedUsers() {
 export default async function ExplorePage({
   searchParams,
 }: {
-  searchParams: Promise<SearchParams>;
+  searchParams?: Promise<ExploreSearchParams | undefined>;
 }) {
-  const params = await searchParams;
-  const view = params.view === 'grid' ? 'grid' : 'list';
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const viewParam = resolvedSearchParams.view;
+  const viewValue = Array.isArray(viewParam) ? viewParam[0] : viewParam;
+  const view = viewValue === 'grid' ? 'grid' : FALLBACK_VIEW;
 
   const [bookmarks, trendingTags, suggestedUsers] = await Promise.all([
     getPublicBookmarks(),
@@ -183,28 +270,16 @@ export default async function ExplorePage({
               </div>
             ) : view === 'list' ? (
               <div className="space-y-4">
-                {bookmarks.map((bookmark: Bookmark) => (
+                {bookmarks.map((bookmark) => (
                   <ExploreBookmarkListItem
                     key={bookmark.id}
                     id={bookmark.id}
                     title={bookmark.title}
-                    slug={
-                      bookmark.slug ||
-                      bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-                    }
+                    slug={bookmark.slug}
                     description={bookmark.description}
-                    imageUrl={bookmark.image_url}
-                    author={{
-                      username: bookmark.profiles?.username || 'unknown',
-                      displayName: bookmark.profiles?.display_name || null,
-                      avatarUrl: bookmark.profiles?.avatar_url || null,
-                    }}
-                    tags={
-                      bookmark.bookmark_tags?.map((bt) => ({
-                        name: bt.tags.name,
-                        slug: bt.tags.slug,
-                      })) || []
-                    }
+                    imageUrl={bookmark.imageUrl}
+                    author={bookmark.author}
+                    tags={bookmark.tags}
                     likes={24}
                     isLiked={false}
                     isBookmarked={false}
@@ -213,28 +288,16 @@ export default async function ExplorePage({
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {bookmarks.map((bookmark: Bookmark) => (
+                {bookmarks.map((bookmark) => (
                   <ExploreBookmarkCard
                     key={bookmark.id}
                     id={bookmark.id}
                     title={bookmark.title}
-                    slug={
-                      bookmark.slug ||
-                      bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-                    }
+                    slug={bookmark.slug}
                     description={bookmark.description}
-                    imageUrl={bookmark.image_url}
-                    author={{
-                      username: bookmark.profiles?.username || 'unknown',
-                      displayName: bookmark.profiles?.display_name || null,
-                      avatarUrl: bookmark.profiles?.avatar_url || null,
-                    }}
-                    tags={
-                      bookmark.bookmark_tags?.map((bt) => ({
-                        name: bt.tags.name,
-                        slug: bt.tags.slug,
-                      })) || []
-                    }
+                    imageUrl={bookmark.imageUrl}
+                    author={bookmark.author}
+                    tags={bookmark.tags}
                     likes={24}
                     isLiked={false}
                     isBookmarked={false}
