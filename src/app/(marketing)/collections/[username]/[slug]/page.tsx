@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!data || !data.collection) {
     return {
-      title: 'Collection Not Found | HitTags',
+      title: 'Collection Not Found',
     };
   }
 

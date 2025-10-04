@@ -1,7 +1,9 @@
 import { MetadataRoute } from 'next';
 
+import { siteConfig } from '@/config/site';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hittags.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
 
   // Static pages
   const staticPages = [

@@ -105,7 +105,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!bookmark) {
     return {
-      title: 'Bookmark Not Found | HitTags',
+      title: 'Bookmark Not Found',
     };
   }
 

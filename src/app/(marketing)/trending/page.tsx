@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { Metadata } from 'next';
 import Link from 'next/link';
 import {
@@ -12,10 +11,26 @@ import {
 import type { ReactNode } from 'react';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { siteConfig } from '@/config/site';
 
 export const metadata: Metadata = {
-  title: 'Trending Bookmarks • HitTags',
-  description: "Discover what's trending across the HitTags community.",
+  title: 'Trending Bookmarks Today',
+  description: "See what's trending across the HitTags community right now. Discover the most popular bookmarks, tags, and creators.",
+  alternates: {
+    canonical: `${siteConfig.url}/trending`,
+  },
+  openGraph: {
+    title: `Trending Bookmarks Today | ${siteConfig.name}`,
+    description: "See what's trending across the HitTags community right now. Discover the most popular bookmarks, tags, and creators.",
+    url: `${siteConfig.url}/trending`,
+    siteName: siteConfig.name,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Trending Bookmarks Today | ${siteConfig.name}`,
+    description: "See what's trending across the HitTags community right now. Discover the most popular bookmarks, tags, and creators.",
+  },
 };
 
 type TrendingStats = {
@@ -281,9 +296,37 @@ export default async function TrendingPage() {
     getRisingUsers(),
   ]);
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
+
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Trending Bookmarks',
+    description: "Discover what's trending across the HitTags community right now.",
+    itemListOrder: 'Descending',
+    itemListElement: bookmarks.slice(0, 10).map((bookmark, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: `${siteUrl}/bookmark/${bookmark.id}/${bookmark.slug}`,
+      name: bookmark.title,
+      description: bookmark.description ?? undefined,
+      author: bookmark.author.username !== 'unknown'
+        ? {
+            '@type': 'Person',
+            name: bookmark.author.displayName || bookmark.author.username,
+            url: `${siteUrl}/${bookmark.author.username}`,
+          }
+        : undefined,
+    })),
+  };
+
   return (
     <main className="bg-neutral-50">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-neutral-900">Trending Bookmarks</h1>
           <p className="text-neutral-600">Discover what&apos;s popular and trending in the community</p>
@@ -376,7 +419,10 @@ export default async function TrendingPage() {
                     <div key={user.username} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         {user.avatarUrl ? (
-                          <img src={user.avatarUrl} alt={user.displayName ?? user.username} className="h-9 w-9 rounded-full object-cover" />
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={user.avatarUrl} alt={user.displayName ?? user.username} className="h-9 w-9 rounded-full object-cover" />
+                          </>
                         ) : (
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-sm font-semibold text-neutral-600">
                             {(user.displayName ?? user.username).charAt(0).toUpperCase()}
@@ -463,11 +509,14 @@ function TrendingBookmarkCard({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="flex-shrink-0">
           {bookmark.imageUrl ? (
-            <img
-              src={bookmark.imageUrl}
-              alt={bookmark.title}
-              className="h-16 w-16 rounded-lg object-cover"
-            />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={bookmark.imageUrl}
+                alt={bookmark.title}
+                className="h-16 w-16 rounded-lg object-cover"
+              />
+            </>
           ) : (
             <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-neutral-100 text-xs text-neutral-500">
               Preview
@@ -489,11 +538,14 @@ function TrendingBookmarkCard({
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2 text-neutral-600">
                 {bookmark.author.avatarUrl ? (
-                  <img
-                    src={bookmark.author.avatarUrl}
-                    alt={bookmark.author.displayName ?? bookmark.author.username}
-                    className="h-6 w-6 rounded-full object-cover"
-                  />
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={bookmark.author.avatarUrl}
+                      alt={bookmark.author.displayName ?? bookmark.author.username}
+                      className="h-6 w-6 rounded-full object-cover"
+                    />
+                  </>
                 ) : (
                   <div className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
                     {(bookmark.author.displayName ?? bookmark.author.username).charAt(0).toUpperCase()}

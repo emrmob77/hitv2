@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BookmarkIcon, FolderIcon, TagIcon, TrendingUpIcon, PlusIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Dashboard • HitTags',
+  title: 'Dashboard',
 };
 
 const EMPTY_DASHBOARD_STATS = {

@@ -20,7 +20,7 @@ const PRIVACY_FILTERS = [
 ];
 
 export const metadata: Metadata = {
-  title: 'Bookmarks • HitTags',
+  title: 'Bookmarks',
 };
 
 export default async function BookmarksPage({

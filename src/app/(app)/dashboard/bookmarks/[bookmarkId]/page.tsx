@@ -39,7 +39,7 @@ const PRIVACY_LABELS: Record<BookmarkRecord['privacy_level'], string> = {
 };
 
 export const metadata: Metadata = {
-  title: 'Bookmark details • HitTags',
+  title: 'Bookmark Details',
 };
 
 export default async function BookmarkDetailPage({ params }: { params: Promise<PageParams> }) {

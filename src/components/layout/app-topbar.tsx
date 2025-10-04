@@ -52,7 +52,7 @@ export async function AppTopbar() {
         </div>
         <div className="flex items-center gap-2">
           <Button asChild size="sm" className="hidden sm:inline-flex">
-            <Link href="/dashboard/bookmark/new">
+            <Link href="/dashboard/bookmarks/new">
               <Plus className="mr-1.5 size-4" />
               Add bookmark
             </Link>

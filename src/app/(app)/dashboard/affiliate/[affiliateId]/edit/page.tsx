@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeftIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Edit Affiliate Link • HitTags',
+  title: 'Edit Affiliate Link',
 };
 
 type PageParams = {

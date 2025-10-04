@@ -4,7 +4,7 @@ import { OnboardingForm } from '@/components/auth/onboarding-form';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
-  title: 'HitTags • Onboarding',
+  title: 'Onboarding',
 };
 
 export default async function OnboardingPage() {

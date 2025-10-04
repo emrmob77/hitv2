@@ -346,7 +346,7 @@ export async function generateMetadata({
 
   if (!data) {
     return {
-      title: 'Tag Not Found | HitTags',
+      title: 'Tag Not Found',
     };
   }
 

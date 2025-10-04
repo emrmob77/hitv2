@@ -23,7 +23,7 @@ type BookmarkRecord = {
 };
 
 export const metadata: Metadata = {
-  title: 'Edit bookmark • HitTags',
+  title: 'Edit Bookmark',
 };
 
 export default async function EditBookmarkPage({ params }: { params: Promise<PageParams> }) {

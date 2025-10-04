@@ -4,8 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { siteConfig } from "@/config/site";
 
 const PRIVACY_LEVELS = new Set(["public", "private", "subscribers"] as const);
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
 
 type PrivacyLevel = "public" | "private" | "subscribers";
 
@@ -63,7 +66,7 @@ async function extractMetadataFromUrl(targetUrl: string): Promise<BookmarkMetada
   try {
     const response = await fetch(targetUrl, {
       headers: {
-        "user-agent": "HitTagsBot/1.0 (+https://hittags.com)",
+        "user-agent": `HitTagsBot/1.0 (+${BASE_URL})`,
         accept: "text/html,application/xhtml+xml",
       },
       redirect: "follow",
@@ -266,7 +269,7 @@ export async function createBookmarkAction(
   }
 
   revalidatePath("/dashboard/bookmarks");
-  redirect(`/dashboard/bookmark/${data.id}`);
+  redirect(`/dashboard/bookmarks/${data.id}`);
 }
 
 export async function updateBookmarkAction(
@@ -399,8 +402,8 @@ export async function updateBookmarkAction(
   }
 
   revalidatePath("/dashboard/bookmarks");
-  revalidatePath(`/dashboard/bookmark/${id}`);
-  redirect(`/dashboard/bookmark/${id}`);
+  revalidatePath(`/dashboard/bookmarks/${id}`);
+  redirect(`/dashboard/bookmarks/${id}`);
 }
 
 export async function deleteBookmarkAction(formData: FormData): Promise<void> {
@@ -425,7 +428,7 @@ export async function deleteBookmarkAction(formData: FormData): Promise<void> {
   }
 
   revalidatePath("/dashboard/bookmarks");
-  if (!redirectTo.includes(`/dashboard/bookmark/${id}`)) {
+  if (!redirectTo.includes(`/dashboard/bookmarks/${id}`)) {
     revalidatePath(redirectTo);
   }
   redirect(redirectTo || "/dashboard/bookmarks");

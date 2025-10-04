@@ -1,5 +1,9 @@
 import { Metadata } from 'next';
 
+import { siteConfig } from '@/config/site';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
+
 interface Tag {
   id: string;
   name: string;
@@ -21,33 +25,41 @@ interface Bookmark {
 
 export class MetadataGenerator {
   static generateTagPageMetadata(tag: Tag): Metadata {
-    const title = `${tag.name} Bookmarks & Resources | HitTags`;
-    const description =
-      tag.description ||
-      `Discover ${tag.usage_count}+ curated ${tag.name} bookmarks. Best ${tag.name} tools, articles, and resources shared by the community.`;
+    const rawDescription = tag.description?.trim();
+    const hasMeaningfulDescription =
+      rawDescription && rawDescription.toLowerCase() !== 'default fallback tag';
+
+    const title = `${tag.name} Bookmarks & Resources`;
+    const description = hasMeaningfulDescription
+      ? rawDescription!
+      : `Discover ${tag.usage_count || 'the top'} curated ${tag.name} bookmarks. Explore the best ${tag.name} tools, articles, and resources shared by the HitTags community.`;
+
+    const keywordCandidates = [
+      tag.name,
+      'bookmarks',
+      'resources',
+      'tools',
+      'curated',
+      'collection',
+      `${tag.name} tools`,
+      `${tag.name} resources`,
+      `best ${tag.name}`,
+    ];
+
+    const keywords = Array.from(new Set(keywordCandidates.map((item) => item.trim())));
 
     return {
       title,
       description,
-      keywords: [
-        tag.name,
-        'bookmarks',
-        'resources',
-        'tools',
-        'curated',
-        'collection',
-        `${tag.name} tools`,
-        `${tag.name} resources`,
-        `best ${tag.name}`,
-      ],
+      keywords,
       openGraph: {
-        title: `${tag.name} Bookmarks - HitTags`,
+        title: `${title} | ${siteConfig.name}`,
         description,
-        url: `https://hittags.com/tag/${tag.slug}`,
+        url: `${BASE_URL}/tag/${tag.slug}`,
         siteName: 'HitTags',
         images: [
           {
-            url: `/api/og/tag/${tag.slug}`,
+            url: `${BASE_URL}/api/og/tag/${tag.slug}`,
             width: 1200,
             height: 630,
             alt: `${tag.name} bookmarks collection`,
@@ -59,12 +71,12 @@ export class MetadataGenerator {
         card: 'summary_large_image',
         title: `${tag.name} Bookmarks - HitTags`,
         description,
-        images: [`/api/og/tag/${tag.slug}`],
+        images: [`${BASE_URL}/api/og/tag/${tag.slug}`],
         creator: '@hittags',
         site: '@hittags',
       },
       alternates: {
-        canonical: `https://hittags.com/tag/${tag.slug}`,
+        canonical: `${BASE_URL}/tag/${tag.slug}`,
       },
       other: {
         'theme-color': tag.color,
@@ -88,13 +100,13 @@ export class MetadataGenerator {
       openGraph: {
         title: bookmark.title,
         description: description,
-        url: `https://hittags.com/bookmark/${bookmark.id}/${bookmarkSlug}`,
+        url: `${BASE_URL}/bookmark/${bookmark.id}/${bookmarkSlug}`,
         siteName: 'HitTags',
         type: 'article',
         images: bookmark.domain
           ? [
               {
-                url: `/api/og/bookmark/${bookmark.id}`,
+                url: `${BASE_URL}/api/og/bookmark/${bookmark.id}`,
                 width: 1200,
                 height: 630,
                 alt: bookmark.title,
@@ -106,10 +118,10 @@ export class MetadataGenerator {
         card: 'summary_large_image',
         title: bookmark.title,
         description: description,
-        images: bookmark.domain ? [`/api/og/bookmark/${bookmark.id}`] : [],
+        images: bookmark.domain ? [`${BASE_URL}/api/og/bookmark/${bookmark.id}`] : [],
       },
       alternates: {
-        canonical: `https://hittags.com/bookmark/${bookmark.id}/${bookmarkSlug}`,
+        canonical: `${BASE_URL}/bookmark/${bookmark.id}/${bookmarkSlug}`,
       },
     };
   }
@@ -144,13 +156,13 @@ export class MetadataGenerator {
       openGraph: {
         title: collection.name,
         description,
-        url: `https://hittags.com/collections/${username}/${collection.slug}`,
+        url: `${BASE_URL}/collections/${username}/${collection.slug}`,
         siteName: 'HitTags',
         images: [
           {
             url:
               collection.cover_image_url ||
-              `/api/og/collection/${collection.slug}`,
+              `${BASE_URL}/api/og/collection/${collection.slug}`,
             width: 1200,
             height: 630,
             alt: `${collection.name} collection`,
@@ -164,11 +176,11 @@ export class MetadataGenerator {
         description,
         images: [
           collection.cover_image_url ||
-            `/api/og/collection/${collection.slug}`,
+            `${BASE_URL}/api/og/collection/${collection.slug}`,
         ],
       },
       alternates: {
-        canonical: `https://hittags.com/collections/${username}/${collection.slug}`,
+        canonical: `${BASE_URL}/collections/${username}/${collection.slug}`,
       },
     };
   }

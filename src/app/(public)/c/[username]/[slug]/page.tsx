@@ -2,7 +2,10 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { siteConfig } from '@/config/site';
 import { FolderIcon, CalendarIcon, ClockIcon, EyeIcon, UsersIcon, HeartIcon, ShareIcon } from 'lucide-react';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
 
 interface Collection {
   id: string;
@@ -43,20 +46,21 @@ export async function generateMetadata({
     return { title: 'Collection Not Found' };
   }
 
-  const metaDescription = collection.description
-    || `Explore ${collection.name} - A curated collection of quality bookmarks by @${collection.user.username} on HitTags`;
+  const metaDescription =
+    collection.description ||
+    `Explore ${collection.name} - A curated collection of quality bookmarks by @${collection.user.username} on ${siteConfig.name}`;
 
   return {
-    title: `${collection.name} - Collection by @${collection.user.username} | HitTags`,
+    title: `${collection.name} - Collection by @${collection.user.username}`,
     description: metaDescription,
     keywords: ['collection', 'bookmarks', collection.name, collection.user.username, 'curated'],
     openGraph: {
       title: `${collection.name} by @${collection.user.username}`,
       description: metaDescription,
       images: collection.cover_image_url ? [collection.cover_image_url] : undefined,
-      url: `https://hittags.com/c/${collection.user.username}/${collection.slug}`,
+      url: `${BASE_URL}/c/${collection.user.username}/${collection.slug}`,
       type: 'website',
-      siteName: 'HitTags',
+      siteName: siteConfig.name,
     },
     twitter: {
       card: 'summary_large_image',
@@ -66,7 +70,7 @@ export async function generateMetadata({
       creator: `@${collection.user.username}`,
     },
     alternates: {
-      canonical: `https://hittags.com/c/${collection.user.username}/${collection.slug}`,
+      canonical: `${BASE_URL}/c/${collection.user.username}/${collection.slug}`,
     },
     robots: {
       index: true,
@@ -99,11 +103,11 @@ export default async function PublicCollectionPage({
     '@type': 'CollectionPage',
     name: collection.name,
     description: collection.description || `A curated collection by ${collection.user.display_name || collection.user.username}`,
-    url: `https://hittags.com/c/${collection.user.username}/${collection.slug}`,
+    url: `${BASE_URL}/c/${collection.user.username}/${collection.slug}`,
     author: {
       '@type': 'Person',
       name: collection.user.display_name || collection.user.username,
-      url: `https://hittags.com/${collection.user.username}`,
+      url: `${BASE_URL}/${collection.user.username}`,
     },
     dateCreated: collection.created_at,
     dateModified: collection.updated_at,

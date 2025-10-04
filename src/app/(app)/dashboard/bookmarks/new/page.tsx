@@ -4,7 +4,7 @@ import { Metadata } from 'next';
 import { BookmarkCreateForm } from '@/components/bookmarks/bookmark-form';
 
 export const metadata: Metadata = {
-  title: 'Add Bookmark • HitTags',
+  title: 'Add Bookmark',
 };
 
 export default function NewBookmarkPage() {

@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FolderIcon, LockIcon, UsersIcon, EyeIcon, ExternalLinkIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Collections • HitTags',
+  title: 'Collections',
 };
 
 interface Collection {

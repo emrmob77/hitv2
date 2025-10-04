@@ -1,3 +1,7 @@
+import { siteConfig } from '@/config/site';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
+
 interface Tag {
   id: string;
   name: string;
@@ -26,14 +30,14 @@ export class StructuredDataGenerator {
       '@type': 'WebSite',
       name: 'HitTags',
       alternateName: 'HitTags - Social Bookmarking Platform',
-      url: 'https://hittags.com',
+      url: BASE_URL,
       description:
         'Social bookmarking platform for discovering, saving, and sharing the best web resources.',
       potentialAction: {
         '@type': 'SearchAction',
         target: {
           '@type': 'EntryPoint',
-          urlTemplate: 'https://hittags.com/search?q={search_term_string}',
+          urlTemplate: `${BASE_URL}/search?q={search_term_string}`,
         },
         'query-input': 'required name=search_term_string',
       },
@@ -51,8 +55,8 @@ export class StructuredDataGenerator {
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: 'HitTags',
-      url: 'https://hittags.com',
-      logo: 'https://hittags.com/logo.png',
+      url: BASE_URL,
+      logo: `${BASE_URL}/logo.png`,
       description:
         'Social bookmarking platform for discovering and organizing web resources.',
       foundingDate: '2024',
@@ -72,7 +76,7 @@ export class StructuredDataGenerator {
       '@type': 'CollectionPage',
       name: `${tag.name} Bookmarks`,
       description: tag.description || `Curated collection of ${tag.name} bookmarks and resources`,
-      url: `https://hittags.com/tag/${tag.slug}`,
+      url: `${BASE_URL}/tag/${tag.slug}`,
       numberOfItems: tag.usage_count,
       about: {
         '@type': 'Thing',
@@ -94,7 +98,7 @@ export class StructuredDataGenerator {
               ? {
                   '@type': 'Person',
                   name: bookmark.user.display_name || bookmark.user.username,
-                  url: `https://hittags.com/${bookmark.user.username}`,
+                  url: `${BASE_URL}/${bookmark.user.username}`,
                 }
               : undefined,
           },
@@ -107,19 +111,19 @@ export class StructuredDataGenerator {
             '@type': 'ListItem',
             position: 1,
             name: 'Home',
-            item: 'https://hittags.com',
+            item: BASE_URL,
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: 'Tags',
-            item: 'https://hittags.com/tags',
+            item: `${BASE_URL}/tags`,
           },
           {
             '@type': 'ListItem',
             position: 3,
             name: tag.name,
-            item: `https://hittags.com/tag/${tag.slug}`,
+            item: `${BASE_URL}/tag/${tag.slug}`,
           },
         ],
       },
@@ -138,7 +142,7 @@ export class StructuredDataGenerator {
         ? {
             '@type': 'Person',
             name: bookmark.user.display_name || bookmark.user.username,
-            url: `https://hittags.com/${bookmark.user.username}`,
+            url: `${BASE_URL}/${bookmark.user.username}`,
           }
         : undefined,
       datePublished: bookmark.created_at,
@@ -147,7 +151,7 @@ export class StructuredDataGenerator {
         name: 'HitTags',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://hittags.com/logo.png',
+          url: `${BASE_URL}/logo.png`,
         },
       },
     };
@@ -173,12 +177,12 @@ export class StructuredDataGenerator {
       description:
         collection.description ||
         `Curated collection of ${collection.bookmark_count} bookmarks`,
-      url: `https://hittags.com/collections/${username}/${collection.slug}`,
+      url: `${BASE_URL}/collections/${username}/${collection.slug}`,
       numberOfItems: collection.bookmark_count,
       creator: {
         '@type': 'Person',
         name: displayName || username,
-        url: `https://hittags.com/${username}`,
+        url: `${BASE_URL}/${username}`,
       },
       mainEntity: {
         '@type': 'ItemList',
@@ -195,7 +199,7 @@ export class StructuredDataGenerator {
               ? {
                   '@type': 'Person',
                   name: bookmark.user.display_name || bookmark.user.username,
-                  url: `https://hittags.com/${bookmark.user.username}`,
+                  url: `${BASE_URL}/${bookmark.user.username}`,
                 }
               : undefined,
           },
@@ -208,25 +212,25 @@ export class StructuredDataGenerator {
             '@type': 'ListItem',
             position: 1,
             name: 'Home',
-            item: 'https://hittags.com',
+            item: BASE_URL,
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: 'Collections',
-            item: 'https://hittags.com/collections',
+            item: `${BASE_URL}/collections`,
           },
           {
             '@type': 'ListItem',
             position: 3,
             name: displayName || username,
-            item: `https://hittags.com/${username}`,
+            item: `${BASE_URL}/${username}`,
           },
           {
             '@type': 'ListItem',
             position: 4,
             name: collection.name,
-            item: `https://hittags.com/collections/${username}/${collection.slug}`,
+            item: `${BASE_URL}/collections/${username}/${collection.slug}`,
           },
         ],
       },

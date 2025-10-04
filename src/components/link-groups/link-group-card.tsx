@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { siteConfig } from '@/config/site';
 import {
   EyeIcon,
   MousePointerClickIcon,
@@ -12,6 +13,8 @@ import {
   CheckIcon,
   BarChartIcon,
 } from 'lucide-react';
+
+const DEFAULT_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
 
 interface LinkGroupCardProps {
   group: {
@@ -28,7 +31,7 @@ interface LinkGroupCardProps {
   baseUrl?: string;
 }
 
-export function LinkGroupCard({ group, baseUrl = 'https://hittags.com' }: LinkGroupCardProps) {
+export function LinkGroupCard({ group, baseUrl = DEFAULT_BASE_URL }: LinkGroupCardProps) {
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
   const publicUrl = `${baseUrl}/l/${group.username}/${group.slug}`;

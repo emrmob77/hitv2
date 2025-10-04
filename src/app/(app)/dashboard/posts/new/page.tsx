@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const metadata: Metadata = {
-  title: 'Create Premium Post • HitTags',
+  title: 'Create Premium Post',
 };
 
 export default async function NewPostPage() {

@@ -70,7 +70,7 @@ export async function SiteHeader() {
           {isAuthenticated ? (
             <>
               <Link
-                href="/dashboard/bookmark/new"
+                href="/dashboard/bookmarks/new"
                 className="hidden items-center gap-2 rounded-lg bg-[var(--hit-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--hit-primary-dark)] sm:flex"
               >
                 <Plus className="size-4" />

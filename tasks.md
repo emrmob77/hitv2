@@ -77,10 +77,11 @@
 
 - [ ] 9. Arama ve keşif özelliklerini implement et
   - Real-time search işlevselliğini ve filtreleme sistemini kodla
-  - Trending bookmarks ve popular collections algoritmalarını geliştir
+  - [x] Trending bookmarks algoritmasını geliştir (Supabase tabanlı)
+  - [ ] Popular collections algoritmalarını geliştir
   - Related content ve recommendation engine'i implement et
   - Personalized recommendations sistemini kodla
-  - Tag hierarchy ve related tags özelliklerini geliştir
+  - [x] Tag hierarchy ve related tags özelliklerini geliştir
   - _Gereksinimler: 6.1, 6.2, 6.3, 6.4, 6.5_
 
 - [ ] 10. Üçlü premium paket sistemini geliştir

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { siteConfig } from '@/config/site';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -8,7 +9,7 @@ import { LinkGroupCard } from '@/components/link-groups/link-group-card';
 import { LinkIcon, PlusIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Link Groups • HitTags',
+  title: 'Link Groups',
 };
 
 interface LinkGroup {
@@ -27,7 +28,10 @@ interface LinkGroup {
 export default async function LinkGroupsPage() {
   const linkGroups = await fetchLinkGroups();
   const profile = await fetchUserProfile();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hittags.com';
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    siteConfig.url;
 
   return (
     <div className="space-y-8">

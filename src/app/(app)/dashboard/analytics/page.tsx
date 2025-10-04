@@ -7,7 +7,7 @@ import { DeviceBreakdownChart } from '@/components/analytics/device-breakdown-ch
 import { TopLinksChart } from '@/components/analytics/top-links-chart';
 
 export const metadata: Metadata = {
-  title: 'Analytics • HitTags',
+  title: 'Analytics',
 };
 
 interface AnalyticsData {

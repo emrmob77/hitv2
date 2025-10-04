@@ -5,7 +5,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
-  title: 'Tags • HitTags',
+  title: 'Tags',
 };
 
 export const dynamic = 'force-dynamic';

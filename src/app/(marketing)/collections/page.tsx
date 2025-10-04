@@ -1,17 +1,28 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 
+import { siteConfig } from '@/config/site';
+
 export const metadata: Metadata = {
-  title: 'Popular Bookmark Collections | HitTags',
+  title: 'Popular Bookmark Collections',
   description:
     'Discover curated bookmark collections. Find organized resources for any topic or project.',
+  alternates: {
+    canonical: `${siteConfig.url}/collections`,
+  },
   openGraph: {
-    title: 'Popular Bookmark Collections | HitTags',
+    title: `Popular Bookmark Collections | ${siteConfig.name}`,
     description:
       'Discover curated bookmark collections. Find organized resources for any topic or project.',
-    url: 'https://hittags.com/collections',
-    siteName: 'HitTags',
+    url: `${siteConfig.url}/collections`,
+    siteName: siteConfig.name,
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Popular Bookmark Collections | ${siteConfig.name}`,
+    description:
+      'Discover curated bookmark collections. Find organized resources for any topic or project.',
   },
 };
 

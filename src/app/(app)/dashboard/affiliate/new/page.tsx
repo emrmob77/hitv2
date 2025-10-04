@@ -9,7 +9,7 @@ import { ArrowLeftIcon } from 'lucide-react';
 import { revalidatePath } from 'next/cache';
 
 export const metadata: Metadata = {
-  title: 'Add Affiliate Link • HitTags',
+  title: 'Add Affiliate Link',
 };
 
 export default async function NewAffiliateLinkPage() {

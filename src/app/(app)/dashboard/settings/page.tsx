@@ -10,7 +10,7 @@ import { DataExportSection } from '@/components/settings/data-export-section';
 import { DangerZoneSection } from '@/components/settings/danger-zone-section';
 
 export const metadata: Metadata = {
-  title: 'Settings • HitTags',
+  title: 'Settings',
   description: 'Manage your account settings and preferences',
 };
 

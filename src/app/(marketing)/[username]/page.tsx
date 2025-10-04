@@ -22,12 +22,12 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
 
   if (!profile) {
     return {
-      title: 'User Not Found • HitTags',
+      title: 'User Not Found',
     };
   }
 
   const displayName = profile.display_name || profile.username;
-  const title = `${displayName} (@${profile.username}) • HitTags`;
+  const title = `${displayName} (@${profile.username})`;
   const description = profile.bio || `Check out ${displayName}'s bookmarks and collections on HitTags`;
 
   return {

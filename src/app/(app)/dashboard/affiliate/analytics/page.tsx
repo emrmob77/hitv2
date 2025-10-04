@@ -13,7 +13,7 @@ import {
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: 'Affiliate Analytics • HitTags',
+  title: 'Affiliate Analytics',
   description: 'Detailed analytics for your affiliate links',
 };
 

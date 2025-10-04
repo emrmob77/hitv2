@@ -10,7 +10,7 @@ import { TrendingTags } from '@/components/explore/trending-tags';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
-  title: 'Explore Bookmarks | HitTags',
+  title: 'Explore Bookmarks',
   description: 'Discover popular content curated by the community',
 };
 

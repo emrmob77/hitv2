@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { siteConfig } from '@/config/site';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { QRCodeGenerator } from '@/components/affiliate/qr-code-generator';
@@ -16,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Affiliate Link Details • HitTags',
+  title: 'Affiliate Link Details',
 };
 
 type PageParams = {
@@ -81,7 +82,10 @@ export default async function AffiliateLinkDetailPage({
   const link = affiliateLink as AffiliateLinkDetail;
 
   // Generate short URL
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hittags.com';
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    siteConfig.url;
   const shortUrl = `${baseUrl}/a/${affiliateLink.short_code}`;
 
   return (

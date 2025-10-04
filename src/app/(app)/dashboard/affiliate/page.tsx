@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { siteConfig } from '@/config/site';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Affiliate Links • HitTags',
+  title: 'Affiliate Links',
   description: 'Manage your affiliate links and track earnings',
 };
 
@@ -45,7 +46,10 @@ export default async function AffiliatePage() {
   }
 
   // Get base URL
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hittags.com';
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    siteConfig.url;
 
   // Check if user is premium
   const { data: profile } = await supabase

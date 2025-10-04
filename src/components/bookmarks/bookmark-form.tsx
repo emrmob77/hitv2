@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useMemo, useState } from 'react';
+import { startTransition, useActionState, useEffect, useMemo, useState } from 'react';
 import {
   BookmarkPlus,
   ChevronRight,
@@ -152,14 +152,16 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
     }
   }, [metadataState?.metadata, setFormValues]);
 
-  async function handleMetadataFetch() {
+  function handleMetadataFetch() {
     if (!formValues.url) {
       return;
     }
 
     const payload = new FormData();
     payload.set('url', formValues.url);
-    await metadataAction(payload);
+    startTransition(() => {
+      metadataAction(payload);
+    });
   }
 
   function updateValue<K extends keyof FormValues>(key: K, value: FormValues[K]) {

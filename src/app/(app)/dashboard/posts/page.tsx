@@ -8,7 +8,7 @@ import { FileTextIcon, LockIcon, UsersIcon, EyeIcon, VideoIcon, FileIcon, Search
 import { PostFilters } from '@/components/posts/post-filters';
 
 export const metadata: Metadata = {
-  title: 'Premium Posts • HitTags',
+  title: 'Premium Posts',
 };
 
 interface ExclusivePost {

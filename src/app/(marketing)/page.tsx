@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'HitTags - Organize, Discover & Share Your Web Bookmarks',
+  title: 'Organize, Discover & Share Your Web Bookmarks',
   description: 'HitTags is the social bookmark platform that helps you save, organize and discover the best content on the web. Join thousands of content curators and researchers.',
 };
 
