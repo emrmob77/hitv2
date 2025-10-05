@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ComponentProps } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,9 +21,17 @@ interface Collection {
 
 interface AddToCollectionButtonProps {
   bookmarkId: string;
+  variant?: ComponentProps<typeof Button>['variant'];
+  size?: ComponentProps<typeof Button>['size'];
+  className?: string;
 }
 
-export function AddToCollectionButton({ bookmarkId }: AddToCollectionButtonProps) {
+export function AddToCollectionButton({
+  bookmarkId,
+  variant = 'outline',
+  size = 'sm',
+  className,
+}: AddToCollectionButtonProps) {
   const [open, setOpen] = useState(false);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [bookmarkCollections, setBookmarkCollections] = useState<Set<string>>(new Set());
@@ -107,7 +115,13 @@ export function AddToCollectionButton({ bookmarkId }: AddToCollectionButtonProps
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+      <Button
+        variant={variant}
+        size={size}
+        className={className}
+        onClick={() => setOpen(true)}
+        type="button"
+      >
         <FolderPlusIcon className="mr-2 h-4 w-4" />
         Add to Collection
       </Button>

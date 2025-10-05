@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/config/site";
 
@@ -17,6 +19,7 @@ export type BookmarkMetadata = {
   description?: string;
   imageUrl?: string;
   faviconUrl?: string;
+  sourceUrl?: string;
 };
 
 export type BookmarkFormState = {
@@ -29,6 +32,10 @@ export type BookmarkFormState = {
     privacy?: PrivacyLevel;
     imageUrl?: string;
     faviconUrl?: string;
+    tags?: string;
+    collection?: string;
+    affiliateUrl?: string;
+    commissionRate?: string;
   };
 };
 
@@ -62,6 +69,238 @@ function slugify(value: string): string {
     .slice(0, 200) || "bookmark";
 }
 
+type NormalizedTag = {
+  name: string;
+  slug: string;
+};
+
+function parseTags(raw: unknown): NormalizedTag[] {
+  if (typeof raw !== "string") {
+    return [];
+  }
+
+  const tokens = raw
+    .replace(/,/g, " ")
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean)
+    .map((token) => token.replace(/^#+/, ""));
+
+  const unique = new Map<string, NormalizedTag>();
+
+  for (const token of tokens) {
+    const slug = slugify(token);
+    if (!slug || unique.has(slug)) {
+      continue;
+    }
+
+    unique.set(slug, {
+      name: token,
+      slug,
+    });
+  }
+
+  return Array.from(unique.values());
+}
+
+async function syncBookmarkTags(
+  supabase: SupabaseClient<any, any, any>,
+  bookmarkId: string,
+  tags: NormalizedTag[]
+) {
+  const { data: existingRelations } = await supabase
+    .from("bookmark_tags")
+    .select("tag_id, tags(id, usage_count)")
+    .eq("bookmark_id", bookmarkId);
+
+  if (existingRelations && existingRelations.length > 0) {
+    const { error: deleteError } = await supabase
+      .from("bookmark_tags")
+      .delete()
+      .eq("bookmark_id", bookmarkId);
+
+    if (deleteError) {
+      console.error("Failed to remove existing bookmark tags", deleteError.message);
+    }
+
+    for (const relation of existingRelations) {
+      const currentUsage = relation.tags?.usage_count ?? 1;
+      const { error: decrementError } = await supabase
+        .from("tags")
+        .update({ usage_count: Math.max(currentUsage - 1, 0) })
+        .eq("id", relation.tag_id);
+
+      if (decrementError) {
+        console.error("Failed to decrement tag usage", decrementError.message);
+      }
+    }
+  }
+
+  if (tags.length === 0) {
+    return;
+  }
+
+  for (const tag of tags) {
+    let tagId: string | undefined;
+
+    const { data: existingTag } = await supabase
+      .from("tags")
+      .select("id, usage_count")
+      .eq("slug", tag.slug)
+      .single();
+
+    if (existingTag?.id) {
+      tagId = existingTag.id;
+      const currentUsage = existingTag.usage_count ?? 0;
+      const { error: incrementExistingError } = await supabase
+        .from("tags")
+        .update({ usage_count: currentUsage + 1, name: tag.name })
+        .eq("id", tagId);
+
+      if (incrementExistingError) {
+        console.error("Failed to update tag usage", incrementExistingError.message);
+      }
+    } else {
+      const { data: insertedTag, error: insertError } = await supabase
+        .from("tags")
+        .insert({
+          name: tag.name,
+          slug: tag.slug,
+          usage_count: 1,
+        })
+        .select("id")
+        .single();
+
+      if (insertError) {
+        console.error("Failed to insert tag", insertError.message);
+        continue;
+      }
+
+      tagId = insertedTag?.id;
+    }
+
+    if (!tagId) {
+      continue;
+    }
+
+    const { error: linkError } = await supabase
+      .from("bookmark_tags")
+      .insert({
+        bookmark_id: bookmarkId,
+        tag_id: tagId,
+      });
+
+    if (linkError) {
+      console.error("Failed to link tag", linkError.message);
+    }
+  }
+}
+
+async function syncBookmarkCollection(
+  supabase: SupabaseClient<any, any, any>,
+  bookmarkId: string,
+  userId: string,
+  collectionSlug: string | null
+) {
+  const normalizedSlug = collectionSlug?.trim().toLowerCase() || '';
+
+  const { data: existingLinks } = await supabase
+    .from('collection_bookmarks')
+    .select(
+      `collection_id,
+       collections!inner(
+         id,
+         user_id,
+         slug,
+         bookmark_count
+       )`
+    )
+    .eq('bookmark_id', bookmarkId);
+
+  const existingCollections = (existingLinks ?? []).map((link) => ({
+    id: link.collection_id,
+    slug: link.collections?.slug ?? null,
+    userId: link.collections?.user_id ?? null,
+    bookmarkCount: link.collections?.bookmark_count ?? 0,
+  }));
+
+  const existingIds = existingCollections
+    .filter((collection) => Boolean(collection.id))
+    .map((collection) => collection.id as string);
+
+  let targetCollection: { id: string; bookmark_count: number } | null = null;
+
+  if (normalizedSlug) {
+    const { data: collection } = await supabase
+      .from('collections')
+      .select('id, bookmark_count, user_id, slug')
+      .eq('user_id', userId)
+      .eq('slug', normalizedSlug)
+      .maybeSingle();
+
+    if (collection?.id) {
+      targetCollection = {
+        id: collection.id,
+        bookmark_count: collection.bookmark_count ?? 0,
+      };
+    }
+  }
+
+  const targetId = targetCollection?.id ?? null;
+  const alreadyLinked = targetId && existingIds.length === 1 && existingIds[0] === targetId;
+
+  if (alreadyLinked) {
+    return;
+  }
+
+  if (existingIds.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('collection_bookmarks')
+      .delete()
+      .eq('bookmark_id', bookmarkId);
+
+    if (deleteError) {
+      console.error('Failed to remove existing bookmark collections', deleteError.message);
+    }
+
+    for (const existing of existingCollections) {
+      if (!existing.id) continue;
+
+      const nextCount = Math.max((existing.bookmarkCount ?? 1) - 1, 0);
+      const { error: decrementError } = await supabase
+        .from('collections')
+        .update({ bookmark_count: nextCount })
+        .eq('id', existing.id);
+
+      if (decrementError) {
+        console.error('Failed to decrement collection count', decrementError.message);
+      }
+    }
+  }
+
+  if (targetCollection) {
+    const { error: linkError } = await supabase
+      .from('collection_bookmarks')
+      .insert({
+        bookmark_id: bookmarkId,
+        collection_id: targetCollection.id,
+      });
+
+    if (linkError) {
+      console.error('Failed to link bookmark to collection', linkError.message);
+    }
+
+    const { error: incrementError } = await supabase
+      .from('collections')
+      .update({ bookmark_count: targetCollection.bookmark_count + 1 })
+      .eq('id', targetCollection.id);
+
+    if (incrementError) {
+      console.error('Failed to increment collection count', incrementError.message);
+    }
+  }
+}
+
 async function extractMetadataFromUrl(targetUrl: string): Promise<BookmarkMetadata | null> {
   try {
     const response = await fetch(targetUrl, {
@@ -93,7 +332,7 @@ async function extractMetadataFromUrl(targetUrl: string): Promise<BookmarkMetada
       /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']*)["'][^>]*>/i
     );
     const iconMatch = html.match(
-      /<link[^>]+rel=["'](?:shortcut )?icon["'][^>]+href=["']([^"']*)["'][^>]*>/i
+      /<link[^>]+rel=["'](?:shortcut\s+)?icon(?:\s+icon)?["'][^>]+href=["']([^"']+)["'][^>]*>/i
     );
 
     const metadata: BookmarkMetadata = {};
@@ -116,6 +355,31 @@ async function extractMetadataFromUrl(targetUrl: string): Promise<BookmarkMetada
 
     if (iconMatch?.[1]) {
       metadata.faviconUrl = resolveUrl(targetUrl, iconMatch[1]);
+    } else {
+      const faviconFallbacks = [
+        '/favicon.ico',
+        '/favicon.png',
+        '/favicon-32x32.png',
+        '/favicon-16x16.png',
+      ];
+
+      for (const path of faviconFallbacks) {
+        const resolved = resolveUrl(targetUrl, path);
+        try {
+          const response = await fetch(resolved, {
+            method: 'HEAD',
+            headers: {
+              'user-agent': `HitTagsBot/1.0 (+${BASE_URL})`,
+            },
+          });
+          if (response.ok) {
+            metadata.faviconUrl = resolved;
+            break;
+          }
+        } catch (error) {
+          console.warn('Failed to fetch favicon fallback', resolved, error);
+        }
+      }
     }
 
     return metadata;
@@ -169,7 +433,7 @@ export async function fetchBookmarkMetadataAction(
     return { error: "Metadata could not be retrieved. Please fill the fields manually." };
   }
 
-  return { metadata };
+  return { metadata: { ...metadata, sourceUrl: url } };
 }
 
 export async function createBookmarkAction(
@@ -182,13 +446,27 @@ export async function createBookmarkAction(
   const privacy = sanitisePrivacyLevel(formData.get("privacy"));
   const imageUrlInput = safeTrim(formData.get("imageUrl"));
   const faviconUrlInput = safeTrim(formData.get("faviconUrl"));
+  const collectionInput = safeTrim(formData.get("collection"));
   const affiliateUrl = safeTrim(formData.get("affiliateUrl"));
   const commissionRate = safeTrim(formData.get("commissionRate"));
+  const tagsInput = safeTrim(formData.get("tags"));
+  const parsedTags = parseTags(tagsInput);
 
   if (!url) {
     return {
       error: "Please provide a URL.",
-      values: { url, title: titleInput, description: descriptionInput, privacy },
+      values: {
+        url,
+        title: titleInput,
+        description: descriptionInput,
+        privacy,
+        imageUrl: imageUrlInput,
+        faviconUrl: faviconUrlInput,
+        tags: tagsInput,
+        collection: collectionInput,
+        affiliateUrl,
+        commissionRate,
+      },
     };
   }
 
@@ -197,7 +475,17 @@ export async function createBookmarkAction(
   } catch {
     return {
       error: "The URL format is not valid.",
-      values: { url, title: titleInput, description: descriptionInput, privacy },
+      values: {
+        url,
+        title: titleInput,
+        description: descriptionInput,
+        privacy,
+        imageUrl: imageUrlInput,
+        faviconUrl: faviconUrlInput,
+        tags: tagsInput,
+        affiliateUrl,
+        commissionRate,
+      },
     };
   }
 
@@ -250,6 +538,10 @@ export async function createBookmarkAction(
         privacy,
         imageUrl: imageUrl ?? undefined,
         faviconUrl: faviconUrl ?? undefined,
+        tags: tagsInput,
+        collection: collectionInput,
+        affiliateUrl,
+        commissionRate,
       },
     };
   }
@@ -268,6 +560,9 @@ export async function createBookmarkAction(
       });
   }
 
+  await syncBookmarkTags(supabase, data.id, parsedTags);
+  await syncBookmarkCollection(supabase, data.id, user.id, collectionInput || null);
+
   revalidatePath("/dashboard/bookmarks");
   redirect(`/dashboard/bookmarks/${data.id}`);
 }
@@ -283,8 +578,11 @@ export async function updateBookmarkAction(
   const privacy = sanitisePrivacyLevel(formData.get("privacy"));
   const imageUrlInput = safeTrim(formData.get("imageUrl"));
   const faviconUrlInput = safeTrim(formData.get("faviconUrl"));
+  const collectionInput = safeTrim(formData.get("collection"));
   const affiliateUrl = safeTrim(formData.get("affiliateUrl"));
   const commissionRate = safeTrim(formData.get("commissionRate"));
+  const tagsInput = safeTrim(formData.get("tags"));
+  const parsedTags = parseTags(tagsInput);
 
   if (!id) {
     return { error: "Bookmark identifier is missing." };
@@ -293,7 +591,18 @@ export async function updateBookmarkAction(
   if (!url) {
     return {
       error: "Please provide a URL.",
-      values: { url, title: titleInput, description: descriptionInput, privacy },
+      values: {
+        url,
+        title: titleInput,
+        description: descriptionInput,
+        privacy,
+        imageUrl: imageUrlInput,
+        faviconUrl: faviconUrlInput,
+        tags: tagsInput,
+        collection: collectionInput,
+        affiliateUrl,
+        commissionRate,
+      },
     };
   }
 
@@ -302,7 +611,17 @@ export async function updateBookmarkAction(
   } catch {
     return {
       error: "The URL format is not valid.",
-      values: { url, title: titleInput, description: descriptionInput, privacy },
+      values: {
+        url,
+        title: titleInput,
+        description: descriptionInput,
+        privacy,
+        imageUrl: imageUrlInput,
+        faviconUrl: faviconUrlInput,
+        tags: tagsInput,
+        affiliateUrl,
+        commissionRate,
+      },
     };
   }
 
@@ -354,6 +673,10 @@ export async function updateBookmarkAction(
         privacy,
         imageUrl: imageUrl ?? undefined,
         faviconUrl: faviconUrl ?? undefined,
+        tags: tagsInput,
+        collection: collectionInput,
+        affiliateUrl,
+        commissionRate,
       },
     };
   }
@@ -400,6 +723,9 @@ export async function updateBookmarkAction(
       .eq("bookmark_id", id)
       .eq("user_id", user.id);
   }
+
+  await syncBookmarkTags(supabase, id, parsedTags);
+  await syncBookmarkCollection(supabase, id, user.id, collectionInput || null);
 
   revalidatePath("/dashboard/bookmarks");
   revalidatePath(`/dashboard/bookmarks/${id}`);

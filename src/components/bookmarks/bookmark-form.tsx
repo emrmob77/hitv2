@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import type {
   BookmarkFormState,
   MetadataFormState,
@@ -44,6 +45,11 @@ type FormValues = {
   commissionRate: string;
 };
 
+type CollectionOption = {
+  slug: string;
+  name: string;
+};
+
 type PrivacyOption = {
   value: PrivacyLevel;
   label: string;
@@ -52,7 +58,7 @@ type PrivacyOption = {
 
 type BaseBookmarkFormProps = {
   mode: 'create' | 'edit';
-  initialValues?: Partial<FormValues>;
+  initialValues?: Partial<FormValues> & { collectionName?: string };
   bookmarkId?: string;
 };
 
@@ -81,10 +87,79 @@ const suggestedTags = [
   { label: '#inspiration', usage: '12k bookmarks' },
 ];
 
+const defaultCollectionOptions = [
+  { value: 'design-resources', label: 'Design resources' },
+  { value: 'development-tools', label: 'Development tools' },
+  { value: 'inspiration', label: 'Inspiration' },
+  { value: 'learning', label: 'Learning materials' },
+];
+
 const emptyFormState: BookmarkFormState = {};
 const emptyMetadataState: MetadataFormState = {};
 
-function useFormValues(initialValues?: Partial<FormValues>) {
+function normaliseTagTokens(raw: string) {
+  return raw
+    .replace(/,/g, ' ')
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean)
+    .map((token) => token.replace(/^#+/, '').toLowerCase());
+}
+
+function formatTagsForInput(raw: string): string {
+  if (!raw) {
+    return '';
+  }
+
+  const tokens = normaliseTagTokens(raw);
+  const seen = new Set<string>();
+  const formatted: string[] = [];
+
+  for (const token of tokens) {
+    if (token && !seen.has(token)) {
+      seen.add(token);
+      formatted.push(`#${token}`);
+    }
+  }
+
+  return formatted.join(' ');
+}
+
+function formatTagsForDisplay(raw: string): string {
+  if (!raw) {
+    return '';
+  }
+
+  const endsWithSeparator = /[\s,]$/.test(raw);
+  const tokens = normaliseTagTokens(raw);
+  const seen = new Set<string>();
+  const formatted: string[] = [];
+
+  for (const token of tokens) {
+    if (token && !seen.has(token)) {
+      seen.add(token);
+      formatted.push(`#${token}`);
+    }
+  }
+
+  let value = formatted.join(' ');
+  if (endsWithSeparator && value) {
+    value += ' ';
+  }
+
+  return value;
+}
+
+function slugifyCollectionName(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60) || 'collection';
+}
+
+function useFormValues(initialValues?: Partial<FormValues> & { collectionName?: string }) {
   const defaults: FormValues = useMemo(
     () => ({
       url: initialValues?.url ?? '',
@@ -93,7 +168,7 @@ function useFormValues(initialValues?: Partial<FormValues>) {
       privacy: (initialValues?.privacy as PrivacyLevel) ?? 'public',
       imageUrl: initialValues?.imageUrl ?? '',
       faviconUrl: initialValues?.faviconUrl ?? '',
-      tags: initialValues?.tags ?? '',
+      tags: formatTagsForInput(initialValues?.tags ?? ''),
       collection: initialValues?.collection ?? '',
       affiliateUrl: initialValues?.affiliateUrl ?? '',
       commissionRate: initialValues?.commissionRate ?? '',
@@ -112,6 +187,45 @@ function useFormValues(initialValues?: Partial<FormValues>) {
 
 function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormProps) {
   const { formValues, setFormValues } = useFormValues(initialValues);
+  const [newCollectionName, setNewCollectionName] = useState('');
+  const [isCreatingCollection, setIsCreatingCollection] = useState(false);
+  const [createdCollections, setCreatedCollections] = useState<CollectionOption[]>(() => {
+    if (initialValues?.collection) {
+      const existsInDefaults = defaultCollectionOptions.some(
+        (option) => option.value === initialValues.collection
+      );
+      if (!existsInDefaults) {
+        return [
+          {
+            slug: initialValues.collection,
+            name:
+              initialValues.collectionName?.trim() ||
+              initialValues.collection.replace(/[-_]/g, ' '),
+          },
+        ];
+      }
+    }
+    return [];
+  });
+  const [existingCollections, setExistingCollections] = useState<CollectionOption[]>(() => {
+    if (initialValues?.collection) {
+      const existsInDefaults = defaultCollectionOptions.some(
+        (option) => option.value === initialValues.collection
+      );
+      if (!existsInDefaults) {
+        return [
+          {
+            slug: initialValues.collection,
+            name:
+              initialValues.collectionName?.trim() ||
+              initialValues.collection.replace(/[-_]/g, ' '),
+          },
+        ];
+      }
+    }
+    return [];
+  });
+  const [isFetchingCollections, setIsFetchingCollections] = useState(false);
 
   const [state, formAction, isSubmitting] = useActionState(
     mode === 'create' ? createBookmarkAction : updateBookmarkAction,
@@ -124,7 +238,25 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
   );
 
   const previewDomain = useMemo(() => deriveDomain(formValues.url), [formValues.url]);
-  const metadataApplied = Boolean(metadataState?.metadata && !metadataState?.error);
+  const [lastMetadataSourceUrl, setLastMetadataSourceUrl] = useState<string | null>(null);
+
+  const metadataApplied = useMemo(() => {
+    const metadata = metadataState?.metadata;
+    if (!metadata?.sourceUrl) {
+      return false;
+    }
+    const metadataUrl = metadata.sourceUrl.trim().toLowerCase();
+    const currentUrl = formValues.url.trim().toLowerCase();
+    return metadataUrl === currentUrl && !metadataState?.error;
+  }, [metadataState?.metadata, metadataState?.error, formValues.url]);
+
+  const collectionOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    defaultCollectionOptions.forEach((option) => map.set(option.value, option.label));
+    existingCollections.forEach((option) => map.set(option.slug, option.name));
+    createdCollections.forEach((option) => map.set(option.slug, option.name));
+    return Array.from(map.entries()).map(([value, label]) => ({ value, label }));
+  }, [existingCollections, createdCollections]);
 
   useEffect(() => {
     if (state?.values) {
@@ -136,21 +268,99 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
         privacy: (state.values?.privacy as PrivacyLevel) ?? prev.privacy,
         imageUrl: state.values?.imageUrl ?? prev.imageUrl,
         faviconUrl: state.values?.faviconUrl ?? prev.faviconUrl,
+        tags: formatTagsForDisplay(state.values?.tags ?? prev.tags),
+        collection: state.values?.collection ?? prev.collection,
+        affiliateUrl: state.values?.affiliateUrl ?? prev.affiliateUrl,
+        commissionRate: state.values?.commissionRate ?? prev.commissionRate,
       }));
     }
   }, [setFormValues, state?.values]);
 
   useEffect(() => {
-    if (metadataState?.metadata) {
-      setFormValues((prev) => ({
-        ...prev,
-        title: prev.title || metadataState.metadata?.title || '',
-        description: prev.description || metadataState.metadata?.description || '',
-        imageUrl: prev.imageUrl || metadataState.metadata?.imageUrl || '',
-        faviconUrl: prev.faviconUrl || metadataState.metadata?.faviconUrl || '',
-      }));
+    const metadata = metadataState?.metadata;
+    if (!metadata?.sourceUrl) {
+      return;
     }
-  }, [metadataState?.metadata, setFormValues]);
+
+    const metadataUrl = metadata.sourceUrl.trim().toLowerCase();
+    const currentUrl = formValues.url.trim().toLowerCase();
+
+    if (!metadataUrl || metadataUrl !== currentUrl) {
+      return;
+    }
+
+    setFormValues((prev) => ({
+      ...prev,
+      title:
+        !prev.title || lastMetadataSourceUrl === metadataUrl
+          ? metadata.title || prev.title || ''
+          : prev.title,
+      description:
+        !prev.description || lastMetadataSourceUrl === metadataUrl
+          ? metadata.description || prev.description || ''
+          : prev.description,
+      imageUrl:
+        !prev.imageUrl || lastMetadataSourceUrl === metadataUrl
+          ? metadata.imageUrl || prev.imageUrl || ''
+          : prev.imageUrl,
+      faviconUrl:
+        !prev.faviconUrl || lastMetadataSourceUrl === metadataUrl
+          ? metadata.faviconUrl || prev.faviconUrl || ''
+          : prev.faviconUrl,
+    }));
+
+    setLastMetadataSourceUrl(metadataUrl);
+  }, [metadataState?.metadata, formValues.url, lastMetadataSourceUrl, setFormValues]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCollections() {
+      try {
+        setIsFetchingCollections(true);
+        const supabase = createSupabaseBrowserClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('collections')
+          .select('slug, name')
+          .eq('user_id', user.id)
+          .order('name');
+
+        if (error) {
+          console.error('Failed to load collections', error.message);
+          return;
+        }
+
+        if (data && isMounted) {
+          setExistingCollections((prev) => {
+            const map = new Map<string, string>();
+            prev.forEach((item) => map.set(item.slug, item.name));
+            data.forEach((item) => map.set(item.slug, item.name));
+            return Array.from(map.entries()).map(([slug, name]) => ({ slug, name }));
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load collections', error);
+      } finally {
+        if (isMounted) {
+          setIsFetchingCollections(false);
+        }
+      }
+    }
+
+    loadCollections();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function handleMetadataFetch() {
     if (!formValues.url) {
@@ -167,7 +377,10 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
   function updateValue<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setFormValues((prev) => ({
       ...prev,
-      [key]: value,
+      [key]:
+        key === 'tags' && typeof value === 'string'
+          ? formatTagsForInput(value)
+          : value,
     }));
   }
 
@@ -181,9 +394,97 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
       const next = prev.tags ? `${prev.tags} ${tag}` : tag;
       return {
         ...prev,
-        tags: next.trim(),
+        tags: formatTagsForInput(next.trim()),
       };
     });
+  }
+
+  async function handleCreateCollection() {
+    const trimmedName = newCollectionName.trim();
+    if (!trimmedName || isCreatingCollection) {
+      return;
+    }
+
+    try {
+      setIsCreatingCollection(true);
+
+      const supabase = createSupabaseBrowserClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        console.warn('User session not found while creating collection');
+        return;
+      }
+
+      const baseSlug = slugifyCollectionName(trimmedName);
+      let slugCandidate = baseSlug;
+      let attempt = 1;
+
+      while (attempt <= 5) {
+        const { data: existing } = await supabase
+          .from('collections')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('slug', slugCandidate)
+          .maybeSingle();
+
+        if (!existing) {
+          break;
+        }
+
+        attempt += 1;
+        slugCandidate = `${baseSlug}-${attempt}`;
+      }
+
+      if (attempt > 5) {
+        slugCandidate = `${baseSlug}-${Date.now()}`;
+      }
+
+      const { data, error } = await supabase
+        .from('collections')
+        .insert({
+          user_id: user.id,
+          name: trimmedName,
+          slug: slugCandidate,
+        })
+        .select('slug, name')
+        .single();
+
+      if (error || !data) {
+        console.error('Collection create error', error?.message);
+        return;
+      }
+
+      setFormValues((prev) => ({
+        ...prev,
+        collection: data.slug,
+      }));
+
+      setCreatedCollections((prev) => {
+        if (prev.some((item) => item.slug === data.slug)) {
+          return prev;
+        }
+        if (defaultCollectionOptions.some((option) => option.value === data.slug)) {
+          return prev;
+        }
+        return [...prev, { slug: data.slug, name: data.name }];
+      });
+
+      setExistingCollections((prev) => {
+        if (prev.some((item) => item.slug === data.slug)) {
+          return prev;
+        }
+        return [...prev, { slug: data.slug, name: data.name }];
+      });
+
+      setNewCollectionName('');
+    } catch (error) {
+      console.error('Failed to create collection', error);
+    } finally {
+      setIsCreatingCollection(false);
+    }
   }
 
   return (
@@ -294,7 +595,13 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
                   name="tags"
                   placeholder="Add tags separated by spaces (e.g. #design #seo)"
                   value={formValues.tags}
-                  onChange={(event) => updateValue('tags', event.target.value)}
+                  onChange={(event) =>
+                    setFormValues((prev) => ({
+                      ...prev,
+                      tags: formatTagsForDisplay(event.target.value),
+                    }))
+                  }
+                  onBlur={(event) => updateValue('tags', event.target.value as FormValues['tags'])}
                   className="h-10 rounded-lg border-neutral-300 pl-11 text-sm"
                 />
                 <TagIcon className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
@@ -329,17 +636,39 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
                 className="mt-2 h-10 w-full rounded-lg border border-neutral-300 bg-white px-4 text-sm focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200"
               >
                 <option value="">Select a collection (optional)</option>
-                <option value="design-resources">Design resources</option>
-                <option value="development-tools">Development tools</option>
-                <option value="inspiration">Inspiration</option>
-                <option value="learning">Learning materials</option>
+                {collectionOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
-              <button
-                type="button"
-                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-neutral-600 transition hover:text-neutral-800"
-              >
-                <Plus className="size-4" /> Create new collection
-              </button>
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newCollectionName}
+                    onChange={(event) => setNewCollectionName(event.target.value)}
+                    placeholder="New collection name"
+                    className="h-9"
+                    disabled={isCreatingCollection}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isCreatingCollection}
+                    onClick={handleCreateCollection}
+                  >
+                    <Plus className="mr-1 size-4" />
+                    {isCreatingCollection ? 'Creating…' : 'Create'}
+                  </Button>
+                </div>
+                <p className="text-xs text-neutral-500">
+                  We&apos;ll create a private collection with this name and select it for you.
+                </p>
+                {isFetchingCollections ? (
+                  <p className="text-xs text-neutral-400">Loading your collections…</p>
+                ) : null}
+              </div>
             </div>
 
             <div>
@@ -529,7 +858,7 @@ export function BookmarkEditForm({
   initialValues,
 }: {
   bookmarkId: string;
-  initialValues?: Partial<FormValues>;
+  initialValues?: Partial<FormValues> & { collectionName?: string };
 }) {
   return <BaseBookmarkForm mode="edit" bookmarkId={bookmarkId} initialValues={initialValues} />;
 }

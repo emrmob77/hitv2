@@ -20,6 +20,19 @@ type BookmarkRecord = {
     affiliate_url: string;
     commission_rate: number;
   }>;
+  bookmark_tags?: Array<{
+    tags: {
+      name: string;
+      slug: string;
+    } | null;
+  }> | null;
+  collection_bookmarks?: Array<{
+    collections: {
+      slug: string;
+      name: string;
+      user_id: string;
+    } | null;
+  }> | null;
 };
 
 export const metadata: Metadata = {
@@ -54,6 +67,9 @@ export default async function EditBookmarkPage({ params }: { params: Promise<Pag
           faviconUrl: bookmark.favicon_url ?? '',
           affiliateUrl: bookmark.affiliate_links?.[0]?.affiliate_url ?? '',
           commissionRate: bookmark.affiliate_links?.[0]?.commission_rate?.toString() ?? '',
+          tags: formatTagInitialValue(bookmark.bookmark_tags),
+          collection: extractPrimaryCollectionSlug(bookmark) ?? '',
+          collectionName: extractPrimaryCollectionName(bookmark) ?? undefined,
         }}
       />
     </div>
@@ -80,7 +96,17 @@ async function getBookmark(id: string): Promise<BookmarkRecord | null> {
       description,
       privacy_level,
       image_url,
-      favicon_url
+      favicon_url,
+      bookmark_tags:bookmark_tags(
+        tags(name, slug)
+      ),
+      collection_bookmarks:collection_bookmarks(
+        collections!inner(
+          slug,
+          name,
+          user_id
+        )
+      )
     `)
     .eq('id', id)
     .eq('user_id', user.id)
@@ -98,8 +124,42 @@ async function getBookmark(id: string): Promise<BookmarkRecord | null> {
     .eq('bookmark_id', id)
     .eq('user_id', user.id);
 
+  const filteredCollectionBookmarks = (data.collection_bookmarks ?? []).filter(
+    (entry) => entry.collections && entry.collections.user_id === user.id
+  );
+
   return {
     ...data,
     affiliate_links: affiliateLinks || [],
+    collection_bookmarks: filteredCollectionBookmarks,
   };
+}
+
+function extractPrimaryCollectionSlug(bookmark: BookmarkRecord): string | null {
+  const entries = bookmark.collection_bookmarks ?? [];
+  const primary = entries.find((entry) => entry.collections)?.collections;
+  return primary?.slug ?? null;
+}
+
+function extractPrimaryCollectionName(bookmark: BookmarkRecord): string | null {
+  const entries = bookmark.collection_bookmarks ?? [];
+  const primary = entries.find((entry) => entry.collections)?.collections;
+  return primary?.name ?? null;
+}
+
+function formatTagInitialValue(
+  bookmarkTags: BookmarkRecord['bookmark_tags']
+): string {
+  if (!bookmarkTags || bookmarkTags.length === 0) {
+    return '';
+  }
+
+  const tokens = bookmarkTags
+    .map((entry) => entry.tags?.slug || entry.tags?.name || '')
+    .filter((slug): slug is string => Boolean(slug))
+    .map((slug) => slug.replace(/^#+/, ''));
+
+  const unique = Array.from(new Set(tokens));
+
+  return unique.map((token) => `#${token}`).join(' ');
 }

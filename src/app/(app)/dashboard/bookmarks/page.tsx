@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { BookMarked, Eye, Folder, Shield } from 'lucide-react';
+import type { ElementType } from 'react';
 
 import { BookmarkList, type BookmarkListItem } from '@/components/bookmarks/bookmark-list';
 import { Button } from '@/components/ui/button';
@@ -40,19 +42,67 @@ export default async function BookmarksPage({
 
   const redirectTo = buildRedirectTo({ view, search: searchTerm, privacy: privacyFilter });
 
+  const totalCount = bookmarks.length;
+  const publicCount = bookmarks.filter((bookmark) => bookmark.privacy_level === 'public').length;
+  const privateCount = bookmarks.filter((bookmark) => bookmark.privacy_level === 'private').length;
+  const subscriberCount = bookmarks.filter((bookmark) => bookmark.privacy_level === 'subscribers').length;
+  const uniqueCollectionCount = new Set(
+    bookmarks.flatMap((bookmark) => bookmark.collections?.map((collection) => collection?.slug).filter(Boolean) ?? [])
+  ).size;
+
+  const stats = [
+    {
+      label: 'Total bookmarks',
+      value: totalCount,
+      icon: BookMarked,
+    },
+    {
+      label: 'Public',
+      value: publicCount,
+      icon: Eye,
+    },
+    {
+      label: 'Private',
+      value: privateCount,
+      icon: Shield,
+    },
+    {
+      label: 'Collections',
+      value: uniqueCollectionCount,
+      icon: Folder,
+    },
+  ];
+
   return (
     <div className="space-y-8">
-      <header className="mx-auto flex w-full max-w-5xl flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-neutral-900">Your bookmark workspace</h1>
-          <p className="text-sm text-neutral-600">
-            Review saved links, update their metadata, and adjust who is able to see them.
-          </p>
+      <header className="mx-auto flex w-full max-w-5xl flex-col gap-6 rounded-3xl border border-neutral-200 bg-gradient-to-br from-neutral-50 via-white to-neutral-100 p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <span className="size-1.5 rounded-full bg-neutral-400" />
+            Bookmarks overview
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold text-neutral-900">Your bookmark workspace</h1>
+            <p className="text-sm text-neutral-600">
+              Review saved links, refresh metadata, and organise them into collections that align with your flow.
+            </p>
+          </div>
         </div>
-        <Button asChild className="bg-neutral-900 text-white hover:bg-neutral-800">
-          <Link href="/dashboard/bookmarks/new">Add bookmark</Link>
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button asChild variant="outline" className="h-10 border-neutral-300 text-sm font-semibold text-neutral-700">
+            <Link href="/dashboard/collections/new">Create collection</Link>
+          </Button>
+          <Button asChild className="h-10 bg-neutral-900 text-sm font-semibold text-white hover:bg-neutral-800">
+            <Link href="/dashboard/bookmarks/new">Add bookmark</Link>
+          </Button>
+        </div>
       </header>
+
+      <section className="mx-auto grid w-full max-w-5xl gap-4 rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <SummaryStatCard key={stat.label} {...stat} />
+        ))}
+      </section>
 
       <div className="mx-auto w-full max-w-5xl rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm">
         <form className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between" method="get">
@@ -231,6 +281,28 @@ function ViewToggle({
       >
         List
       </Link>
+    </div>
+  );
+}
+
+function SummaryStatCard({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  icon: ElementType;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-neutral-100 bg-neutral-50/60 px-4 py-3 shadow-sm">
+      <div className="flex size-10 items-center justify-center rounded-xl bg-neutral-900/90 text-white">
+        <Icon className="size-5" />
+      </div>
+      <div>
+        <p className="text-xs uppercase tracking-wide text-neutral-500">{label}</p>
+        <p className="text-lg font-semibold text-neutral-900">{value}</p>
+      </div>
     </div>
   );
 }
