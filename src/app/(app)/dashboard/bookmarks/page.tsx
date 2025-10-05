@@ -12,6 +12,7 @@ type SearchParams = {
   view?: string;
   q?: string;
   privacy?: string;
+  tag?: string;
 };
 
 const PRIVACY_FILTERS = [
@@ -37,10 +38,11 @@ export default async function BookmarksPage({
   const privacyFilter = PRIVACY_FILTERS.some((filter) => filter.value === params.privacy)
     ? (params.privacy as 'all' | 'public' | 'private' | 'subscribers')
     : 'all';
+  const selectedTag = (params.tag ?? '').trim().toLowerCase();
 
-  const { bookmarks } = await fetchBookmarks({ searchTerm, privacy: privacyFilter });
+  const { bookmarks } = await fetchBookmarks({ searchTerm, privacy: privacyFilter, tag: selectedTag });
 
-  const redirectTo = buildRedirectTo({ view, search: searchTerm, privacy: privacyFilter });
+  const redirectTo = buildRedirectTo({ view, search: searchTerm, privacy: privacyFilter, tag: selectedTag });
 
   const totalCount = bookmarks.length;
   const publicCount = bookmarks.filter((bookmark) => bookmark.privacy_level === 'public').length;
@@ -133,6 +135,7 @@ export default async function BookmarksPage({
               </select>
             </div>
             <input type="hidden" name="view" value={view} />
+            <input type="hidden" name="tag" value={selectedTag} />
             <Button type="submit" variant="secondary" className="font-semibold">
               Apply
             </Button>
@@ -144,8 +147,23 @@ export default async function BookmarksPage({
         <p className="text-sm text-neutral-600">
           {bookmarks.length}{' '}bookmark{bookmarks.length === 1 ? '' : 's'}
           {searchTerm ? ` • matching “${searchTerm}”` : ''}
+          {selectedTag ? ` • tagged with #${selectedTag}` : ''}
         </p>
-        <ViewToggle view={view} search={searchTerm} privacy={privacyFilter} />
+        <div className="flex items-center gap-2">
+          {selectedTag ? (
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="border-neutral-200 text-xs font-semibold text-neutral-600"
+            >
+              <Link href={buildRedirectTo({ view, search: searchTerm, privacy: privacyFilter, tag: '' })}>
+                Clear tag filter
+              </Link>
+            </Button>
+          ) : null}
+          <ViewToggle view={view} search={searchTerm} privacy={privacyFilter} tag={selectedTag} />
+        </div>
       </div>
 
       <div className="mx-auto w-full max-w-5xl">
@@ -158,9 +176,11 @@ export default async function BookmarksPage({
 async function fetchBookmarks({
   searchTerm,
   privacy,
+  tag,
 }: {
   searchTerm: string;
   privacy: 'all' | 'public' | 'private' | 'subscribers';
+  tag?: string;
 }): Promise<{ bookmarks: BookmarkListItem[] }> {
   const supabase = await createSupabaseServerClient();
   const {
@@ -222,8 +242,16 @@ async function fetchBookmarks({
     return { bookmarks: [] };
   }
 
+  const normalizedTag = tag?.trim().toLowerCase() || '';
+
+  const filteredData = normalizedTag
+    ? data.filter((item) =>
+        item.bookmark_tags?.some((bt) => bt.tags?.slug?.toLowerCase() === normalizedTag)
+      )
+    : data;
+
   return {
-    bookmarks: data.map((item) => ({
+    bookmarks: filteredData.map((item) => ({
       id: item.id,
       title: item.title,
       slug: item.slug || item.id,
@@ -248,10 +276,12 @@ function ViewToggle({
   view,
   search,
   privacy,
+  tag,
 }: {
   view: 'grid' | 'list';
   search: string;
   privacy: 'all' | 'public' | 'private' | 'subscribers';
+  tag: string;
 }) {
   const baseParams = new URLSearchParams();
   if (search) {
@@ -259,6 +289,9 @@ function ViewToggle({
   }
   if (privacy && privacy !== 'all') {
     baseParams.set('privacy', privacy);
+  }
+  if (tag) {
+    baseParams.set('tag', tag);
   }
 
   const gridParams = new URLSearchParams(baseParams);
@@ -318,10 +351,12 @@ function buildRedirectTo({
   view,
   search,
   privacy,
+  tag,
 }: {
   view: 'grid' | 'list';
   search: string;
   privacy: 'all' | 'public' | 'private' | 'subscribers';
+  tag?: string;
 }) {
   const params = new URLSearchParams();
   params.set('view', view);
@@ -330,6 +365,9 @@ function buildRedirectTo({
   }
   if (privacy && privacy !== 'all') {
     params.set('privacy', privacy);
+  }
+  if (tag) {
+    params.set('tag', tag);
   }
   return `/dashboard/bookmarks?${params.toString()}`;
 }
