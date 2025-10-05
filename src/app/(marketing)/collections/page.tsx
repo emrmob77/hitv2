@@ -64,7 +64,7 @@ export default async function CollectionsPage() {
           {collections.map((collection: any) => (
             <Link
               key={collection.id}
-              href={`/collections/${collection.profiles?.username}/${collection.slug}`}
+              href={`/c/${collection.profiles?.username}/${collection.slug}`}
               className="block group"
             >
               <div className="h-full p-6 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:border-neutral-300 dark:hover:border-neutral-700 transition-all hover:shadow-md">

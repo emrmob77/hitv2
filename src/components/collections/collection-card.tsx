@@ -14,7 +14,7 @@ export function CollectionCard({ collection, showAuthor = true }: CollectionCard
   const bookmarkCount = collection.bookmark_count || 0;
 
   return (
-    <Link href={`/collections/${profile?.username}/${collection.slug}`}>
+    <Link href={`/c/${profile?.username}/${collection.slug}`}>
       <Card className="overflow-hidden transition-shadow hover:shadow-lg">
         <CardContent className="p-6">
           <div className="mb-4 flex items-center space-x-3">
