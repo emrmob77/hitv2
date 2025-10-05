@@ -47,6 +47,24 @@ export function FollowButton({ profileId, isFollowing: initialIsFollowing, curre
 
         if (error) throw error;
 
+        // Create activity for follow
+        await supabase.from('activities').insert({
+          user_id: currentUserId,
+          activity_type: 'follow',
+          content_type: 'user',
+          content_id: profileId,
+        });
+
+        // Create notification for followed user
+        await supabase.from('notifications').insert({
+          recipient_id: profileId,
+          sender_id: currentUserId,
+          type: 'follow',
+          content_type: 'user',
+          content_id: currentUserId,
+          is_read: false,
+        });
+
         setIsFollowing(true);
         toast.success('Followed successfully');
       }

@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Bookmark, Share2, ExternalLink } from 'lucide-react';
+import { Bookmark, Share2, ExternalLink, MessageCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { LikeButton } from '@/components/social/like-button';
 
 interface BookmarkCardProps {
   bookmark: any;
@@ -101,11 +102,20 @@ export function BookmarkCard({ bookmark, showAuthor = true }: BookmarkCardProps)
                 )}
               </div>
 
-              <div className="flex items-center space-x-4 text-sm text-neutral-500">
-                <div className="flex items-center space-x-1">
-                  <Heart className="h-4 w-4" />
-                  <span>{bookmark.like_count || 0}</span>
-                </div>
+              <div className="flex items-center space-x-2 text-sm text-neutral-500">
+                <LikeButton
+                  contentType="bookmark"
+                  contentId={bookmark.id}
+                  initialLikeCount={bookmark.like_count || 0}
+                  size="sm"
+                />
+                <Link
+                  href={`/bookmark/${bookmark.id}/${bookmark.slug || 'bookmark'}#comments`}
+                  className="flex items-center space-x-1 hover:text-neutral-900"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>{bookmark.comment_count || 0}</span>
+                </Link>
                 <div className="flex items-center space-x-1">
                   <Bookmark className="h-4 w-4" />
                   <span>{bookmark.view_count || 0}</span>

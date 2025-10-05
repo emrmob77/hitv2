@@ -178,6 +178,16 @@ export async function POST(request: Request) {
       await Promise.all(tagPromises);
     }
 
+    // Create activity for bookmark creation
+    if (is_public || privacy_level === 'public') {
+      await supabase.from('activities').insert({
+        user_id: user.id,
+        action: 'create',
+        object_type: 'bookmark',
+        object_id: bookmark.id,
+      });
+    }
+
     return NextResponse.json({ bookmark }, { status: 201 });
   } catch (error) {
     console.error('Error creating bookmark:', error);

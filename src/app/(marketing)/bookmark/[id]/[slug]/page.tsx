@@ -101,7 +101,8 @@ async function getUserCollections(userId: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const bookmark = await getBookmark(params.id);
+  const { id } = await params;
+  const bookmark = await getBookmark(id);
 
   if (!bookmark) {
     return {
@@ -114,7 +115,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BookmarkDetailPage({ params }: Props) {
-  const bookmark = await getBookmark(params.id);
+  const { id, slug } = await params;
+  const bookmark = await getBookmark(id);
 
   if (!bookmark) {
     notFound();
@@ -122,8 +124,8 @@ export default async function BookmarkDetailPage({ params }: Props) {
 
   // Check if slug matches, redirect if not
   const correctSlug = bookmark.slug || bookmark.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  if (params.slug !== correctSlug) {
-    redirect(`/bookmark/${params.id}/${correctSlug}`);
+  if (slug !== correctSlug) {
+    redirect(`/bookmark/${id}/${correctSlug}`);
   }
 
   const structuredData = StructuredDataGenerator.generateBookmarkSchema(bookmark);
@@ -137,55 +139,35 @@ export default async function BookmarkDetailPage({ params }: Props) {
   // Get user collections
   const userCollections = await getUserCollections(bookmark.user_id);
 
-  // Mock data for comments (replace with real data from API)
-  const mockComments = [
-    {
-      id: '1',
-      content: "This is incredibly useful! I've been looking for something like this to standardize our design process. The checklist format makes it easy to follow.",
-      createdAt: '2025-01-15T10:00:00.000Z',
-      likes: 5,
-      isLiked: false,
-      author: {
-        username: 'alexrivera',
-        displayName: 'Alex Rivera',
-        avatarUrl: 'https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=789',
-      },
-    },
-    {
-      id: '2',
-      content: 'Great resource! Would love to see a version specifically for mobile design systems too.',
-      createdAt: '2025-01-15T08:00:00.000Z',
-      likes: 12,
-      isLiked: true,
-      author: {
-        username: 'emmathompson',
-        displayName: 'Emma Thompson',
-        avatarUrl: 'https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=321',
-      },
-      replies: [
-        {
-          id: '3',
-          content: "@Emma Thompson That's a great idea! I'm actually working on a mobile-specific version. Will share it soon!",
-          createdAt: '2025-01-15T09:00:00.000Z',
-          likes: 8,
-          isLiked: false,
-          author: {
-            username: bookmark.profiles?.username || 'unknown',
-            displayName: bookmark.profiles?.display_name || null,
-            avatarUrl: bookmark.profiles?.avatar_url || null,
-          },
-          isAuthor: true,
-        },
-      ],
-    },
-  ];
+  // Get current user
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let currentUser = undefined;
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url')
+      .eq('id', user.id)
+      .single();
+
+    if (profile) {
+      currentUser = {
+        id: profile.id,
+        username: profile.username,
+        avatar_url: profile.avatar_url,
+      };
+    }
+  }
 
   const sidebarData = {
     stats: {
       views: bookmark.view_count || 1234,
       likes: bookmark.like_count || 24,
       saves: 156,
-      comments: mockComments.length + 1,
+      comments: bookmark.comment_count || 0,
       shares: 38,
     },
     collections: userCollections,
@@ -269,9 +251,9 @@ export default async function BookmarkDetailPage({ params }: Props) {
 
               {/* Comments */}
               <BookmarkComments
-                comments={mockComments}
-                totalComments={mockComments.length + 1}
-                currentUser={undefined}
+                bookmarkId={bookmark.id}
+                bookmarkOwnerId={bookmark.user_id}
+                currentUser={currentUser}
               />
             </div>
 

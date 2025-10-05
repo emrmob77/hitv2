@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Bell, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
 
 import { signOutAction } from "@/lib/auth/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -57,10 +58,7 @@ export async function AppTopbar() {
               Add bookmark
             </Link>
           </Button>
-          <Button variant="ghost" size="icon">
-            <Bell className="size-4" />
-            <span className="sr-only">Notifications</span>
-          </Button>
+          <NotificationDropdown />
           <form action={signOutAction}>
             <Button
               type="submit"

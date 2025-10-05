@@ -10,6 +10,8 @@ import {
   Settings,
   Sparkles,
   Tags,
+  Rss,
+  Activity,
 } from "lucide-react";
 
 export type MainNavItem = {
@@ -80,6 +82,18 @@ export const siteConfig = {
       href: "/dashboard",
       icon: LayoutDashboard,
       description: "Personalised overview and live metrics",
+    },
+    {
+      title: "Feed",
+      href: "/dashboard/feed",
+      icon: Rss,
+      description: "Bookmarks from people you follow",
+    },
+    {
+      title: "Activity",
+      href: "/dashboard/activity",
+      icon: Activity,
+      description: "See what your network is doing",
     },
     {
       title: "Bookmarks",
