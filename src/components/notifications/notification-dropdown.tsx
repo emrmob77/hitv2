@@ -25,6 +25,9 @@ interface Notification {
     sender_id?: string;
     content_type?: string;
     content_id?: string;
+    bookmark_slug?: string;
+    collection_slug?: string;
+    sender_username?: string;
   };
   is_read: boolean;
   created_at: string;
@@ -78,9 +81,60 @@ export function NotificationDropdown() {
       console.log('Notifications response:', data);
 
       if (response.ok) {
-        setNotifications(data.notifications || []);
+        // Enrich notifications with content details
+        const enrichedNotifications = await Promise.all(
+          (data.notifications || []).map(async (notification: Notification) => {
+            const enrichedData = { ...notification.data };
+
+            // Fetch bookmark slug if needed
+            if (notification.data.content_type === 'bookmark' && notification.data.content_id) {
+              const supabase = createSupabaseBrowserClient();
+              const { data: bookmark } = await supabase
+                .from('bookmarks')
+                .select('slug')
+                .eq('id', notification.data.content_id)
+                .single();
+              if (bookmark) {
+                enrichedData.bookmark_slug = bookmark.slug;
+              }
+            }
+
+            // Fetch collection slug if needed
+            if (notification.data.content_type === 'collection' && notification.data.content_id) {
+              const supabase = createSupabaseBrowserClient();
+              const { data: collection } = await supabase
+                .from('collections')
+                .select('slug')
+                .eq('id', notification.data.content_id)
+                .single();
+              if (collection) {
+                enrichedData.collection_slug = collection.slug;
+              }
+            }
+
+            // Fetch sender username for follow notifications
+            if (notification.type === 'follow' && notification.data.sender_id) {
+              const supabase = createSupabaseBrowserClient();
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('username')
+                .eq('id', notification.data.sender_id)
+                .single();
+              if (profile) {
+                enrichedData.sender_username = profile.username;
+              }
+            }
+
+            return {
+              ...notification,
+              data: enrichedData,
+            };
+          })
+        );
+
+        setNotifications(enrichedNotifications);
         setUnreadCount(data.unreadCount || 0);
-        console.log('Set notifications:', data.notifications, 'Unread count:', data.unreadCount);
+        console.log('Set notifications:', enrichedNotifications, 'Unread count:', data.unreadCount);
       } else {
         console.error('Notifications error:', data);
       }
@@ -176,17 +230,34 @@ export function NotificationDropdown() {
   };
 
   const getNotificationLink = (notification: Notification) => {
-    const { content_type, content_id } = notification.data;
+    const { content_type, content_id, bookmark_slug, collection_slug, sender_username } = notification.data;
 
-    if (notification.type === 'follow') {
-      return '#'; // Would need sender username
+    // Follow notification - link to sender's profile
+    if (notification.type === 'follow' && sender_username) {
+      return `/${sender_username}`;
     }
 
-    if (content_type === 'bookmark' && content_id) {
-      return `/bookmark/${content_id}`;
+    // Bookmark notification - link to bookmark detail page
+    if (content_type === 'bookmark' && content_id && bookmark_slug) {
+      return `/bookmark/${content_id}/${bookmark_slug}`;
     }
 
-    // For other types, we'd need more logic to determine the correct link
+    // Collection notification - link to collection page
+    if (content_type === 'collection' && collection_slug) {
+      return `/collections/${collection_slug}`;
+    }
+
+    // Comment notification - link to the content that was commented on
+    if ((notification.type === 'comment' || notification.type === 'comment_reply') && content_type && content_id) {
+      if (content_type === 'bookmark' && bookmark_slug) {
+        return `/bookmark/${content_id}/${bookmark_slug}`;
+      }
+      if (content_type === 'collection' && collection_slug) {
+        return `/collections/${collection_slug}`;
+      }
+    }
+
+    // Default fallback
     return '#';
   };
 
