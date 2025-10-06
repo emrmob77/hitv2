@@ -7,6 +7,10 @@ export const metadata = {
   description: 'See what people you follow are doing',
 };
 
+// Disable caching for real-time updates
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 async function getFollowingActivities(userId: string) {
   const supabase = await createSupabaseServerClient();
 
@@ -40,7 +44,37 @@ async function getFollowingActivities(userId: string) {
     .order('created_at', { ascending: false })
     .limit(50);
 
-  return activities || [];
+  // Enrich activities with content details
+  const enrichedActivities = await Promise.all(
+    (activities || []).map(async (activity) => {
+      let contentDetails = null;
+
+      if (activity.object_id && activity.object_type) {
+        if (activity.object_type === 'bookmark') {
+          const { data: bookmark } = await supabase
+            .from('bookmarks')
+            .select('id, title, url, description, slug')
+            .eq('id', activity.object_id)
+            .single();
+          contentDetails = bookmark;
+        } else if (activity.object_type === 'collection') {
+          const { data: collection } = await supabase
+            .from('collections')
+            .select('id, title, slug, description')
+            .eq('id', activity.object_id)
+            .single();
+          contentDetails = collection;
+        }
+      }
+
+      return {
+        ...activity,
+        content_details: contentDetails,
+      };
+    })
+  );
+
+  return enrichedActivities;
 }
 
 export default async function ActivityPage() {
