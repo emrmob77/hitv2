@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { ActivityFeed } from '@/components/activity/activity-feed';
+import { ActivityFeedWrapper } from '@/components/activity/activity-feed-wrapper';
 
 export const metadata = {
   title: 'Activity - HitTags',
@@ -91,15 +91,15 @@ export default async function ActivityPage() {
   const activities = await getFollowingActivities(user.id);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
+    <div className="space-y-8">
+      <div>
         <h1 className="text-3xl font-bold text-neutral-900">Activity</h1>
         <p className="mt-2 text-neutral-600">
           Your recent activities and updates from people you follow
         </p>
       </div>
 
-      <ActivityFeed activities={activities} />
+      <ActivityFeedWrapper initialActivities={activities} userId={user.id} />
     </div>
   );
 }

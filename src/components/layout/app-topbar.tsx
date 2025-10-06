@@ -3,15 +3,15 @@ import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
+import { UserDropdown } from "@/components/layout/user-dropdown";
 
-import { signOutAction } from "@/lib/auth/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { AppMobileNav } from "./app-mobile-nav";
 
 export async function AppTopbar() {
+  let userProfile = null;
   let avatarLabel = "HT";
 
   try {
@@ -20,12 +20,25 @@ export async function AppTopbar() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      avatarLabel = deriveInitials(
-        user?.user_metadata?.full_name ||
-          user?.user_metadata?.name ||
-          user?.email ||
-          user?.user_metadata?.email
-      );
+
+      if (user) {
+        // Get user profile data
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, username, display_name, avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        userProfile = profile;
+
+        avatarLabel = deriveInitials(
+          profile?.display_name ||
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.name ||
+            user?.email ||
+            user?.user_metadata?.email
+        );
+      }
     }
   } catch (error) {
     console.warn("Kullanıcı avatar bilgisini getirirken hata oluştu", error);
@@ -33,8 +46,8 @@ export async function AppTopbar() {
 
   return (
     <header className="border-b border-border/80 bg-background/80 backdrop-blur">
-      <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
-        <div className="flex flex-1 items-center gap-3">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
           <AppMobileNav />
           <div className="hidden flex-col text-sm sm:flex">
             <span className="font-semibold text-foreground">HitTags Console</span>
@@ -43,11 +56,11 @@ export async function AppTopbar() {
             </span>
           </div>
         </div>
-        <div className="flex flex-1 items-center gap-2 md:flex-none">
+        <div className="flex items-center gap-2">
           <Input
             type="search"
             placeholder="Search bookmarks, collections, or users..."
-            className="bg-muted/40 text-sm"
+            className="bg-muted/40 text-sm w-64 lg:w-80"
             aria-label="Dashboard search"
           />
         </div>
@@ -59,20 +72,10 @@ export async function AppTopbar() {
             </Link>
           </Button>
           <NotificationDropdown />
-          <form action={signOutAction}>
-            <Button
-              type="submit"
-              variant="outline"
-              className="inline-flex items-center gap-2 border-neutral-300 text-sm font-medium text-neutral-700 hover:border-neutral-400 hover:bg-neutral-100"
-            >
-              <Avatar className="size-7">
-                <AvatarFallback className="bg-neutral-900 text-neutral-50">
-                  {avatarLabel}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden sm:inline">Sign out</span>
-            </Button>
-          </form>
+          <UserDropdown
+            userProfile={userProfile}
+            avatarLabel={avatarLabel}
+          />
         </div>
       </div>
     </header>

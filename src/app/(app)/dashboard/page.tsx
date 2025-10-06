@@ -26,7 +26,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <header className="mx-auto w-full max-w-5xl space-y-2">
+      <header className="space-y-2">
         <h1 className="text-3xl font-semibold text-neutral-900">Dashboard</h1>
         <p className="text-sm text-neutral-600">
           Welcome back! Here&apos;s an overview of your activity.
@@ -34,7 +34,7 @@ export default async function DashboardPage() {
       </header>
 
       {/* Stats Cards */}
-      <div className="mx-auto grid w-full max-w-5xl gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Bookmarks</CardTitle>
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="mx-auto w-full max-w-5xl">
+      <div>
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Recent Bookmarks */}
-      <div className="mx-auto w-full max-w-5xl">
+      <div>
         <Card>
           <CardHeader>
             <CardTitle>Recent Bookmarks</CardTitle>

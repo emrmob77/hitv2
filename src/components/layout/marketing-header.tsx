@@ -1,6 +1,10 @@
 import Link from "next/link";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
+import { UserDropdown } from "@/components/layout/user-dropdown";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 const NAV_ITEMS = [
   { title: "Home", href: "/" },
@@ -11,7 +15,8 @@ const NAV_ITEMS = [
 
 export async function MarketingHeader() {
   let isAuthenticated = false;
-  let userInitials = 'HT';
+  let userProfile = null;
+  let avatarLabel = 'HT';
 
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
@@ -21,8 +26,19 @@ export async function MarketingHeader() {
       } = await supabase.auth.getUser();
       if (user) {
         isAuthenticated = true;
-        userInitials = deriveInitials(
-          user.user_metadata?.full_name ||
+
+        // Get user profile data
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, username, display_name, avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        userProfile = profile;
+
+        avatarLabel = deriveInitials(
+          profile?.display_name ||
+            user.user_metadata?.full_name ||
             user.user_metadata?.name ||
             user.email ||
             user.user_metadata?.email
@@ -53,7 +69,7 @@ export async function MarketingHeader() {
               ))}
             </nav>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-3">
             <div className="relative hidden lg:block">
               <input
                 type="search"
@@ -64,24 +80,17 @@ export async function MarketingHeader() {
             </div>
             {isAuthenticated ? (
               <>
-                <Link
-                  href="/dashboard/bookmarks/new"
-                  className="bg-neutral-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-neutral-700"
-                >
-                  <i className="fa-solid fa-plus mr-2" />
-                  Add Bookmark
-                </Link>
-                <Link
-                  href="/dashboard/notifications"
-                  className="text-neutral-500 hover:text-neutral-700"
-                >
-                  <i className="fa-regular fa-bell text-xl" />
-                </Link>
-                <Link href="/dashboard" className="flex items-center space-x-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
-                    {userInitials}
-                  </span>
-                </Link>
+                <Button asChild size="sm" className="hidden sm:inline-flex">
+                  <Link href="/dashboard/bookmarks/new">
+                    <Plus className="mr-1.5 size-4" />
+                    Add Bookmark
+                  </Link>
+                </Button>
+                <NotificationDropdown />
+                <UserDropdown
+                  userProfile={userProfile}
+                  avatarLabel={avatarLabel}
+                />
               </>
             ) : (
               <>
