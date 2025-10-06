@@ -48,9 +48,11 @@ export function UserDropdown({ userProfile, avatarLabel }: UserDropdownProps) {
           className="relative h-10 w-10 rounded-full"
         >
           <Avatar className="h-10 w-10 ring-2 ring-transparent hover:ring-neutral-300 transition-all">
-            {userProfile?.avatar_url && (
-              <AvatarImage src={userProfile.avatar_url} alt={displayName} />
-            )}
+            <AvatarImage
+              src={userProfile?.avatar_url || undefined}
+              alt={displayName}
+              className="object-cover"
+            />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
               {avatarLabel}
             </AvatarFallback>
