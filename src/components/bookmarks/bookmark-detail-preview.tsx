@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Heart, Bookmark, Share2, ExternalLink, Eye, Calendar, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface BookmarkDetailPreviewProps {
   id: string;
@@ -27,6 +29,8 @@ interface BookmarkDetailPreviewProps {
   }>;
   isLiked?: boolean;
   isBookmarked?: boolean;
+  currentUserId?: string;
+  authorId: string;
 }
 
 export function BookmarkDetailPreview({
@@ -43,18 +47,339 @@ export function BookmarkDetailPreview({
   tags,
   isLiked = false,
   isBookmarked = false,
+  currentUserId,
+  authorId,
 }: BookmarkDetailPreviewProps) {
   const [liked, setLiked] = useState(isLiked);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
   const [likes, setLikes] = useState(likeCount);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeUserId, setActiveUserId] = useState(currentUserId);
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const { toast } = useToast();
 
-  const handleLike = () => {
-    setLiked(!liked);
-    setLikes(liked ? likes - 1 : likes + 1);
+  useEffect(() => {
+    setActiveUserId(currentUserId);
+  }, [currentUserId]);
+
+  useEffect(() => {
+    setLiked(isLiked);
+  }, [isLiked]);
+
+  useEffect(() => {
+    setLikes(likeCount);
+  }, [likeCount]);
+
+  useEffect(() => {
+    if (currentUserId) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const resolveUser = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user || !isMounted) {
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (profile) {
+          setActiveUserId(user.id);
+        } else {
+          setActiveUserId(undefined);
+        }
+      } catch (error) {
+        console.error('Error resolving current user for bookmark preview:', error);
+      }
+    };
+
+    resolveUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUserId, supabase]);
+
+  useEffect(() => {
+    if (currentUserId || !activeUserId) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchLikeStatus = async () => {
+      try {
+        const response = await fetch(
+          `/api/likes?content_type=bookmark&content_id=${id}`
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (typeof data.isLiked === 'boolean') {
+          setLiked(data.isLiked);
+        }
+        if (typeof data.likeCount === 'number') {
+          setLikes(data.likeCount);
+        }
+      } catch (error) {
+        console.error('Error refreshing like status:', error);
+      }
+    };
+
+    fetchLikeStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeUserId, currentUserId, id]);
+
+  const checkFollowStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/follows/${authorId}`, {
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+      setIsFollowing(Boolean(data.isFollowing));
+    } catch (error) {
+      console.error('Error checking follow status:', error);
+    }
+  }, [authorId]);
+
+  // Check if following
+  useEffect(() => {
+    if (activeUserId && authorId && activeUserId !== authorId) {
+      checkFollowStatus();
+    }
+  }, [activeUserId, authorId, checkFollowStatus]);
+
+  const handleLike = async () => {
+    if (!activeUserId) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to like bookmarks',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const previousLiked = liked;
+    const previousLikes = likes;
+    const nextLikedState = !liked;
+
+    setLiked(nextLikedState);
+    setLikes((prev) => Math.max(0, prev + (nextLikedState ? 1 : -1)));
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/likes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content_type: 'bookmark',
+          content_id: id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (typeof data.isLiked === 'boolean') {
+          setLiked(data.isLiked);
+        }
+        if (typeof data.likeCount === 'number') {
+          setLikes(data.likeCount);
+        }
+      } else {
+        setLiked(previousLiked);
+        setLikes(previousLikes);
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to update like',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      setLiked(previousLiked);
+      setLikes(previousLikes);
+      toast({
+        title: 'Error',
+        description: 'Failed to update like',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleBookmark = () => {
-    setBookmarked(!bookmarked);
+  const handleBookmark = async () => {
+    if (!activeUserId) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to save bookmarks',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/saved-bookmarks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookmark_id: id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setBookmarked(data.isSaved);
+        toast({
+          title: data.isSaved ? 'Saved!' : 'Removed',
+          description: data.isSaved
+            ? 'Bookmark saved to your collection'
+            : 'Bookmark removed from your collection',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to save bookmark',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save bookmark',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!activeUserId) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to follow users',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const previousFollowState = isFollowing;
+    const nextFollowState = !isFollowing;
+
+    setIsFollowing(nextFollowState);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/follows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          following_id: authorId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const resolvedFollowState =
+          typeof data.isFollowing === 'boolean' ? data.isFollowing : nextFollowState;
+
+        setIsFollowing(resolvedFollowState);
+        toast({
+          title: resolvedFollowState ? 'Followed!' : 'Unfollowed',
+          description: resolvedFollowState
+            ? `You are now following ${author.displayName || author.username}`
+            : `You unfollowed ${author.displayName || author.username}`,
+        });
+
+        await checkFollowStatus();
+      } else {
+        setIsFollowing(previousFollowState);
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to update follow status',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error);
+      setIsFollowing(previousFollowState);
+      toast({
+        title: 'Error',
+        description: 'Failed to update follow status',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: description || title,
+          url: shareUrl,
+        });
+      } catch (error) {
+        // User cancelled share or error occurred
+        console.log('Share cancelled or failed:', error);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: 'Link copied!',
+          description: 'Bookmark link copied to clipboard',
+        });
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to copy link',
+          variant: 'destructive',
+        });
+      }
+    }
   };
 
   const timeAgo = (date: string) => {
@@ -149,19 +474,30 @@ export function BookmarkDetailPreview({
               <div className="text-xs text-neutral-500">{author.bio}</div>
             )}
           </div>
-          <Button className="rounded-lg bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-800">
-            Follow
-          </Button>
+          {activeUserId && activeUserId !== authorId && (
+            <Button
+              onClick={handleFollow}
+              disabled={isLoading}
+              className={`rounded-lg px-4 py-2 text-sm ${
+                isFollowing
+                  ? 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
+                  : 'bg-neutral-900 text-white hover:bg-neutral-800'
+              }`}
+            >
+              {isFollowing ? 'Unfollow' : 'Follow'}
+            </Button>
+          )}
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <button
               onClick={handleLike}
-              className={`flex items-center space-x-2 rounded-lg px-4 py-2 ${
+              disabled={isLoading}
+              className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-all ${
                 liked
                   ? "bg-red-50 text-red-600"
                   : "bg-neutral-100 hover:bg-neutral-200"
-              }`}
+              } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <Heart
                 className="h-4 w-4"
@@ -171,15 +507,23 @@ export function BookmarkDetailPreview({
             </button>
             <button
               onClick={handleBookmark}
-              className="flex items-center space-x-2 rounded-lg bg-neutral-100 px-4 py-2 hover:bg-neutral-200"
+              disabled={isLoading}
+              className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-all ${
+                bookmarked
+                  ? "bg-blue-50 text-blue-600"
+                  : "bg-neutral-100 hover:bg-neutral-200"
+              } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <Bookmark
-                className="h-4 w-4 text-neutral-600"
+                className="h-4 w-4"
                 fill={bookmarked ? "currentColor" : "none"}
               />
               <span className="text-sm text-neutral-700">Save</span>
             </button>
-            <button className="flex items-center space-x-2 rounded-lg bg-neutral-100 px-4 py-2 hover:bg-neutral-200">
+            <button
+              onClick={handleShare}
+              className="flex items-center space-x-2 rounded-lg bg-neutral-100 px-4 py-2 hover:bg-neutral-200 transition-all"
+            >
               <Share2 className="h-4 w-4 text-neutral-600" />
               <span className="text-sm text-neutral-700">Share</span>
             </button>

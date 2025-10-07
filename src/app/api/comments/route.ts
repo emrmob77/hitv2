@@ -51,8 +51,8 @@ export async function GET(request: Request) {
         const { count: likeCount } = await supabase
           .from('likes')
           .select('*', { count: 'exact', head: true })
-          .eq('content_type', 'comment')
-          .eq('content_id', comment.id);
+          .eq('likeable_type', 'comment')
+          .eq('likeable_id', comment.id);
 
         const { data: replies } = await supabase
           .from('comments')
@@ -76,8 +76,8 @@ export async function GET(request: Request) {
             const { count: replyLikeCount } = await supabase
               .from('likes')
               .select('*', { count: 'exact', head: true })
-              .eq('content_type', 'comment')
-              .eq('content_id', reply.id);
+              .eq('likeable_type', 'comment')
+              .eq('likeable_id', reply.id);
 
             return {
               ...reply,

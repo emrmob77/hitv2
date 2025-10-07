@@ -146,6 +146,9 @@ export default async function BookmarkDetailPage({ params }: Props) {
   } = await supabase.auth.getUser();
 
   let currentUser = undefined;
+  let isLiked = false;
+  let isBookmarked = false;
+
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -159,47 +162,56 @@ export default async function BookmarkDetailPage({ params }: Props) {
         username: profile.username,
         avatar_url: profile.avatar_url,
       };
+
+      const { data: likeData } = await supabase
+        .from('likes')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('likeable_type', 'bookmark')
+        .eq('likeable_id', bookmark.id)
+        .single();
+
+      isLiked = !!likeData;
+
+      const { data: savedData } = await supabase
+        .from('saved_bookmarks')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('bookmark_id', bookmark.id)
+        .single();
+
+      isBookmarked = !!savedData;
     }
   }
 
+  // Get real stats
+  const { count: realLikeCount } = await supabase
+    .from('likes')
+    .select('*', { count: 'exact', head: true })
+    .eq('likeable_type', 'bookmark')
+    .eq('likeable_id', bookmark.id);
+
+  const { count: realCommentCount } = await supabase
+    .from('comments')
+    .select('*', { count: 'exact', head: true })
+    .eq('commentable_type', 'bookmark')
+    .eq('commentable_id', bookmark.id);
+
+  const { count: saveCount } = await supabase
+    .from('saved_bookmarks')
+    .select('*', { count: 'exact', head: true })
+    .eq('bookmark_id', bookmark.id);
+
   const sidebarData = {
     stats: {
-      views: bookmark.view_count || 1234,
-      likes: bookmark.like_count || 24,
-      saves: 156,
-      comments: bookmark.comment_count || 0,
-      shares: 38,
+      views: bookmark.view_count || 0,
+      likes: realLikeCount || 0,
+      saves: saveCount || 0,
+      comments: realCommentCount || 0,
+      shares: 0, // Not tracked yet
     },
     collections: userCollections,
-    relatedBookmarks: [
-      {
-        id: '1',
-        title: 'Figma Design Tokens',
-        slug: 'figma-design-tokens',
-        description: 'Complete guide to design tokens in Figma',
-        imageUrl: null,
-        likes: 89,
-        saves: 234,
-      },
-      {
-        id: '2',
-        title: 'Component Library Best Practices',
-        slug: 'component-library-best-practices',
-        description: 'Building scalable component libraries',
-        imageUrl: null,
-        likes: 156,
-        saves: 298,
-      },
-      {
-        id: '3',
-        title: 'Design System Documentation',
-        slug: 'design-system-documentation',
-        description: 'How to document your design system',
-        imageUrl: null,
-        likes: 67,
-        saves: 123,
-      },
-    ],
+    relatedBookmarks: [], // TODO: Implement related bookmarks based on tags
   };
 
   return (
@@ -236,8 +248,8 @@ export default async function BookmarkDetailPage({ params }: Props) {
                 domain={bookmark.domain}
                 imageUrl={bookmark.image_url}
                 createdAt={bookmark.created_at}
-                viewCount={bookmark.view_count || 1234}
-                likeCount={bookmark.like_count || 24}
+                viewCount={bookmark.view_count || 0}
+                likeCount={realLikeCount || 0}
                 author={{
                   username: bookmark.profiles?.username || 'unknown',
                   displayName: bookmark.profiles?.display_name || null,
@@ -245,8 +257,10 @@ export default async function BookmarkDetailPage({ params }: Props) {
                   bio: bookmark.profiles?.bio || null,
                 }}
                 tags={tags}
-                isLiked={false}
-                isBookmarked={false}
+                isLiked={isLiked}
+                isBookmarked={isBookmarked}
+                currentUserId={user?.id}
+                authorId={bookmark.user_id}
               />
 
               {/* Comments */}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Bell, Heart, MessageCircle, UserPlus, Check, Trash2 } from 'lucide-react';
+import { Bell, Heart, MessageCircle, UserPlus, Check, Trash2, Bookmark } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
   DropdownMenu,
@@ -220,6 +220,8 @@ export function NotificationDropdown() {
         return <MessageCircle className="h-4 w-4 text-blue-500" />;
       case 'follow':
         return <UserPlus className="h-4 w-4 text-green-500" />;
+      case 'bookmark_saved':
+        return <Bookmark className="h-4 w-4 text-purple-500" />;
       default:
         return <Bell className="h-4 w-4 text-neutral-500" />;
     }

@@ -12,6 +12,9 @@ import {
   Tags,
   Rss,
   Activity,
+  Star,
+  Heart,
+  Bookmark,
 } from "lucide-react";
 
 export type MainNavItem = {
@@ -100,6 +103,12 @@ export const siteConfig = {
       href: "/dashboard/bookmarks",
       icon: BookMarked,
       description: "Manage every link you&apos;ve captured",
+    },
+    {
+      title: "Saved",
+      href: "/dashboard/saved",
+      icon: Bookmark,
+      description: "Bookmarks you've saved",
     },
     {
       title: "Collections",

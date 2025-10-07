@@ -185,6 +185,7 @@ export async function POST(request: Request) {
         action: 'create',
         object_type: 'bookmark',
         object_id: bookmark.id,
+        is_public: true,
       });
     }
 

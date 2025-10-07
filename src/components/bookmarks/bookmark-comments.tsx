@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { LikeButton } from '@/components/social/like-button';
 import { formatDistanceToNow } from 'date-fns';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 interface CommentAuthor {
   id: string;
@@ -40,13 +41,67 @@ export function BookmarkComments({
   bookmarkOwnerId,
   currentUser,
 }: BookmarkCommentsProps) {
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeUser, setActiveUser] = useState(currentUser);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setActiveUser(currentUser);
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const resolveUser = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user || !isMounted) {
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (profile) {
+          setActiveUser({
+            id: profile.id,
+            username: profile.username,
+            avatar_url: profile.avatar_url,
+          });
+        } else {
+          setActiveUser(undefined);
+        }
+      } catch (error) {
+        console.error('Error resolving current user:', error);
+      }
+    };
+
+    resolveUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser, supabase]);
 
   useEffect(() => {
     fetchComments();
@@ -70,7 +125,7 @@ export function BookmarkComments({
   };
 
   const handlePostComment = async () => {
-    if (!newComment.trim() || !currentUser || isSubmitting) return;
+    if (!newComment.trim() || !activeUser || isSubmitting) return;
 
     setIsSubmitting(true);
 
@@ -90,7 +145,7 @@ export function BookmarkComments({
       const data = await response.json();
 
       if (response.ok) {
-        setComments([data.comment, ...comments]);
+        setComments((prev) => [data.comment, ...prev]);
         setNewComment('');
         toast({
           title: 'Success',
@@ -116,7 +171,7 @@ export function BookmarkComments({
   };
 
   const handlePostReply = async (parentCommentId: string) => {
-    if (!replyContent.trim() || !currentUser || isSubmitting) return;
+    if (!replyContent.trim() || !activeUser || isSubmitting) return;
 
     setIsSubmitting(true);
 
@@ -237,19 +292,19 @@ export function BookmarkComments({
       </div>
 
       {/* Add Comment */}
-      {currentUser ? (
+      {activeUser ? (
         <div className="mb-6">
           <div className="flex items-start space-x-4">
-            {currentUser.avatar_url ? (
+            {activeUser.avatar_url ? (
               <img
-                src={currentUser.avatar_url}
-                alt={currentUser.username}
+                src={activeUser.avatar_url}
+                alt={activeUser.username}
                 className="h-10 w-10 rounded-full"
               />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-300">
                 <span className="text-sm font-semibold text-neutral-600">
-                  {currentUser.username.charAt(0).toUpperCase()}
+                  {activeUser.username.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
@@ -342,7 +397,7 @@ export function BookmarkComments({
                           })}
                         </span>
                       </div>
-                      {currentUser?.id === comment.user_id && (
+                      {activeUser?.id === comment.user_id && (
                         <button
                           onClick={() => handleDeleteComment(comment.id)}
                           className="text-xs text-red-600 hover:text-red-700"
@@ -363,7 +418,7 @@ export function BookmarkComments({
                       size="sm"
                       showCount={true}
                     />
-                    {currentUser && (
+                    {activeUser && (
                       <button
                         onClick={() => setReplyTo(comment.id)}
                         className="text-xs text-neutral-500 hover:text-neutral-700"
@@ -374,18 +429,18 @@ export function BookmarkComments({
                   </div>
 
                   {/* Reply Form */}
-                  {replyTo === comment.id && currentUser && (
+                  {replyTo === comment.id && activeUser && (
                     <div className="ml-4 mt-4 flex items-start space-x-3">
-                      {currentUser.avatar_url ? (
+                      {activeUser.avatar_url ? (
                         <img
-                          src={currentUser.avatar_url}
-                          alt={currentUser.username}
+                          src={activeUser.avatar_url}
+                          alt={activeUser.username}
                           className="h-8 w-8 rounded-full"
                         />
                       ) : (
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-300">
                           <span className="text-xs font-semibold text-neutral-600">
-                            {currentUser.username.charAt(0).toUpperCase()}
+                            {activeUser.username.charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
@@ -474,7 +529,7 @@ export function BookmarkComments({
                                 )}
                               </span>
                             </div>
-                            {currentUser?.id === reply.user_id && (
+                            {activeUser?.id === reply.user_id && (
                               <button
                                 onClick={() => handleDeleteComment(reply.id, true)}
                                 className="text-xs text-red-600 hover:text-red-700"

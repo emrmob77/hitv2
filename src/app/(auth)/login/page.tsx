@@ -1,10 +1,20 @@
 import Link from 'next/link';
-
+import { redirect } from 'next/navigation';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { LoginForm } from '@/components/auth/login-form';
 
 const tagSuggestions = ['#frontend', '#design', '#marketing', '#product'];
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // If user is already logged in, redirect to dashboard
+  if (user) {
+    redirect('/dashboard');
+  }
   return (
     <main className="relative overflow-hidden bg-neutral-50 py-20">
       <div className="pointer-events-none absolute inset-y-12 left-1/2 hidden w-[620px] -translate-x-1/2 rounded-full bg-gradient-to-br from-[rgba(63,32,251,0.08)] via-[rgba(55,48,163,0.05)] to-transparent blur-3xl lg:block" />

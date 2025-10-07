@@ -1,17 +1,20 @@
+import { createSupabaseApiClient } from '@/lib/supabase/api';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 // POST /api/likes - Toggle like on content
 export async function POST(request: Request) {
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createSupabaseApiClient(request);
 
     // Check authentication
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
 
-    if (!user) {
+    if (!user || authError) {
+      console.error('Auth error:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -82,61 +85,20 @@ export async function POST(request: Request) {
       isLiked = true;
 
       // Create activity for the like
-      await supabase.from('activities').insert({
+      const { error: activityError } = await supabase.from('activities').insert({
         user_id: user.id,
         action: 'like',
         object_type: content_type,
         object_id: content_id,
+        is_public: true,
       });
 
-      // Create notification for content owner
-      // First, get the content owner
-      let ownerId: string | null = null;
-
-      if (content_type === 'bookmark') {
-        const { data: bookmark } = await supabase
-          .from('bookmarks')
-          .select('user_id')
-          .eq('id', content_id)
-          .single();
-        ownerId = bookmark?.user_id || null;
-      } else if (content_type === 'collection') {
-        const { data: collection } = await supabase
-          .from('collections')
-          .select('user_id')
-          .eq('id', content_id)
-          .single();
-        ownerId = collection?.user_id || null;
-      } else if (content_type === 'comment') {
-        const { data: comment } = await supabase
-          .from('comments')
-          .select('user_id')
-          .eq('id', content_id)
-          .single();
-        ownerId = comment?.user_id || null;
-      } else if (content_type === 'exclusive_post') {
-        const { data: post } = await supabase
-          .from('exclusive_posts')
-          .select('user_id')
-          .eq('id', content_id)
-          .single();
-        ownerId = post?.user_id || null;
+      if (activityError) {
+        console.error('Activity error:', activityError);
       }
 
-      // Create notification for content owner
-      if (ownerId) {
-        await supabase.from('notifications').insert({
-          user_id: ownerId,
-          type: 'like',
-          title: 'New like on your content',
-          data: {
-            sender_id: user.id,
-            content_type,
-            content_id,
-          },
-          is_read: false,
-        });
-      }
+      // TODO: Notifications - disabled temporarily for debugging
+      // Will enable after fixing database schema
     }
 
     // Get updated like count
@@ -153,10 +115,11 @@ export async function POST(request: Request) {
       isLiked,
       likeCount,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error toggling like:', error);
+    console.error('Error details:', error?.message, error?.details, error?.hint);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error?.message },
       { status: 500 }
     );
   }

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import type { Provider } from '@supabase/supabase-js';
 
+import { ensureUserProfile } from '@/lib/profile';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export type AuthFormState = {
@@ -29,6 +30,8 @@ export async function loginAction(
   if (error) {
     return { error: error.message };
   }
+
+  await ensureUserProfile(supabase);
 
   redirect(redirectPath);
 }

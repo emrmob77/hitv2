@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 
 import { OnboardingForm } from '@/components/auth/onboarding-form';
+import { ensureUserProfile } from '@/lib/profile';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
@@ -12,6 +13,8 @@ export default async function OnboardingPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  await ensureUserProfile(supabase);
 
   const { data: profile } = await supabase
     .from('profiles')

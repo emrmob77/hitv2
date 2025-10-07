@@ -13,6 +13,9 @@ const initialState: SignupFormState = {};
 export function SignupForm() {
   const [state, formAction] = useActionState(signupAction, initialState);
 
+  const hasSuccess = Boolean(state?.success);
+  const submittedEmail = state?.email;
+
   return (
     <div className="space-y-4">
       <div className="text-center">
@@ -23,7 +26,11 @@ export function SignupForm() {
       <div className="flex gap-2 rounded-lg bg-neutral-100 p-1 text-sm font-medium">
         <Link
           href="/login"
-          className="flex-1 rounded-md py-2 text-center text-neutral-600 transition-colors hover:text-neutral-800"
+          className={`flex-1 rounded-md py-2 text-center transition-colors ${
+            hasSuccess
+              ? 'text-neutral-800 hover:text-neutral-900'
+              : 'text-neutral-600 hover:text-neutral-800'
+          }`}
         >
           Sign In
         </Link>
@@ -35,126 +42,163 @@ export function SignupForm() {
         </Link>
       </div>
 
-      <form action={formAction} className="space-y-3">
-        <div className="space-y-1">
-          <label htmlFor="fullName" className="text-xs font-medium text-neutral-700">
-            Full name
-          </label>
-          <Input
-            id="fullName"
-            name="fullName"
-            type="text"
-            placeholder="Jane Doe"
-            className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label htmlFor="username" className="text-xs font-medium text-neutral-700">
-            Username
-          </label>
-          <Input
-            id="username"
-            name="username"
-            type="text"
-            placeholder="jane_doe"
-            required
-            className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label htmlFor="email" className="text-xs font-medium text-neutral-700">
-            Email address
-          </label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="you@example.com"
-            required
-            className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label htmlFor="password" className="text-xs font-medium text-neutral-700">
-            Password
-          </label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Create a password"
-            required
-            className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
-          />
-          <ul className="space-y-0.5 text-xs text-neutral-500">
-            <li>• Minimum 8 characters</li>
-            <li>• Combine letters, numbers, and symbols</li>
-          </ul>
-        </div>
-
-        {state?.error ? (
-          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-            {state.error}
+      {hasSuccess ? (
+        <div className="space-y-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+          <p className="font-semibold">Verify your email to activate your account</p>
+          <p>
+            We just sent a confirmation link to
+            {submittedEmail ? (
+              <span className="font-medium"> {submittedEmail}</span>
+            ) : (
+              ' your inbox'
+            )}
+            . Please open the email and follow the instructions to finish your registration before signing in.
           </p>
-        ) : null}
-
-        <div className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600">
-          <input
-            type="checkbox"
-            name="terms"
-            className="mt-0.5 size-3 rounded border-neutral-300 text-neutral-600 focus:ring-neutral-500"
-          />
-          <span>
-            By creating an account you agree to our{' '}
-            <Link href="/legal/terms" className="font-semibold text-neutral-700 hover:text-neutral-900">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link href="/legal/privacy" className="font-semibold text-neutral-700 hover:text-neutral-900">
-              Privacy Policy
+          <p className="text-xs text-emerald-700">
+            Didn&apos;t get it? Check your spam folder or resend from the sign-in page once the link expires.
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <Link
+              href="/login"
+              className="inline-flex w-full items-center justify-center rounded-lg bg-neutral-900 py-2 text-xs font-semibold text-white transition-colors hover:bg-neutral-800 sm:w-auto"
+            >
+              Go to Sign In
             </Link>
-            .
-          </span>
+            <Link
+              href="/"
+              className="inline-flex w-full items-center justify-center rounded-lg border border-neutral-300 py-2 text-xs font-semibold text-neutral-700 transition-colors hover:border-neutral-400 hover:text-neutral-900 sm:w-auto"
+            >
+              Return to Home
+            </Link>
+          </div>
         </div>
+      ) : (
+        <form action={formAction} className="space-y-3">
+          <div className="space-y-1">
+            <label htmlFor="fullName" className="text-xs font-medium text-neutral-700">
+              Full name
+            </label>
+            <Input
+              id="fullName"
+              name="fullName"
+              type="text"
+              placeholder="Jane Doe"
+              className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="username" className="text-xs font-medium text-neutral-700">
+              Username
+            </label>
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              placeholder="jane_doe"
+              required
+              className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
+            />
+            <p className="text-[11px] text-neutral-500">3-32 characters, letters, numbers, and underscores only.</p>
+          </div>
 
-        <Button type="submit" className="w-full bg-neutral-900 py-2 text-xs font-semibold text-white hover:bg-neutral-800">
-          Create Account
-        </Button>
-      </form>
+          <div className="space-y-1">
+            <label htmlFor="email" className="text-xs font-medium text-neutral-700">
+              Email address
+            </label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="you@example.com"
+              required
+              className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
+            />
+          </div>
 
-      <div className="flex items-center gap-2 text-xs text-neutral-400">
-        <span className="h-px flex-1 bg-neutral-200" />
-        <span>Or sign up with</span>
-        <span className="h-px flex-1 bg-neutral-200" />
-      </div>
+          <div className="space-y-1">
+            <label htmlFor="password" className="text-xs font-medium text-neutral-700">
+              Password
+            </label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Create a password"
+              required
+              className="h-9 rounded-lg border-neutral-300 bg-neutral-50 text-sm"
+            />
+            <ul className="space-y-0.5 text-xs text-neutral-500">
+              <li>• Minimum 8 characters</li>
+              <li>• Combine letters, numbers, and symbols</li>
+            </ul>
+          </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        <form action={signInWithProvider}>
-          <input type="hidden" name="provider" value="google" />
-          <Button
-            type="submit"
-            variant="outline"
-            className="h-8 w-full justify-center gap-1 border-neutral-300 text-xs font-medium text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
-          >
-            <span className="fa-brands fa-google text-neutral-500" aria-hidden />
-            Google
+          {state?.error ? (
+            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+              {state.error}
+            </p>
+          ) : null}
+
+          <div className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600">
+            <input
+              type="checkbox"
+              name="terms"
+              required
+              className="mt-0.5 size-3 rounded border-neutral-300 text-neutral-600 focus:ring-neutral-500"
+            />
+            <span>
+              By creating an account you agree to our{' '}
+              <Link href="/legal/terms" className="font-semibold text-neutral-700 hover:text-neutral-900">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link href="/legal/privacy" className="font-semibold text-neutral-700 hover:text-neutral-900">
+                Privacy Policy
+              </Link>
+              .
+            </span>
+          </div>
+
+          <Button type="submit" className="w-full bg-neutral-900 py-2 text-xs font-semibold text-white hover:bg-neutral-800">
+            Create Account
           </Button>
         </form>
-        <form action={signInWithProvider}>
-          <input type="hidden" name="provider" value="github" />
-          <Button
-            type="submit"
-            variant="outline"
-            className="h-8 w-full justify-center gap-1 border-neutral-300 text-xs font-medium text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
-          >
-            <span className="fa-brands fa-github text-neutral-500" aria-hidden />
-            GitHub
-          </Button>
-        </form>
-      </div>
+      )}
+
+      {!hasSuccess && (
+        <>
+          <div className="flex items-center gap-2 text-xs text-neutral-400">
+            <span className="h-px flex-1 bg-neutral-200" />
+            <span>Or sign up with</span>
+            <span className="h-px flex-1 bg-neutral-200" />
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <form action={signInWithProvider}>
+              <input type="hidden" name="provider" value="google" />
+              <Button
+                type="submit"
+                variant="outline"
+                className="h-8 w-full justify-center gap-1 border-neutral-300 text-xs font-medium text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
+              >
+                <span className="fa-brands fa-google text-neutral-500" aria-hidden />
+                Google
+              </Button>
+            </form>
+            <form action={signInWithProvider}>
+              <input type="hidden" name="provider" value="github" />
+              <Button
+                type="submit"
+                variant="outline"
+                className="h-8 w-full justify-center gap-1 border-neutral-300 text-xs font-medium text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
+              >
+                <span className="fa-brands fa-github text-neutral-500" aria-hidden />
+                GitHub
+              </Button>
+            </form>
+          </div>
+        </>
+      )}
 
       <p className="text-center text-xs text-neutral-600">
         Already have an account?{' '}
