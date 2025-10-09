@@ -186,6 +186,11 @@ export async function POST(request: Request) {
 
     // Create notification for content owner
     let ownerId: string | null = null;
+    let bookmarkSlug: string | null = null;
+    let bookmarkId: string | null = null;
+    let collectionSlug: string | null = null;
+    let collectionOwnerUsername: string | null = null;
+    let targetContentId = content_id;
 
     if (parent_comment_id) {
       // Reply to comment - notify the comment author
@@ -200,17 +205,28 @@ export async function POST(request: Request) {
       if (content_type === 'bookmark') {
         const { data: bookmark } = await supabase
           .from('bookmarks')
-          .select('user_id')
+          .select('user_id, slug')
           .eq('id', content_id)
           .single();
         ownerId = bookmark?.user_id || null;
+        bookmarkSlug = bookmark?.slug ?? null;
+        bookmarkId = content_id;
       } else if (content_type === 'collection') {
         const { data: collection } = await supabase
           .from('collections')
-          .select('user_id')
+          .select('user_id, slug')
           .eq('id', content_id)
           .single();
         ownerId = collection?.user_id || null;
+        collectionSlug = collection?.slug ?? null;
+        if (collection?.user_id) {
+          const { data: ownerProfile } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', collection.user_id)
+            .single();
+          collectionOwnerUsername = ownerProfile?.username ?? null;
+        }
       } else if (content_type === 'exclusive_post') {
         const { data: post } = await supabase
           .from('exclusive_posts')
@@ -221,24 +237,70 @@ export async function POST(request: Request) {
       }
     }
 
+    if (content_type === 'bookmark' && (!bookmarkSlug || !bookmarkId)) {
+      const { data: bookmark } = await supabase
+        .from('bookmarks')
+        .select('slug')
+        .eq('id', content_id)
+        .single();
+      bookmarkSlug = bookmark?.slug ?? bookmarkSlug;
+      bookmarkId = content_id;
+    }
+
+    if (content_type === 'collection' && !collectionSlug) {
+      const { data: collection } = await supabase
+        .from('collections')
+        .select('slug, user_id')
+        .eq('id', content_id)
+        .single();
+      collectionSlug = collection?.slug ?? collectionSlug;
+      if (!collectionOwnerUsername && collection?.user_id) {
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', collection.user_id)
+          .single();
+        collectionOwnerUsername = ownerProfile?.username ?? null;
+      }
+    }
+
+    const { data: senderProfile } = await supabase
+      .from('profiles')
+      .select('username, display_name')
+      .eq('id', user.id)
+      .single();
+
     // Create notification for content owner
-    console.log('Creating notification for ownerId:', ownerId, 'user.id:', user.id);
-    if (ownerId) {
+    if (ownerId && ownerId !== user.id) {
+      const notificationData: Record<string, unknown> = {
+        sender_id: user.id,
+        sender_username: senderProfile?.username ?? null,
+        sender_display_name: senderProfile?.display_name ?? null,
+        content_type,
+        content_id: targetContentId,
+        comment_id: comment.id,
+        parent_comment_id: parent_comment_id || null,
+      };
+
+      if (content_type === 'bookmark') {
+        notificationData['bookmark_slug'] = bookmarkSlug;
+        notificationData['bookmark_id'] = bookmarkId ?? targetContentId;
+      }
+
+      if (content_type === 'collection') {
+        notificationData['collection_slug'] = collectionSlug;
+        notificationData['collection_owner_username'] = collectionOwnerUsername;
+      }
+
       const { error: notifError } = await supabase.from('notifications').insert({
         user_id: ownerId,
         type: parent_comment_id ? 'comment_reply' : 'comment',
         title: parent_comment_id ? 'New reply to your comment' : 'New comment on your content',
-        data: {
-          sender_id: user.id,
-          content_type,
-          content_id: parent_comment_id || content_id,
-        },
+        message: comment.content ?? null,
+        data: notificationData,
         is_read: false,
       });
       if (notifError) console.error('Notification error:', notifError);
-      else console.log('Notification created successfully');
-    } else {
-      console.log('No ownerId, notification not created');
     }
 
     return NextResponse.json({ comment }, { status: 201 });

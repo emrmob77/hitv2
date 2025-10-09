@@ -157,7 +157,15 @@ export default async function BookmarkDetailPage({ params }: Props) {
   });
 
   // Get user collections
-  const ownerCollections = await getUserCollections(bookmark.user_id);
+    const ownerCollections = (await getUserCollections(bookmark.user_id)) || [];
+
+  let viewerCollections: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    bookmarkCount: number;
+  }> = [];
+  let viewerMembershipIds: string[] = [];
 
   // Get current user
   const supabase = await createSupabaseServerClient();
@@ -272,6 +280,49 @@ export default async function BookmarkDetailPage({ params }: Props) {
     }
   }
 
+  if (currentUser) {
+    try {
+      const { data: viewerCollectionData } = await supabase
+        .from('collections')
+        .select('id, name, slug, bookmark_count')
+        .eq('user_id', currentUser.id)
+        .order('updated_at', { ascending: false })
+        .limit(5);
+
+      if (viewerCollectionData) {
+        const collectionRows = viewerCollectionData as Array<{
+          id: string;
+          name: string;
+          slug: string;
+          bookmark_count: number | null;
+        }>;
+
+        viewerCollections = collectionRows.map((collection) => ({
+          id: collection.id,
+          name: collection.name,
+          slug: collection.slug,
+          bookmarkCount: collection.bookmark_count ?? 0,
+        }));
+
+        const collectionIds = collectionRows.map((collection) => collection.id);
+        if (collectionIds.length > 0) {
+          const { data: membershipRows } = await supabase
+            .from('collection_bookmarks')
+            .select('collection_id')
+            .eq('bookmark_id', bookmark.id)
+            .in('collection_id', collectionIds);
+
+          if (membershipRows) {
+            const membershipList = membershipRows as Array<{ collection_id: string }>;
+            viewerMembershipIds = membershipList.map((row) => row.collection_id);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching viewer collections:', error);
+    }
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
   const bookmarkPageUrl = `${baseUrl}/bookmark/${bookmark.id}/${correctSlug}`;
 
@@ -357,6 +408,8 @@ export default async function BookmarkDetailPage({ params }: Props) {
     bookmarkTitle: bookmark.title,
     bookmarkDescription: bookmark.description,
     pageUrl: bookmarkPageUrl,
+    viewerCollections,
+    viewerMembershipIds,
     relatedBookmarks,
   };
 

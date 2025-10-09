@@ -139,6 +139,12 @@ export async function POST(request: Request) {
         .eq('id', bookmark_id)
         .single();
 
+      const { data: senderProfile } = await supabase
+        .from('profiles')
+        .select('username, display_name')
+        .eq('id', user.id)
+        .single();
+
       // Send notification to bookmark owner (if not saving own bookmark)
       if (bookmark && bookmark.user_id !== user.id) {
         await supabase.from('notifications').insert({
@@ -147,8 +153,11 @@ export async function POST(request: Request) {
           title: 'Someone saved your bookmark',
           data: {
             sender_id: user.id,
+            sender_username: senderProfile?.username ?? null,
+            sender_display_name: senderProfile?.display_name ?? null,
             content_type: 'bookmark',
             content_id: bookmark_id,
+            bookmark_id,
             bookmark_slug: bookmark.slug,
             action: 'saved',
           },

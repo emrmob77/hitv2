@@ -52,6 +52,8 @@ interface BookmarkDetailSidebarProps {
   bookmarkTitle: string;
   bookmarkDescription?: string | null;
   pageUrl?: string;
+  viewerCollections?: CollectionPreview[];
+  viewerMembershipIds?: string[];
 }
 
 export function BookmarkDetailSidebar({
@@ -64,26 +66,46 @@ export function BookmarkDetailSidebar({
   bookmarkTitle,
   bookmarkDescription,
   pageUrl,
+  viewerCollections: initialViewerCollections,
+  viewerMembershipIds = [],
 }: BookmarkDetailSidebarProps) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const { toast } = useToast();
-  const [viewerCollections, setViewerCollections] = useState<CollectionPreview[]>([]);
-  const [collectionMembership, setCollectionMembership] = useState<Set<string>>(new Set());
-  const [collectionLoading, setCollectionLoading] = useState(false);
+  const hasPrefetchedCollections = Array.isArray(initialViewerCollections);
+  const [ownerCollectionList, setOwnerCollectionList] = useState<CollectionPreview[]>(ownerCollections);
+  const [viewerCollections, setViewerCollections] = useState<CollectionPreview[]>(
+    initialViewerCollections ?? []
+  );
+  const [collectionMembership, setCollectionMembership] = useState<Set<string>>(
+    new Set(viewerMembershipIds)
+  );
+  const [collectionLoading, setCollectionLoading] = useState(
+    !hasPrefetchedCollections && Boolean(currentUserId)
+  );
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!currentUserId) {
-      setViewerCollections([]);
-      setCollectionMembership(new Set());
+    setOwnerCollectionList(ownerCollections);
+  }, [ownerCollections]);
+
+  useEffect(() => {
+    setViewerCollections(initialViewerCollections ?? []);
+  }, [initialViewerCollections]);
+
+  useEffect(() => {
+    setCollectionMembership(new Set(viewerMembershipIds));
+  }, [viewerMembershipIds]);
+
+  useEffect(() => {
+    if (!currentUserId || hasPrefetchedCollections) {
       setCollectionLoading(false);
       return;
     }
 
     let isMounted = true;
-    setCollectionLoading(true);
 
-    (async () => {
+    const loadCollections = async () => {
+      setCollectionLoading(true);
       try {
         const { data: collectionsData, error } = await supabase
           .from("collections")
@@ -98,16 +120,18 @@ export function BookmarkDetailSidebar({
 
         if (!isMounted) return;
 
-        setViewerCollections(
-          (collectionsData || []).map((collection) => ({
+        const mappedCollections: CollectionPreview[] = (collectionsData || []).map(
+          (collection) => ({
             id: collection.id,
             name: collection.name,
             slug: collection.slug,
             bookmarkCount: collection.bookmark_count ?? 0,
-          }))
+          })
         );
 
-        const collectionIds = (collectionsData || []).map((collection) => collection.id);
+        setViewerCollections(mappedCollections);
+
+        const collectionIds = mappedCollections.map((collection) => collection.id);
 
         if (collectionIds.length > 0) {
           const { data: membershipData, error: membershipError } = await supabase
@@ -125,7 +149,7 @@ export function BookmarkDetailSidebar({
           setCollectionMembership(
             new Set(membershipData?.map((membership) => membership.collection_id) || [])
           );
-        } else if (isMounted) {
+        } else {
           setCollectionMembership(new Set());
         }
       } catch (error) {
@@ -142,12 +166,14 @@ export function BookmarkDetailSidebar({
           setCollectionLoading(false);
         }
       }
-    })();
+    };
+
+    loadCollections();
 
     return () => {
       isMounted = false;
     };
-  }, [bookmarkId, currentUserId, supabase, toast]);
+  }, [bookmarkId, currentUserId, hasPrefetchedCollections, supabase, toast]);
 
   const toggleCollection = useCallback(
     async (collectionId: string) => {
@@ -165,34 +191,78 @@ export function BookmarkDetailSidebar({
       try {
         const isInCollection = collectionMembership.has(collectionId);
 
-        if (isInCollection) {
-          const { error } = await supabase
-            .from("collection_bookmarks")
-            .delete()
-            .eq("collection_id", collectionId)
+      if (isInCollection) {
+        const { error } = await supabase
+          .from("collection_bookmarks")
+          .delete()
+          .eq("collection_id", collectionId)
             .eq("bookmark_id", bookmarkId);
 
           if (error) {
             throw error;
           }
 
-          setCollectionMembership((prev) => {
-            const updated = new Set(prev);
-            updated.delete(collectionId);
-            return updated;
-          });
-        } else {
-          const { error } = await supabase.from("collection_bookmarks").insert({
-            collection_id: collectionId,
-            bookmark_id: bookmarkId,
-          });
+        setCollectionMembership((prev) => {
+          const updated = new Set(prev);
+          updated.delete(collectionId);
+          return updated;
+        });
+
+        setViewerCollections((prev) =>
+          prev.map((collection) =>
+            collection.id === collectionId
+              ? {
+                  ...collection,
+                  bookmarkCount: Math.max(0, (collection.bookmarkCount ?? 0) - 1),
+                }
+              : collection
+          )
+        );
+
+        setOwnerCollectionList((prev) =>
+          prev.map((collection) =>
+            collection.id === collectionId
+              ? {
+                  ...collection,
+                  bookmarkCount: Math.max(0, (collection.bookmarkCount ?? 0) - 1),
+                }
+              : collection
+          )
+        );
+      } else {
+        const { error } = await supabase.from("collection_bookmarks").insert({
+          collection_id: collectionId,
+          bookmark_id: bookmarkId,
+        });
 
           if (error) {
             throw error;
           }
 
-          setCollectionMembership((prev) => new Set(prev).add(collectionId));
-        }
+        setCollectionMembership((prev) => new Set(prev).add(collectionId));
+
+        setViewerCollections((prev) =>
+          prev.map((collection) =>
+            collection.id === collectionId
+              ? {
+                  ...collection,
+                  bookmarkCount: (collection.bookmarkCount ?? 0) + 1,
+                }
+              : collection
+          )
+        );
+
+        setOwnerCollectionList((prev) =>
+          prev.map((collection) =>
+            collection.id === collectionId
+              ? {
+                  ...collection,
+                  bookmarkCount: (collection.bookmarkCount ?? 0) + 1,
+                }
+              : collection
+          )
+        );
+      }
       } catch (error) {
         console.error("Failed to update collection membership:", error);
         toast({
@@ -358,16 +428,40 @@ export function BookmarkDetailSidebar({
         )}
       </div>
 
-      {ownerCollections.length > 0 && ownerUsername && (
+      {ownerCollectionList.length > 0 && ownerUsername && (
         <div className="rounded-xl border border-neutral-200 bg-white p-6">
           <h3 className="mb-4 text-lg font-semibold text-neutral-900">
             Featured collections by @{ownerUsername}
           </h3>
           <div className="space-y-3">
-            {ownerCollections.map((collection) => (
+            {ownerCollectionList.map((collection) => (
               <Link
                 key={collection.id}
-                href={`/collections/${ownerUsername}/${collection.slug}`}
+                href={`/c/${ownerUsername}/${collection.slug}`}
+                className="block rounded-lg border border-transparent p-3 hover:border-neutral-200 hover:bg-neutral-50"
+              >
+                <div className="text-sm font-medium text-neutral-900">
+                  {collection.name}
+                </div>
+                <div className="text-xs text-neutral-500">
+                  {collection.bookmarkCount} bookmarks
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {ownerCollectionList.length > 0 && !ownerUsername && (
+        <div className="rounded-xl border border-neutral-200 bg-white p-6">
+          <h3 className="mb-4 text-lg font-semibold text-neutral-900">
+            Featured collections
+          </h3>
+          <div className="space-y-3">
+            {ownerCollectionList.map((collection) => (
+              <Link
+                key={collection.id}
+                href={`/collections/${collection.slug}`}
                 className="block rounded-lg border border-transparent p-3 hover:border-neutral-200 hover:bg-neutral-50"
               >
                 <div className="text-sm font-medium text-neutral-900">

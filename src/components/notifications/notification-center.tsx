@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Loader2, Trash2, Check, Inbox } from "lucide-react";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   getNotificationIcon,
   resolveNotificationLink,
@@ -40,6 +41,110 @@ export function NotificationCenter({
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [markingAll, setMarkingAll] = useState(false);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
+
+  useEffect(() => {
+    const needsEnrichment = initialNotifications.some((notification) => {
+      const data = notification.data || {};
+
+      if (data.sender_id && !data.sender_username) {
+        return true;
+      }
+
+      if (data.content_type === "bookmark" && !data.bookmark_slug) {
+        return true;
+      }
+
+      if (data.content_type === "collection" && !data.collection_slug) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (!needsEnrichment) {
+      return;
+    }
+
+    let isMounted = true;
+    const supabase = createSupabaseBrowserClient();
+
+    (async () => {
+      const enriched = await Promise.all(
+        initialNotifications.map(async (notification) => {
+          const enrichedData = { ...notification.data };
+
+          if (
+            notification.data.sender_id &&
+            (!enrichedData.sender_username || enrichedData.sender_username === null)
+          ) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("username, display_name")
+              .eq("id", notification.data.sender_id as string)
+              .single();
+            if (profile) {
+              enrichedData.sender_username = profile.username;
+              enrichedData.sender_display_name = profile.display_name;
+            }
+          }
+
+          if (
+            notification.data.content_type === "bookmark" &&
+            notification.data.content_id &&
+            !enrichedData.bookmark_slug
+          ) {
+            const { data: bookmark } = await supabase
+              .from("bookmarks")
+              .select("slug")
+              .eq("id", notification.data.content_id as string)
+              .single();
+            if (bookmark) {
+              enrichedData.bookmark_slug = bookmark.slug;
+            }
+          }
+
+          if (
+            notification.data.content_type === "collection" &&
+            notification.data.content_id &&
+            !enrichedData.collection_slug
+          ) {
+            const { data: collection } = await supabase
+              .from("collections")
+              .select("slug, user_id")
+              .eq("id", notification.data.content_id as string)
+              .single();
+            if (collection) {
+              enrichedData.collection_slug = collection.slug;
+
+              if (!enrichedData.collection_owner_username && collection.user_id) {
+                const { data: ownerProfile } = await supabase
+                  .from("profiles")
+                  .select("username")
+                  .eq("id", collection.user_id)
+                  .single();
+                if (ownerProfile) {
+                  enrichedData.collection_owner_username = ownerProfile.username;
+                }
+              }
+            }
+          }
+
+          return {
+            ...notification,
+            data: enrichedData,
+          } as NotificationRecord;
+        })
+      );
+
+      if (isMounted) {
+        setNotifications(enriched);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialNotifications]);
 
   const filteredNotifications = useMemo(() => {
     if (filter === "unread") {
@@ -311,7 +416,7 @@ function NotificationList({
                     )}
                   </div>
                   {notification.message && (
-                    <p className="text-sm text-neutral-600">{notification.message}</p>
+                    <p className="text-sm text-neutral-600 line-clamp-2">{notification.message}</p>
                   )}
                   <p className="text-xs text-neutral-400">
                     {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}

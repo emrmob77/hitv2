@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { Bell, Check, Trash2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -34,12 +34,99 @@ export function NotificationDropdown() {
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+  const supabaseClient = useMemo(() => createSupabaseBrowserClient(), []);
+
+  const enrichNotification = useCallback(async (notification: Notification) => {
+    const enrichedData = { ...notification.data };
+
+    if (
+      notification.data.sender_id &&
+      (!enrichedData.sender_username || enrichedData.sender_username === null)
+    ) {
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('username, display_name')
+        .eq('id', notification.data.sender_id as string)
+        .single();
+      if (profile) {
+        enrichedData.sender_username = profile.username;
+        enrichedData.sender_display_name = profile.display_name;
+      }
+    }
+
+    if (
+      notification.data.content_type === 'bookmark' &&
+      notification.data.content_id &&
+      !enrichedData.bookmark_slug
+    ) {
+      const { data: bookmark } = await supabaseClient
+        .from('bookmarks')
+        .select('slug')
+        .eq('id', notification.data.content_id as string)
+        .single();
+      if (bookmark) {
+        enrichedData.bookmark_slug = bookmark.slug;
+      }
+    }
+
+    if (
+      notification.data.content_type === 'collection' &&
+      notification.data.content_id &&
+      !enrichedData.collection_slug
+    ) {
+      const { data: collection } = await supabaseClient
+        .from('collections')
+        .select('slug, user_id')
+        .eq('id', notification.data.content_id as string)
+        .single();
+      if (collection) {
+        enrichedData.collection_slug = collection.slug;
+        if (!enrichedData.collection_owner_username && collection.user_id) {
+          const { data: ownerProfile } = await supabaseClient
+            .from('profiles')
+            .select('username')
+            .eq('id', collection.user_id)
+            .single();
+          if (ownerProfile) {
+            enrichedData.collection_owner_username = ownerProfile.username;
+          }
+        }
+      }
+    }
+
+    return {
+      ...notification,
+      data: enrichedData,
+    };
+  }, [supabaseClient]);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const response = await fetch('/api/notifications?limit=10');
+      const data = await response.json();
+
+      if (response.ok) {
+        const enrichedNotifications = await Promise.all(
+          (data.notifications || []).map(enrichNotification)
+        );
+
+        setNotifications(enrichedNotifications);
+        setUnreadCount(data.unreadCount || 0);
+      } else {
+        console.error('Notifications error:', data);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [enrichNotification]);
 
   useEffect(() => {
     fetchNotifications();
 
     // Set up real-time subscription for notifications
-    const supabase = createSupabaseBrowserClient();
+    const supabase = supabaseClient;
 
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
@@ -54,10 +141,14 @@ export function NotificationDropdown() {
             table: 'notifications',
             filter: `user_id=eq.${user.id}`,
           },
-          (payload) => {
-            // Add new notification to the list
-            setNotifications((prev) => [payload.new as Notification, ...prev]);
-            setUnreadCount((prev) => prev + 1);
+          async (payload) => {
+            try {
+              const enriched = await enrichNotification(payload.new as Notification);
+              setNotifications((prev) => [enriched, ...prev]);
+              setUnreadCount((prev) => prev + 1);
+            } catch (error) {
+              console.error('Error enriching notification (realtime):', error);
+            }
           }
         )
         .subscribe();
@@ -66,79 +157,7 @@ export function NotificationDropdown() {
         supabase.removeChannel(channel);
       };
     });
-  }, []);
-
-  const fetchNotifications = async () => {
-    try {
-      const response = await fetch('/api/notifications?limit=10');
-      const data = await response.json();
-
-      console.log('Notifications response:', data);
-
-      if (response.ok) {
-        // Enrich notifications with content details
-        const enrichedNotifications = await Promise.all(
-          (data.notifications || []).map(async (notification: Notification) => {
-            const enrichedData = { ...notification.data };
-
-            // Fetch bookmark slug if needed
-            if (notification.data.content_type === 'bookmark' && notification.data.content_id) {
-              const supabase = createSupabaseBrowserClient();
-              const { data: bookmark } = await supabase
-                .from('bookmarks')
-                .select('slug')
-                .eq('id', notification.data.content_id)
-                .single();
-              if (bookmark) {
-                enrichedData.bookmark_slug = bookmark.slug;
-              }
-            }
-
-            // Fetch collection slug if needed
-            if (notification.data.content_type === 'collection' && notification.data.content_id) {
-              const supabase = createSupabaseBrowserClient();
-              const { data: collection } = await supabase
-                .from('collections')
-                .select('slug')
-                .eq('id', notification.data.content_id)
-                .single();
-              if (collection) {
-                enrichedData.collection_slug = collection.slug;
-              }
-            }
-
-            // Fetch sender username for follow notifications
-            if (notification.type === 'follow' && notification.data.sender_id) {
-              const supabase = createSupabaseBrowserClient();
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('username')
-                .eq('id', notification.data.sender_id)
-                .single();
-              if (profile) {
-                enrichedData.sender_username = profile.username;
-              }
-            }
-
-            return {
-              ...notification,
-              data: enrichedData,
-            };
-          })
-        );
-
-        setNotifications(enrichedNotifications);
-        setUnreadCount(data.unreadCount || 0);
-        console.log('Set notifications:', enrichedNotifications, 'Unread count:', data.unreadCount);
-      } else {
-        console.error('Notifications error:', data);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [enrichNotification, supabaseClient, fetchNotifications]);
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -274,6 +293,11 @@ export function NotificationDropdown() {
                     <p className="text-sm text-neutral-900">
                       {resolveNotificationText(notification)}
                     </p>
+                    {notification.message && (
+                      <p className="mt-1 text-xs text-neutral-600 line-clamp-2">
+                        {notification.message}
+                      </p>
+                    )}
                     <p className="mt-1 text-xs text-neutral-500">
                       {formatDistanceToNow(new Date(notification.created_at), {
                         addSuffix: true,
