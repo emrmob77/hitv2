@@ -1,5 +1,6 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase';
 
 // GET /api/saved-bookmarks - Get user's saved bookmarks
 export async function GET(request: Request) {
@@ -96,6 +97,7 @@ export async function POST(request: Request) {
       .single();
 
     let isSaved = false;
+    let totalSaveCount: number | null = null;
 
     if (existingSave) {
       // Unsave
@@ -155,9 +157,30 @@ export async function POST(request: Request) {
       }
     }
 
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const { count: saveCount, error: countError } = await supabaseAdmin
+          .from('saved_bookmarks')
+          .select('*', { count: 'exact', head: true })
+          .eq('bookmark_id', bookmark_id);
+
+        if (!countError) {
+          totalSaveCount = saveCount ?? 0;
+
+          await supabaseAdmin
+            .from('bookmarks')
+            .update({ save_count: totalSaveCount })
+            .eq('id', bookmark_id);
+        }
+      } catch (error) {
+        console.error('Error calculating total save count:', error);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       isSaved,
+      saveCount: totalSaveCount,
     });
   } catch (error) {
     console.error('Error toggling saved bookmark:', error);

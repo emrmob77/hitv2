@@ -31,6 +31,7 @@ interface BookmarkDetailPreviewProps {
   isBookmarked?: boolean;
   currentUserId?: string;
   authorId: string;
+  saveCount: number;
 }
 
 export function BookmarkDetailPreview({
@@ -49,10 +50,12 @@ export function BookmarkDetailPreview({
   isBookmarked = false,
   currentUserId,
   authorId,
+  saveCount,
 }: BookmarkDetailPreviewProps) {
   const [liked, setLiked] = useState(isLiked);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
   const [likes, setLikes] = useState(likeCount);
+  const [saves, setSaves] = useState(saveCount);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeUserId, setActiveUserId] = useState(currentUserId);
@@ -70,6 +73,10 @@ export function BookmarkDetailPreview({
   useEffect(() => {
     setLikes(likeCount);
   }, [likeCount]);
+
+  useEffect(() => {
+    setSaves(saveCount);
+  }, [saveCount]);
 
   useEffect(() => {
     if (currentUserId) {
@@ -264,6 +271,13 @@ export function BookmarkDetailPreview({
 
       if (response.ok) {
         setBookmarked(data.isSaved);
+        if (typeof data.saveCount === 'number') {
+          setSaves(Math.max(0, data.saveCount));
+        } else {
+          setSaves((prev) =>
+            Math.max(0, prev + (data.isSaved ? 1 : -1))
+          );
+        }
         toast({
           title: data.isSaved ? 'Saved!' : 'Removed',
           description: data.isSaved
@@ -518,7 +532,7 @@ export function BookmarkDetailPreview({
                 className="h-4 w-4"
                 fill={bookmarked ? "currentColor" : "none"}
               />
-              <span className="text-sm text-neutral-700">Save</span>
+              <span className="text-sm">{saves}</span>
             </button>
             <button
               onClick={handleShare}

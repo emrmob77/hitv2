@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react';
 import { MetadataGenerator } from '@/lib/seo/metadata';
 import { StructuredDataGenerator } from '@/lib/seo/structured-data';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase';
 import { BookmarkDetailPreview } from '@/components/bookmarks/bookmark-detail-preview';
 import { BookmarkDetailSidebar } from '@/components/bookmarks/bookmark-detail-sidebar';
 import { BookmarkComments } from '@/components/bookmarks/bookmark-comments';
@@ -197,10 +198,22 @@ export default async function BookmarkDetailPage({ params }: Props) {
     .eq('commentable_type', 'bookmark')
     .eq('commentable_id', bookmark.id);
 
-  const { count: saveCount } = await supabase
-    .from('saved_bookmarks')
-    .select('*', { count: 'exact', head: true })
-    .eq('bookmark_id', bookmark.id);
+  let saveCount = bookmark.save_count ?? 0;
+
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const { count: adminSaveCount, error: adminSaveError } = await supabaseAdmin
+        .from('saved_bookmarks')
+        .select('*', { count: 'exact', head: true })
+        .eq('bookmark_id', bookmark.id);
+
+      if (!adminSaveError && typeof adminSaveCount === 'number') {
+        saveCount = adminSaveCount;
+      }
+    } catch (error) {
+      console.error('Error fetching total save count:', error);
+    }
+  }
 
   const sidebarData = {
     stats: {
@@ -261,6 +274,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
                 isBookmarked={isBookmarked}
                 currentUserId={user?.id}
                 authorId={bookmark.user_id}
+                saveCount={saveCount || 0}
               />
 
               {/* Comments */}
