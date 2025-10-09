@@ -258,3 +258,12 @@
   - Import/export job processing için background worker setup yap
   - Advanced analytics ve AI processing için infrastructure scaling planla
   - _Gereksinimler: Yeni özellikler için production readiness_
+
+- [x] 30. Bookmark detail sayfası SEO & UX iyileştirmeleri
+  - [x] Structured data çıktısına yazar ve breadcrumb bilgilerinin eklenmesi
+  - [x] MetadataGenerator'ın `meta_*` alanlarını ve privacy odaklı robots ayarlarını kullanması
+  - [x] Visit Site butonunda URL normalizasyonu ve outbound click tracking entegrasyonu
+  - [x] Collections panelindeki Add/Create eylemlerinin çalışır hale getirilmesi ve doğru kullanıcı verisiyle beslenmesi
+  - [x] Tag tabanlı related bookmarks önerilerinin gösterilmesi
+  - [x] Paylaşım butonlarının gerçek share intent URL'leri ve kullanıcı feedback'i sağlaması
+  - [x] View count artışının service role olmadan da kalıcı şekilde kaydedilmesi

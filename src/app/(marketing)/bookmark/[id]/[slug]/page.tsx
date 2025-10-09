@@ -9,6 +9,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { BookmarkDetailPreview } from '@/components/bookmarks/bookmark-detail-preview';
 import { BookmarkDetailSidebar } from '@/components/bookmarks/bookmark-detail-sidebar';
 import { BookmarkComments } from '@/components/bookmarks/bookmark-comments';
+import { siteConfig } from '@/config/site';
 
 interface Props {
   params: {
@@ -129,16 +130,34 @@ export default async function BookmarkDetailPage({ params }: Props) {
     redirect(`/bookmark/${id}/${correctSlug}`);
   }
 
-  const structuredData = StructuredDataGenerator.generateBookmarkSchema(bookmark);
-
   // Extract tags from bookmark_tags relation
-  const tags = bookmark.bookmark_tags?.map((bt: any) => ({
+  const rawTags = bookmark.bookmark_tags || [];
+  const tags = rawTags.map((bt: any) => ({
     name: bt.tags.name,
     slug: bt.tags.slug,
-  })) || [];
+  }));
+  const tagIds = rawTags
+    .map((bt: any) => bt.tags?.id)
+    .filter((id: string | null | undefined): id is string => Boolean(id));
+
+  const structuredData = StructuredDataGenerator.generateBookmarkSchema({
+    id: bookmark.id,
+    title: bookmark.title,
+    description: bookmark.description,
+    url: bookmark.url,
+    created_at: bookmark.created_at,
+    slug: correctSlug,
+    tags,
+    user: bookmark.profiles
+      ? {
+          username: bookmark.profiles.username,
+          display_name: bookmark.profiles.display_name,
+        }
+      : undefined,
+  });
 
   // Get user collections
-  const userCollections = await getUserCollections(bookmark.user_id);
+  const ownerCollections = await getUserCollections(bookmark.user_id);
 
   // Get current user
   const supabase = await createSupabaseServerClient();
@@ -219,7 +238,21 @@ export default async function BookmarkDetailPage({ params }: Props) {
       viewCount = viewCount + 1;
     }
   } else {
-    viewCount = viewCount + 1;
+    try {
+      const { data: incrementedCount, error: viewError } = await supabase.rpc(
+        'increment_bookmark_view',
+        { p_bookmark_id: bookmark.id }
+      );
+
+      if (!viewError && typeof incrementedCount === 'number') {
+        viewCount = incrementedCount;
+      } else {
+        viewCount = viewCount + 1;
+      }
+    } catch (error) {
+      console.error('Error incrementing view count via RPC:', error);
+      viewCount = viewCount + 1;
+    }
   }
 
   let saveCount = bookmark.save_count ?? 0;
@@ -239,6 +272,76 @@ export default async function BookmarkDetailPage({ params }: Props) {
     }
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
+  const bookmarkPageUrl = `${baseUrl}/bookmark/${bookmark.id}/${correctSlug}`;
+
+  let relatedBookmarks: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    description: string | null;
+    imageUrl: string | null;
+    likes: number;
+    saves: number;
+  }> = [];
+
+  if (tagIds.length > 0) {
+    try {
+      const { data: relatedData, error: relatedError } = await supabase
+        .from('bookmark_tags')
+        .select(
+          `
+          bookmark_id,
+          bookmarks!inner (
+            id,
+            title,
+            slug,
+            description,
+            image_url,
+            like_count,
+            save_count,
+            privacy_level
+          )
+        `
+        )
+        .in('tag_id', tagIds)
+        .neq('bookmark_id', bookmark.id)
+        .eq('bookmarks.privacy_level', 'public')
+        .limit(12);
+
+      if (!relatedError && relatedData) {
+        const unique = new Map<string, typeof relatedData[number]>();
+        for (const entry of relatedData) {
+          const related = entry.bookmarks;
+          if (!related || !related.id || related.id === bookmark.id) {
+            continue;
+          }
+
+          if (!unique.has(related.id)) {
+            unique.set(related.id, entry);
+          }
+        }
+
+        relatedBookmarks = Array.from(unique.values())
+          .slice(0, 4)
+          .map((entry) => {
+            const related = entry.bookmarks!;
+            return {
+              id: related.id,
+              title: related.title,
+              slug: related.slug || related.id,
+              description: related.description,
+              imageUrl: related.image_url,
+              likes: related.like_count ?? 0,
+              saves: related.save_count ?? 0,
+            };
+          });
+      }
+    } catch (error) {
+      console.error('Error fetching related bookmarks:', error);
+    }
+  }
+
   const sidebarData = {
     stats: {
       views: viewCount || 0,
@@ -247,8 +350,14 @@ export default async function BookmarkDetailPage({ params }: Props) {
       comments: realCommentCount || 0,
       shares: 0, // Not tracked yet
     },
-    collections: userCollections,
-    relatedBookmarks: [], // TODO: Implement related bookmarks based on tags
+    ownerCollections: ownerCollections,
+    ownerUsername: bookmark.profiles?.username || null,
+    bookmarkId: bookmark.id,
+    currentUserId: currentUser?.id,
+    bookmarkTitle: bookmark.title,
+    bookmarkDescription: bookmark.description,
+    pageUrl: bookmarkPageUrl,
+    relatedBookmarks,
   };
 
   return (

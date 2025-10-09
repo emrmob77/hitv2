@@ -21,6 +21,12 @@ interface Bookmark {
   slug: string | null;
   url: string;
   domain: string | null;
+  image_url?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  canonical_url?: string | null;
+  seo_keywords?: string[] | null;
+  privacy_level?: string | null;
 }
 
 export class MetadataGenerator {
@@ -85,44 +91,84 @@ export class MetadataGenerator {
   }
 
   static generateBookmarkMetadata(bookmark: Bookmark, username?: string): Metadata {
-    const title = username
-      ? `${bookmark.title} - Saved by @${username} | HitTags`
-      : `${bookmark.title} | HitTags`;
+    const bookmarkSlug = bookmark.slug || bookmark.id;
+    const canonicalUrl =
+      (bookmark.canonical_url && bookmark.canonical_url.trim()) ||
+      `${BASE_URL}/bookmark/${bookmark.id}/${bookmarkSlug}`;
+
+    const explicitTitle = bookmark.meta_title?.trim();
+    const fallbackTitle = username
+      ? `${bookmark.title} - Saved by @${username}`
+      : bookmark.title;
+    const title = explicitTitle || `${fallbackTitle} | HitTags`;
+
+    const explicitDescription = bookmark.meta_description?.trim();
     const description =
+      explicitDescription ||
       bookmark.description ||
       `Discover and save quality web content on HitTags`;
 
-    const bookmarkSlug = bookmark.slug || bookmark.id;
+    const keywords =
+      bookmark.seo_keywords && bookmark.seo_keywords.length > 0
+        ? bookmark.seo_keywords
+        : undefined;
+
+    let robots: Metadata['robots'] | undefined;
+    if (bookmark.privacy_level === 'private') {
+      robots = {
+        index: false,
+        follow: false,
+      };
+    } else if (bookmark.privacy_level === 'subscribers') {
+      robots = {
+        index: true,
+        follow: false,
+      };
+    }
+
+    const ogImages =
+      bookmark.image_url
+        ? [
+            {
+              url: bookmark.image_url,
+              width: 1200,
+              height: 630,
+              alt: bookmark.title,
+            },
+          ]
+        : bookmark.domain
+        ? [
+            {
+              url: `${BASE_URL}/api/og/bookmark/${bookmark.id}`,
+              width: 1200,
+              height: 630,
+              alt: bookmark.title,
+            },
+          ]
+        : undefined;
 
     return {
       title,
       description,
+      keywords,
       openGraph: {
         title: bookmark.title,
-        description: description,
-        url: `${BASE_URL}/bookmark/${bookmark.id}/${bookmarkSlug}`,
+        description,
+        url: canonicalUrl,
         siteName: 'HitTags',
         type: 'article',
-        images: bookmark.domain
-          ? [
-              {
-                url: `${BASE_URL}/api/og/bookmark/${bookmark.id}`,
-                width: 1200,
-                height: 630,
-                alt: bookmark.title,
-              },
-            ]
-          : [],
+        images: ogImages,
       },
       twitter: {
         card: 'summary_large_image',
         title: bookmark.title,
-        description: description,
-        images: bookmark.domain ? [`${BASE_URL}/api/og/bookmark/${bookmark.id}`] : [],
+        description,
+        images: ogImages?.map((image) => image.url) ?? undefined,
       },
       alternates: {
-        canonical: `${BASE_URL}/bookmark/${bookmark.id}/${bookmarkSlug}`,
+        canonical: canonicalUrl,
       },
+      robots,
     };
   }
 

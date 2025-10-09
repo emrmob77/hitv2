@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Bell, Heart, MessageCircle, UserPlus, Check, Trash2, Bookmark } from 'lucide-react';
+import { Bell, Check, Trash2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
   DropdownMenu,
@@ -15,23 +15,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import {
+  getNotificationIcon,
+  resolveNotificationLink,
+  resolveNotificationText,
+  type NotificationRecord,
+} from '@/components/notifications/utils';
 
-interface Notification {
-  id: string;
-  type: 'like' | 'comment' | 'comment_reply' | 'follow';
-  title: string;
-  message?: string;
-  data: {
-    sender_id?: string;
-    content_type?: string;
-    content_id?: string;
-    bookmark_slug?: string;
-    collection_slug?: string;
-    sender_username?: string;
-  };
-  is_read: boolean;
-  created_at: string;
-}
+type NotificationType = 'like' | 'comment' | 'comment_reply' | 'follow' | 'bookmark_saved';
+
+type Notification = NotificationRecord & {
+  type: NotificationType;
+};
 
 export function NotificationDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -211,58 +206,6 @@ export function NotificationDropdown() {
     }
   };
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'like':
-        return <Heart className="h-4 w-4 text-red-500" />;
-      case 'comment':
-      case 'comment_reply':
-        return <MessageCircle className="h-4 w-4 text-blue-500" />;
-      case 'follow':
-        return <UserPlus className="h-4 w-4 text-green-500" />;
-      case 'bookmark_saved':
-        return <Bookmark className="h-4 w-4 text-purple-500" />;
-      default:
-        return <Bell className="h-4 w-4 text-neutral-500" />;
-    }
-  };
-
-  const getNotificationText = (notification: Notification) => {
-    return notification.title;
-  };
-
-  const getNotificationLink = (notification: Notification) => {
-    const { content_type, content_id, bookmark_slug, collection_slug, sender_username } = notification.data;
-
-    // Follow notification - link to sender's profile
-    if (notification.type === 'follow' && sender_username) {
-      return `/${sender_username}`;
-    }
-
-    // Bookmark notification - link to bookmark detail page
-    if (content_type === 'bookmark' && content_id && bookmark_slug) {
-      return `/bookmark/${content_id}/${bookmark_slug}`;
-    }
-
-    // Collection notification - link to collection page
-    if (content_type === 'collection' && collection_slug) {
-      return `/collections/${collection_slug}`;
-    }
-
-    // Comment notification - link to the content that was commented on
-    if ((notification.type === 'comment' || notification.type === 'comment_reply') && content_type && content_id) {
-      if (content_type === 'bookmark' && bookmark_slug) {
-        return `/bookmark/${content_id}/${bookmark_slug}`;
-      }
-      if (content_type === 'collection' && collection_slug) {
-        return `/collections/${collection_slug}`;
-      }
-    }
-
-    // Default fallback
-    return '#';
-  };
-
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
@@ -314,7 +257,7 @@ export function NotificationDropdown() {
                 }`}
               >
                 <Link
-                  href={getNotificationLink(notification)}
+                  href={resolveNotificationLink(notification)}
                   className="flex flex-1 items-start gap-3"
                   onClick={() => {
                     if (!notification.is_read) {
@@ -329,7 +272,7 @@ export function NotificationDropdown() {
 
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-neutral-900">
-                      {getNotificationText(notification)}
+                      {resolveNotificationText(notification)}
                     </p>
                     <p className="mt-1 text-xs text-neutral-500">
                       {formatDistanceToNow(new Date(notification.created_at), {
@@ -364,7 +307,7 @@ export function NotificationDropdown() {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link
-                href="/notifications"
+                href="/dashboard/notifications"
                 className="w-full cursor-pointer text-center text-sm text-neutral-600 hover:text-neutral-900"
                 onClick={() => setIsOpen(false)}
               >

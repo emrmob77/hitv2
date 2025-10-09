@@ -10,16 +10,25 @@ interface Tag {
   usage_count: number;
 }
 
+interface StructuredBookmarkAuthor {
+  username: string;
+  display_name: string | null;
+}
+
+interface StructuredBookmarkTag {
+  name: string;
+  slug: string;
+}
+
 interface Bookmark {
   id: string;
   title: string;
   description: string | null;
   url: string;
   created_at: string;
-  user?: {
-    username: string;
-    display_name: string | null;
-  };
+  slug?: string | null;
+  tags?: StructuredBookmarkTag[];
+  user?: StructuredBookmarkAuthor;
 }
 
 export class StructuredDataGenerator {
@@ -132,28 +141,67 @@ export class StructuredDataGenerator {
 
   // Bookmark Page Schema
   static generateBookmarkSchema(bookmark: Bookmark) {
-    return {
-      '@context': 'https://schema.org',
-      '@type': 'Article',
-      headline: bookmark.title,
-      description: bookmark.description,
-      url: bookmark.url,
-      author: bookmark.user
+    const pageUrl = `${BASE_URL}/bookmark/${bookmark.id}/${bookmark.slug ?? bookmark.id}`;
+
+    const author =
+      bookmark.user && (bookmark.user.display_name || bookmark.user.username)
         ? {
             '@type': 'Person',
             name: bookmark.user.display_name || bookmark.user.username,
             url: `${BASE_URL}/${bookmark.user.username}`,
           }
-        : undefined,
-      datePublished: bookmark.created_at,
-      publisher: {
-        '@type': 'Organization',
-        name: 'HitTags',
-        logo: {
-          '@type': 'ImageObject',
-          url: `${BASE_URL}/logo.png`,
+        : undefined;
+
+    const keywords =
+      bookmark.tags && bookmark.tags.length > 0
+        ? bookmark.tags.map((tag) => tag.name)
+        : undefined;
+
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: BASE_URL,
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: 'Bookmarks',
+              item: `${BASE_URL}/explore`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: bookmark.title,
+              item: pageUrl,
+            },
+          ],
         },
-      },
+        {
+          '@type': 'Article',
+          headline: bookmark.title,
+          description: bookmark.description ?? undefined,
+          url: bookmark.url,
+          mainEntityOfPage: pageUrl,
+          author,
+          datePublished: bookmark.created_at,
+          keywords,
+          publisher: {
+            '@type': 'Organization',
+            name: 'HitTags',
+            logo: {
+              '@type': 'ImageObject',
+              url: `${BASE_URL}/logo.png`,
+            },
+          },
+        },
+      ],
     };
   }
 

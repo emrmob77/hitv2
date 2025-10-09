@@ -542,15 +542,15 @@ export function BookmarkDetailPreview({
               <span className="text-sm text-neutral-700">Share</span>
             </button>
           </div>
-          <a
-            href={url}
+          <Link
+            href={`/out/bookmark/${id}`}
             target="_blank"
-            rel="nofollow ugc noopener noreferrer"
+            rel="nofollow noopener noreferrer"
             className="flex cursor-pointer items-center space-x-2 rounded-lg bg-neutral-900 px-6 py-2 text-sm text-white hover:bg-neutral-800"
           >
             <ExternalLink className="h-4 w-4" />
             <span>Visit Site</span>
-          </a>
+          </Link>
         </div>
       </div>
     </section>
