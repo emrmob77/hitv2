@@ -198,6 +198,30 @@ export default async function BookmarkDetailPage({ params }: Props) {
     .eq('commentable_type', 'bookmark')
     .eq('commentable_id', bookmark.id);
 
+  let viewCount = bookmark.view_count ?? 0;
+
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const { data: updatedBookmark, error: viewUpdateError } = await supabaseAdmin
+        .from('bookmarks')
+        .update({ view_count: viewCount + 1 })
+        .eq('id', bookmark.id)
+        .select('view_count')
+        .single();
+
+      if (!viewUpdateError && updatedBookmark) {
+        viewCount = updatedBookmark.view_count ?? viewCount + 1;
+      } else {
+        viewCount = viewCount + 1;
+      }
+    } catch (error) {
+      console.error('Error updating view count:', error);
+      viewCount = viewCount + 1;
+    }
+  } else {
+    viewCount = viewCount + 1;
+  }
+
   let saveCount = bookmark.save_count ?? 0;
 
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -217,7 +241,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
 
   const sidebarData = {
     stats: {
-      views: bookmark.view_count || 0,
+      views: viewCount || 0,
       likes: realLikeCount || 0,
       saves: saveCount || 0,
       comments: realCommentCount || 0,
@@ -261,7 +285,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
                 domain={bookmark.domain}
                 imageUrl={bookmark.image_url}
                 createdAt={bookmark.created_at}
-                viewCount={bookmark.view_count || 0}
+                viewCount={viewCount || 0}
                 likeCount={realLikeCount || 0}
                 author={{
                   username: bookmark.profiles?.username || 'unknown',
