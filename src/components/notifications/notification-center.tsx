@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Loader2, Trash2, Check, Inbox } from "lucide-react";
@@ -41,6 +41,75 @@ export function NotificationCenter({
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [markingAll, setMarkingAll] = useState(false);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
+  const supabaseClient = useMemo(() => createSupabaseBrowserClient(), []);
+
+  const enrichNotification = useCallback(
+    async (notification: NotificationRecord): Promise<NotificationRecord> => {
+      const enrichedData = { ...(notification.data ?? {}) };
+
+      if (
+        notification.data?.sender_id &&
+        (!enrichedData.sender_username || enrichedData.sender_username === null)
+      ) {
+        const { data: profile } = await supabaseClient
+          .from("profiles")
+          .select("username, display_name")
+          .eq("id", notification.data.sender_id as string)
+          .single();
+        if (profile) {
+          enrichedData.sender_username = profile.username;
+          enrichedData.sender_display_name = profile.display_name;
+        }
+      }
+
+      if (
+        notification.data?.content_type === "bookmark" &&
+        notification.data?.content_id &&
+        !enrichedData.bookmark_slug
+      ) {
+        const { data: bookmark } = await supabaseClient
+          .from("bookmarks")
+          .select("slug")
+          .eq("id", notification.data.content_id as string)
+          .single();
+        if (bookmark) {
+          enrichedData.bookmark_slug = bookmark.slug;
+        }
+      }
+
+      if (
+        notification.data?.content_type === "collection" &&
+        notification.data?.content_id &&
+        !enrichedData.collection_slug
+      ) {
+        const { data: collection } = await supabaseClient
+          .from("collections")
+          .select("slug, user_id")
+          .eq("id", notification.data.content_id as string)
+          .single();
+        if (collection) {
+          enrichedData.collection_slug = collection.slug;
+
+          if (!enrichedData.collection_owner_username && collection.user_id) {
+            const { data: ownerProfile } = await supabaseClient
+              .from("profiles")
+              .select("username")
+              .eq("id", collection.user_id)
+              .single();
+            if (ownerProfile) {
+              enrichedData.collection_owner_username = ownerProfile.username;
+            }
+          }
+        }
+      }
+
+      return {
+        ...notification,
+        data: enrichedData,
+      };
+    },
+    [supabaseClient]
+  );
 
   useEffect(() => {
     const needsEnrichment = initialNotifications.some((notification) => {
@@ -66,73 +135,11 @@ export function NotificationCenter({
     }
 
     let isMounted = true;
-    const supabase = createSupabaseBrowserClient();
-
     (async () => {
       const enriched = await Promise.all(
         initialNotifications.map(async (notification) => {
-          const enrichedData = { ...notification.data };
-
-          if (
-            notification.data.sender_id &&
-            (!enrichedData.sender_username || enrichedData.sender_username === null)
-          ) {
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("username, display_name")
-              .eq("id", notification.data.sender_id as string)
-              .single();
-            if (profile) {
-              enrichedData.sender_username = profile.username;
-              enrichedData.sender_display_name = profile.display_name;
-            }
-          }
-
-          if (
-            notification.data.content_type === "bookmark" &&
-            notification.data.content_id &&
-            !enrichedData.bookmark_slug
-          ) {
-            const { data: bookmark } = await supabase
-              .from("bookmarks")
-              .select("slug")
-              .eq("id", notification.data.content_id as string)
-              .single();
-            if (bookmark) {
-              enrichedData.bookmark_slug = bookmark.slug;
-            }
-          }
-
-          if (
-            notification.data.content_type === "collection" &&
-            notification.data.content_id &&
-            !enrichedData.collection_slug
-          ) {
-            const { data: collection } = await supabase
-              .from("collections")
-              .select("slug, user_id")
-              .eq("id", notification.data.content_id as string)
-              .single();
-            if (collection) {
-              enrichedData.collection_slug = collection.slug;
-
-              if (!enrichedData.collection_owner_username && collection.user_id) {
-                const { data: ownerProfile } = await supabase
-                  .from("profiles")
-                  .select("username")
-                  .eq("id", collection.user_id)
-                  .single();
-                if (ownerProfile) {
-                  enrichedData.collection_owner_username = ownerProfile.username;
-                }
-              }
-            }
-          }
-
-          return {
-            ...notification,
-            data: enrichedData,
-          } as NotificationRecord;
+          const enrichedNotification = await enrichNotification(notification);
+          return enrichedNotification;
         })
       );
 
@@ -144,7 +151,136 @@ export function NotificationCenter({
     return () => {
       isMounted = false;
     };
-  }, [initialNotifications]);
+  }, [initialNotifications, enrichNotification]);
+
+  const fetchLatestNotifications = useCallback(async () => {
+    try {
+      const response = await fetch("/api/notifications?limit=50");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to fetch notifications.");
+      }
+
+      const enriched = await Promise.all(
+        (data.notifications || []).map((notification: NotificationRecord) => enrichNotification(notification))
+      );
+
+      setNotifications(enriched);
+      if (typeof data.unreadCount === "number") {
+        setUnreadCount(data.unreadCount);
+      }
+    } catch (error) {
+      console.error("Error refreshing notifications:", error);
+    }
+  }, [enrichNotification]);
+
+  useEffect(() => {
+    let isMounted = true;
+    let channel: ReturnType<typeof supabaseClient.channel> | null = null;
+
+    const handleRefresh = () => {
+      void fetchLatestNotifications();
+    };
+
+    const intervalId = window.setInterval(() => {
+      void fetchLatestNotifications();
+    }, 20000);
+
+    window.addEventListener("notifications:refresh", handleRefresh as EventListener);
+    void fetchLatestNotifications();
+
+    supabaseClient.auth.getUser().then(({ data: { user } }) => {
+      if (!isMounted || !user) {
+        return;
+      }
+
+      channel = supabaseClient
+        .channel('notifications-center')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`,
+          },
+          async (payload) => {
+            const inserted = payload.new as NotificationRecord;
+            const enriched = await enrichNotification(inserted);
+            setNotifications((prev) => {
+              const existing = prev.some((item) => item.id === enriched.id);
+              if (existing) {
+                return prev;
+              }
+              const next = [enriched, ...prev];
+              return next.slice(0, 200);
+            });
+            if (!inserted.is_read) {
+              setUnreadCount((prev) => prev + 1);
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`,
+          },
+          async (payload) => {
+            const updated = payload.new as NotificationRecord;
+            const previous = payload.old as NotificationRecord | null;
+
+            const enriched = await enrichNotification(updated);
+
+            setNotifications((prev) =>
+              prev.map((notification) =>
+                notification.id === enriched.id
+                  ? { ...notification, ...enriched, data: enriched.data ?? {} }
+                  : notification
+              )
+            );
+
+            const wasUnread = previous?.is_read === false;
+            const isUnreadNow = enriched.is_read === false;
+
+            if (wasUnread && !isUnreadNow) {
+              setUnreadCount((prev) => Math.max(0, prev - 1));
+            } else if (!wasUnread && isUnreadNow) {
+              setUnreadCount((prev) => prev + 1);
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            const removed = payload.old as NotificationRecord | null;
+            setNotifications((prev) => prev.filter((notification) => notification.id !== removed?.id));
+            if (removed?.is_read === false) {
+              setUnreadCount((prev) => Math.max(0, prev - 1));
+            }
+          }
+        )
+        .subscribe();
+    });
+
+    return () => {
+      isMounted = false;
+      if (channel) {
+        supabaseClient.removeChannel(channel);
+      }
+      window.clearInterval(intervalId);
+      window.removeEventListener("notifications:refresh", handleRefresh as EventListener);
+    };
+  }, [enrichNotification, supabaseClient, fetchLatestNotifications]);
 
   const filteredNotifications = useMemo(() => {
     if (filter === "unread") {

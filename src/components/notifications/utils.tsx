@@ -135,6 +135,19 @@ export const resolveNotificationText = (notification: NotificationRecord): strin
   switch (notification.type) {
     case "bookmark_saved":
       return `${sender} saved your bookmark`;
+    case "like": {
+      const targetType = notification.data.like_target_type ?? notification.data.content_type;
+      if (targetType === "comment") {
+        return `${sender} liked your comment`;
+      }
+      if (targetType === "collection") {
+        return `${sender} liked your collection`;
+      }
+      if (targetType === "exclusive_post") {
+        return `${sender} liked your post`;
+      }
+      return `${sender} liked your bookmark`;
+    }
     case "comment":
       if (notification.data.content_type === "collection") {
         return `${sender} commented on your collection`;

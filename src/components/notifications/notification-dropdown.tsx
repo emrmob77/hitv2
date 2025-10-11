@@ -123,16 +123,23 @@ export function NotificationDropdown() {
   }, [enrichNotification]);
 
   useEffect(() => {
-    fetchNotifications();
-
-    // Set up real-time subscription for notifications
+    let isMounted = true;
+    let channel: ReturnType<typeof supabaseClient.channel> | null = null;
     const supabase = supabaseClient;
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
+    fetchNotifications();
 
-      const channel = supabase
-        .channel('notifications')
+    const configureRealtime = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user || !isMounted) {
+        return;
+      }
+
+      channel = supabase
+        .channel('notifications-dropdown')
         .on(
           'postgres_changes',
           {
@@ -144,7 +151,7 @@ export function NotificationDropdown() {
           async (payload) => {
             try {
               const enriched = await enrichNotification(payload.new as Notification);
-              setNotifications((prev) => [enriched, ...prev]);
+              setNotifications((prev) => [enriched, ...prev].slice(0, 10));
               setUnreadCount((prev) => prev + 1);
             } catch (error) {
               console.error('Error enriching notification (realtime):', error);
@@ -152,11 +159,21 @@ export function NotificationDropdown() {
           }
         )
         .subscribe();
+    };
 
-      return () => {
+    void configureRealtime();
+
+    const interval = window.setInterval(() => {
+      void fetchNotifications();
+    }, 15000);
+
+    return () => {
+      isMounted = false;
+      if (channel) {
         supabase.removeChannel(channel);
-      };
-    });
+      }
+      window.clearInterval(interval);
+    };
   }, [enrichNotification, supabaseClient, fetchNotifications]);
 
   const markAsRead = async (notificationId: string) => {

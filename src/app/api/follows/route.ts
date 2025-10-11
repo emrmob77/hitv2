@@ -1,5 +1,48 @@
 import { createSupabaseApiClient } from '@/lib/supabase/api';
+import type { Database } from '@/lib/supabase/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+
+type SupabaseClientType = SupabaseClient<Database>;
+
+async function createFollowNotification(
+  supabase: SupabaseClientType,
+  actorId: string,
+  targetUserId: string
+): Promise<void> {
+  try {
+    if (actorId === targetUserId) {
+      return;
+    }
+
+    const { data: senderProfile } = await supabase
+      .from('profiles')
+      .select('username, display_name')
+      .eq('id', actorId)
+      .single();
+
+    const { error: notificationError } = await supabase.from('notifications').insert({
+      user_id: targetUserId,
+      type: 'follow',
+      title: 'New follower',
+      data: {
+        sender_id: actorId,
+        sender_username: senderProfile?.username ?? null,
+        sender_display_name: senderProfile?.display_name ?? null,
+        content_type: 'profile',
+        content_id: actorId,
+        action: 'followed',
+      },
+      is_read: false,
+    });
+
+    if (notificationError) {
+      console.error('Notification error (follow):', notificationError);
+    }
+  } catch (error) {
+    console.error('Failed to create follow notification:', error);
+  }
+}
 
 // POST /api/follows - Toggle follow
 export async function POST(request: Request) {
@@ -91,19 +134,29 @@ export async function POST(request: Request) {
         console.error('Activity error:', activityError);
       }
 
-      // TODO: Notifications - disabled temporarily for debugging
-      // Will enable after fixing database schema
+      await createFollowNotification(supabase, user.id, following_id);
     }
 
     return NextResponse.json({
       success: true,
       isFollowing,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error toggling follow:', error);
-    console.error('Error details:', error?.message, error?.details, error?.hint);
+    const message = error instanceof Error ? error.message : undefined;
+    const details =
+      typeof error === 'object' && error !== null && 'details' in error
+        ? (error as { details?: string }).details
+        : undefined;
+    const hint =
+      typeof error === 'object' && error !== null && 'hint' in error
+        ? (error as { hint?: string }).hint
+        : undefined;
+    if (details) {
+      console.error('Error details:', details, hint ?? '');
+    }
     return NextResponse.json(
-      { error: 'Internal server error', details: error?.message },
+      { error: 'Internal server error', details: message },
       { status: 500 }
     );
   }
