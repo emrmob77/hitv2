@@ -131,6 +131,7 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
               username={username}
               userId={profile.id}
               isOwnProfile={isOwnProfile}
+              currentUserId={user?.id}
             />
           </div>
 
