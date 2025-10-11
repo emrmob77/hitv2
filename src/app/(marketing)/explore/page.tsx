@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
-import { Grid3x3, List } from 'lucide-react';
+import { unstable_noStore as noStore } from 'next/cache';
 
 import { ExploreFilters } from '@/components/explore/explore-filters';
 import { SuggestedUsers } from '@/components/explore/suggested-users';
@@ -66,6 +65,7 @@ type TrendingTag = {
 };
 
 type SuggestedUser = {
+  id: string;
   username: string;
   displayName: string | null;
   avatarUrl: string | null;
@@ -73,8 +73,8 @@ type SuggestedUser = {
 };
 
 type ExploreSearchParams = Record<string, string | string[] | undefined>;
-
-const FALLBACK_VIEW = 'list' as const;
+const TIME_PERIOD_OPTIONS = new Set(['all', 'today', 'week', 'month', 'year']);
+const SORT_OPTIONS = new Set(['popular', 'recent', 'liked', 'saved']);
 
 function normaliseSlug(source: string): string {
   return source
@@ -116,12 +116,25 @@ function getTrendLabelForBookmark(createdAt: string): string {
   return `${months} month${months === 1 ? '' : 's'} ago`;
 }
 
-async function getPublicBookmarks(): Promise<ExploreBookmark[]> {
+async function getPublicBookmarks(
+  filters: {
+    category: string;
+    timePeriod: string;
+    sortBy: string;
+  },
+  currentUserId?: string
+): Promise<{
+  bookmarks: ExploreBookmark[];
+  categories: Array<{ slug: string; label: string }>;
+  appliedCategory: string;
+}> {
+  noStore();
+
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
 
     if (!supabase) {
-      return [];
+      return { bookmarks: [], categories: [], appliedCategory: 'all' };
     }
 
     const { data: bookmarks, error } = await supabase
@@ -152,13 +165,83 @@ async function getPublicBookmarks(): Promise<ExploreBookmark[]> {
       )
       .eq('privacy_level', 'public')
       .order('created_at', { ascending: false })
-      .limit(12);
+      .limit(36);
 
-    if (error || !Array.isArray(bookmarks)) {
-      return [];
+    if (error || !Array.isArray(bookmarks) || bookmarks.length === 0) {
+      return { bookmarks: [], categories: [], appliedCategory: 'all' };
     }
 
-    return bookmarks.map((bookmark: RawBookmark) => {
+    const bookmarkIds = bookmarks.map((bookmark: RawBookmark) => bookmark.id);
+    let likedIds = new Set<string>();
+    let savedIds = new Set<string>();
+    const likeCounts = new Map<string, number>();
+    const saveCounts = new Map<string, number>();
+
+    if (bookmarkIds.length > 0) {
+      if (currentUserId) {
+        const [{ data: userLikes }, { data: userSaves }, { data: allLikes }, { data: allSaves }] = await Promise.all([
+          supabase
+            .from('likes')
+            .select('likeable_id')
+            .eq('likeable_type', 'bookmark')
+            .eq('user_id', currentUserId)
+            .in('likeable_id', bookmarkIds),
+          supabase
+            .from('saved_bookmarks')
+            .select('bookmark_id')
+            .eq('user_id', currentUserId)
+            .in('bookmark_id', bookmarkIds),
+          supabase
+            .from('likes')
+            .select('likeable_id')
+            .eq('likeable_type', 'bookmark')
+            .in('likeable_id', bookmarkIds),
+          supabase
+            .from('saved_bookmarks')
+            .select('bookmark_id')
+            .in('bookmark_id', bookmarkIds),
+        ]);
+
+        likedIds = new Set((userLikes ?? []).map((row) => row.likeable_id as string));
+        savedIds = new Set((userSaves ?? []).map((row) => row.bookmark_id as string));
+
+        (allLikes ?? []).forEach((row) => {
+          const id = row.likeable_id as string;
+          likeCounts.set(id, (likeCounts.get(id) ?? 0) + 1);
+        });
+
+        (allSaves ?? []).forEach((row) => {
+          const id = row.bookmark_id as string;
+          saveCounts.set(id, (saveCounts.get(id) ?? 0) + 1);
+        });
+      } else {
+        const [{ data: allLikes }, { data: allSaves }] = await Promise.all([
+          supabase
+            .from('likes')
+            .select('likeable_id')
+            .eq('likeable_type', 'bookmark')
+            .in('likeable_id', bookmarkIds),
+          supabase
+            .from('saved_bookmarks')
+            .select('bookmark_id')
+            .in('bookmark_id', bookmarkIds),
+        ]);
+
+        (allLikes ?? []).forEach((row) => {
+          const id = row.likeable_id as string;
+          likeCounts.set(id, (likeCounts.get(id) ?? 0) + 1);
+        });
+
+        (allSaves ?? []).forEach((row) => {
+          const id = row.bookmark_id as string;
+          saveCounts.set(id, (saveCounts.get(id) ?? 0) + 1);
+        });
+      }
+    }
+
+    const categoryMap = new Map<string, string>();
+
+    const mapped = bookmarks.map((bookmark: RawBookmark) => {
       const generatedSlug = normaliseSlug(bookmark.title);
       const slugCandidate = bookmark.slug && bookmark.slug.trim().length > 0
         ? bookmark.slug
@@ -168,7 +251,13 @@ async function getPublicBookmarks(): Promise<ExploreBookmark[]> {
       const tags = (bookmark.bookmark_tags ?? [])
         .map((bt) => bt?.tags)
         .filter((tag): tag is { name: string; slug: string } => Boolean(tag))
-        .map((tag) => ({ name: tag.name, slug: tag.slug }));
+        .map((tag) => {
+          const slugLower = tag.slug.toLowerCase();
+          if (!categoryMap.has(slugLower)) {
+            categoryMap.set(slugLower, tag.name);
+          }
+          return { name: tag.name, slug: tag.slug };
+        });
 
       return {
         id: bookmark.id,
@@ -177,11 +266,11 @@ async function getPublicBookmarks(): Promise<ExploreBookmark[]> {
         description: bookmark.description,
         imageUrl: bookmark.image_url,
         createdAt: bookmark.created_at,
-        likes: bookmark.like_count ?? 0,
-        saves: bookmark.save_count ?? 0,
+        likes: likeCounts.get(bookmark.id) ?? bookmark.like_count ?? 0,
+        saves: saveCounts.get(bookmark.id) ?? bookmark.save_count ?? 0,
         shares: bookmark.click_count ?? 0,
-        isLiked: false,
-        isSaved: false,
+        isLiked: likedIds.has(bookmark.id),
+        isSaved: savedIds.has(bookmark.id),
         author: {
           username: bookmark.profiles?.username ?? 'unknown',
           displayName: bookmark.profiles?.display_name ?? null,
@@ -190,13 +279,79 @@ async function getPublicBookmarks(): Promise<ExploreBookmark[]> {
         tags,
       } satisfies ExploreBookmark;
     });
+
+    const normalizedCategory = filters.category.toLowerCase();
+    const effectiveCategory = categoryMap.has(normalizedCategory) ? normalizedCategory : 'all';
+
+    const filtered = mapped.filter((bookmark) => {
+      const matchesCategory =
+        effectiveCategory === 'all' ||
+        bookmark.tags.some((tag) => {
+          const slugLower = tag.slug.toLowerCase();
+          const nameLower = tag.name.toLowerCase();
+          return slugLower === effectiveCategory || nameLower === effectiveCategory;
+        });
+
+      const matchesTime = (() => {
+        if (filters.timePeriod === 'all') {
+          return true;
+        }
+
+        const createdDate = new Date(bookmark.createdAt);
+        const diffMs = Date.now() - createdDate.getTime();
+        const diffHours = diffMs / 36e5;
+
+        switch (filters.timePeriod) {
+          case 'today':
+            return diffHours <= 24;
+          case 'week':
+            return diffHours <= 24 * 7;
+          case 'month':
+            return diffHours <= 24 * 30;
+          case 'year':
+            return diffHours <= 24 * 365;
+          default:
+            return true;
+        }
+      })();
+
+      return matchesCategory && matchesTime;
+    });
+
+    const sorted = filtered.sort((a, b) => {
+      const aTotal = a.likes + a.saves + a.shares;
+      const bTotal = b.likes + b.saves + b.shares;
+
+      switch (filters.sortBy) {
+        case 'recent':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'liked':
+          return b.likes - a.likes || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'saved':
+          return b.saves - a.saves || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'popular':
+        default:
+          return bTotal - aTotal || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
+
+    const categories = Array.from(categoryMap.entries())
+      .map(([slug, label]) => ({ slug, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    return {
+      bookmarks: sorted.slice(0, 24),
+      categories,
+      appliedCategory: effectiveCategory,
+    };
   } catch (error) {
     console.error('Error fetching bookmarks:', error);
-    return [];
+    return { bookmarks: [], categories: [], appliedCategory: 'all' };
   }
 }
 
 async function getTrendingTags(): Promise<TrendingTag[]> {
+  noStore();
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
 
@@ -225,7 +380,8 @@ async function getTrendingTags(): Promise<TrendingTag[]> {
   }
 }
 
-async function getSuggestedUsers(): Promise<SuggestedUser[]> {
+async function getSuggestedUsers(currentUserId?: string): Promise<SuggestedUser[]> {
+  noStore();
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
 
@@ -235,19 +391,43 @@ async function getSuggestedUsers(): Promise<SuggestedUser[]> {
 
     const { data: users, error } = await supabase
       .from('profiles')
-      .select('username, display_name, avatar_url, bio, bookmark_count')
+      .select('id, username, display_name, avatar_url, bio, bookmark_count')
       .order('bookmark_count', { ascending: false })
-      .limit(3);
+      .limit(10);
 
     if (error || !Array.isArray(users)) {
       return [];
     }
 
-    return users.map((user) => ({
+    const excludedIds = new Set<string>();
+
+    if (currentUserId) {
+      excludedIds.add(currentUserId);
+
+      const { data: following } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', currentUserId);
+
+      (following ?? []).forEach((row) => {
+        const followingId = row?.following_id as string | undefined;
+        if (followingId) {
+          excludedIds.add(followingId);
+        }
+      });
+    }
+
+    const filtered = users
+      .filter((user) => user?.id && !excludedIds.has(user.id))
+      .slice(0, 3);
+
+    return filtered.map((user) => ({
+      id: user.id,
       username: user.username,
       displayName: user.display_name ?? null,
       avatarUrl: user.avatar_url ?? null,
       bio: user.bio ?? null,
+      isFollowing: false,
     }));
   } catch (error) {
     console.error('Error fetching suggested users:', error);
@@ -255,27 +435,77 @@ async function getSuggestedUsers(): Promise<SuggestedUser[]> {
   }
 }
 
-export default async function ExplorePage({
-  searchParams,
-}: {
-  searchParams?: Promise<ExploreSearchParams | undefined>;
-}) {
-  const resolvedSearchParams = (await searchParams) ?? {};
-  const viewParam = resolvedSearchParams.view;
-  const viewValue = Array.isArray(viewParam) ? viewParam[0] : viewParam;
-  const view = viewValue === 'grid' ? 'grid' : FALLBACK_VIEW;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-  const [bookmarks, trendingTags, suggestedUsers] = await Promise.all([
-    getPublicBookmarks(),
+export default async function ExplorePage({
+  searchParams = {},
+}: {
+  searchParams?: ExploreSearchParams;
+}) {
+
+  const categoryParam = Array.isArray(searchParams.category)
+    ? searchParams.category[0]
+    : searchParams.category;
+  const timePeriodParam = Array.isArray(searchParams.time)
+    ? searchParams.time[0]
+    : searchParams.time;
+  const sortParam = Array.isArray(searchParams.sort)
+    ? searchParams.sort[0]
+    : searchParams.sort;
+
+  const categoryInput = categoryParam?.toLowerCase() ?? 'all';
+  const timePeriodInput = timePeriodParam?.toLowerCase() ?? 'all';
+  const sortInput = sortParam?.toLowerCase() ?? 'popular';
+
+  const timePeriod = TIME_PERIOD_OPTIONS.has(timePeriodInput) ? timePeriodInput : 'all';
+  const sortBy = SORT_OPTIONS.has(sortInput) ? sortInput : 'popular';
+
+  const supabaseForUser = await createSupabaseServerClient({ strict: false });
+  let currentUserId: string | undefined;
+
+  if (supabaseForUser) {
+    const {
+      data: { user },
+    } = await supabaseForUser.auth.getUser();
+    currentUserId = user?.id ?? undefined;
+  }
+
+  const [{ bookmarks, categories, appliedCategory }, trendingTags, suggestedUsers] = await Promise.all([
+    getPublicBookmarks(
+      { category: categoryInput, timePeriod, sortBy },
+      currentUserId
+    ),
     getTrendingTags(),
-    getSuggestedUsers(),
+    getSuggestedUsers(currentUserId),
   ]);
+
+  const categoryOptionMap = new Map<string, string>();
+  categories.forEach((category) => {
+    categoryOptionMap.set(category.slug.toLowerCase(), category.label);
+  });
+  trendingTags.forEach((tag) => {
+    const slugLower = tag.slug.toLowerCase();
+    if (!categoryOptionMap.has(slugLower)) {
+      categoryOptionMap.set(slugLower, tag.name);
+    }
+  });
+
+  const availableCategories = [
+    { slug: 'all', label: 'All Categories' },
+    ...Array.from(categoryOptionMap.entries())
+      .map(([slug, label]) => ({ slug, label }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+  ];
+
+  const activeCategory = availableCategories.some((option) => option.slug === appliedCategory)
+    ? appliedCategory
+    : 'all';
 
   return (
     <main className="bg-neutral-50">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex gap-8">
-          {/* Main Content */}
           <section className="flex-1">
             <div className="mb-6 flex items-center justify-between">
               <div>
@@ -286,79 +516,36 @@ export default async function ExplorePage({
                   Discover popular content curated by the community
                 </p>
               </div>
-              {/* View Toggle */}
-              <div className="flex items-center gap-1 rounded-full border border-neutral-200 bg-white p-1">
-                <Link
-                  href="/explore"
-                  scroll={false}
-                  className={`flex items-center justify-center rounded-full px-3 py-2 transition ${
-                    view === 'list'
-                      ? 'bg-neutral-900 text-white shadow-sm'
-                      : 'text-neutral-500 hover:text-neutral-800'
-                  }`}
-                >
-                  <List className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/explore?view=grid"
-                  scroll={false}
-                  className={`flex items-center justify-center rounded-full px-3 py-2 transition ${
-                    view === 'grid'
-                      ? 'bg-neutral-900 text-white shadow-sm'
-                      : 'text-neutral-500 hover:text-neutral-800'
-                  }`}
-                >
-                  <Grid3x3 className="h-4 w-4" />
-                </Link>
-              </div>
             </div>
 
             {bookmarks.length === 0 ? (
               <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
                 <p className="text-neutral-600">No bookmarks found</p>
               </div>
-            ) : view === 'list' ? (
-              <div className="space-y-4">
-                {bookmarks.map((bookmark, index) => {
-                  const detailUrl = `/bookmark/${bookmark.id}/${bookmark.slug}`;
-                  const visitUrl = `/out/bookmark/${bookmark.id}`;
-
-                  return (
-                    <TrendingBookmarkCard
-                      key={bookmark.id}
-                      rank={index + 1}
-                      trendLabel={getTrendLabelForBookmark(bookmark.createdAt)}
-                      bookmark={bookmark}
-                      detailUrl={detailUrl}
-                      visitUrl={visitUrl}
-                    />
-                  );
-                })}
-              </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {bookmarks.map((bookmark, index) => {
-                  const detailUrl = `/bookmark/${bookmark.id}/${bookmark.slug}`;
-                  const visitUrl = `/out/bookmark/${bookmark.id}`;
-
-                  return (
-                    <TrendingBookmarkCard
-                      key={bookmark.id}
-                      rank={index + 1}
-                      trendLabel={getTrendLabelForBookmark(bookmark.createdAt)}
-                      bookmark={bookmark}
-                      detailUrl={detailUrl}
-                      visitUrl={visitUrl}
-                    />
-                  );
-                })}
+              <div className="space-y-4">
+                {bookmarks.map((bookmark) => (
+                  <TrendingBookmarkCard
+                    key={bookmark.id}
+                    bookmark={bookmark}
+                    detailUrl={`/bookmark/${bookmark.id}/${bookmark.slug}`}
+                    visitUrl={`/out/bookmark/${bookmark.id}`}
+                    currentUserId={currentUserId}
+                    trendLabel={getTrendLabelForBookmark(bookmark.createdAt)}
+                    layout="list"
+                  />
+                ))}
               </div>
             )}
           </section>
 
-          {/* Sidebar - Sağda */}
           <aside className="w-80 flex-shrink-0 space-y-6">
-            <ExploreFilters />
+            <ExploreFilters
+              categories={availableCategories}
+              initialCategory={activeCategory}
+              initialTimePeriod={timePeriod}
+              initialSortBy={sortBy}
+            />
             <TrendingTags tags={trendingTags} />
             <SuggestedUsers users={suggestedUsers} />
           </aside>

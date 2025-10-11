@@ -1,15 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bookmark as BookmarkIcon, Heart, Share2, ExternalLink } from "lucide-react";
+import { Bookmark as BookmarkIcon, ExternalLink, Heart, Share2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useToast } from "@/hooks/use-toast";
 
 interface TrendingBookmarkCardProps {
-  rank?: number;
-  trendLabel?: string;
   bookmark: {
     id: string;
     title: string;
@@ -34,18 +32,22 @@ interface TrendingBookmarkCardProps {
   detailUrl: string;
   visitUrl: string;
   currentUserId?: string;
+  rank?: number;
+  trendLabel?: string;
+  layout?: "list" | "grid";
 }
 
 export function TrendingBookmarkCard({
-  rank,
-  trendLabel,
   bookmark,
   detailUrl,
   visitUrl,
   currentUserId,
+  rank,
+  trendLabel,
+  layout = "list",
 }: TrendingBookmarkCardProps) {
-  const { toast } = useToast();
   const router = useRouter();
+  const { toast } = useToast();
   const [liked, setLiked] = useState(bookmark.isLiked);
   const [likes, setLikes] = useState(bookmark.likes);
   const [saved, setSaved] = useState(bookmark.isSaved);
@@ -55,26 +57,41 @@ export function TrendingBookmarkCard({
   const [isSaveLoading, setIsSaveLoading] = useState(false);
   const [isShareLoading, setIsShareLoading] = useState(false);
 
-  const ensureAuthenticated = useCallback(
-    () => {
-      if (currentUserId) {
-        return true;
-      }
+  const formatNumber = useCallback((value: number) => new Intl.NumberFormat("en-US").format(value), []);
 
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to interact with bookmarks.",
-        variant: "destructive",
-      });
-      return false;
-    },
-    [currentUserId, toast]
-  );
+  const linkHref = useMemo(() => {
+    if (detailUrl.startsWith("http")) {
+      const url = new URL(detailUrl);
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
 
-  const formatNumber = useCallback(
-    (value: number) => new Intl.NumberFormat("en-US").format(value),
-    []
-  );
+    return detailUrl;
+  }, [detailUrl]);
+
+  const shareTarget = useMemo(() => {
+    if (detailUrl.startsWith("http")) {
+      return detailUrl;
+    }
+
+    if (typeof window === "undefined") {
+      return detailUrl;
+    }
+
+    return `${window.location.origin}${detailUrl}`;
+  }, [detailUrl]);
+
+  const ensureAuthenticated = useCallback(() => {
+    if (currentUserId) {
+      return true;
+    }
+
+    toast({
+      title: "Authentication required",
+      description: "Please sign in to interact with bookmarks.",
+      variant: "destructive",
+    });
+    return false;
+  }, [currentUserId, toast]);
 
   const handleLike = async () => {
     if (!ensureAuthenticated()) {
@@ -166,7 +183,7 @@ export function TrendingBookmarkCard({
           setSaves(Math.max(0, data.saveCount));
         }
         toast({
-          title: data.isSaved ? "Saved!" : "Removed",
+          title: data.isSaved ? "Saved" : "Removed",
           description: data.isSaved
             ? "Bookmark added to your saved items."
             : "Bookmark removed from your saved items.",
@@ -222,9 +239,7 @@ export function TrendingBookmarkCard({
         })
       );
     }
-    void recordShare().finally(() => {
-      router.refresh();
-    });
+    void recordShare().finally(() => router.refresh());
   }, [bookmark.id, recordShare, router]);
 
   const handleShare = async () => {
@@ -240,7 +255,7 @@ export function TrendingBookmarkCard({
           await navigator.share({
             title: bookmark.title,
             text: bookmark.description ?? bookmark.title,
-            url: detailUrl,
+            url: shareTarget,
           });
           incrementShares();
         } catch (error) {
@@ -256,7 +271,7 @@ export function TrendingBookmarkCard({
           return;
         }
       } else {
-        await navigator.clipboard.writeText(detailUrl);
+        await navigator.clipboard.writeText(shareTarget);
         toast({
           title: "Link copied",
           description: "Bookmark link copied to clipboard.",
@@ -283,11 +298,215 @@ export function TrendingBookmarkCard({
     setShares(bookmark.shares);
   }, [bookmark]);
 
+  const TagsSection = () => (
+    <div className="flex flex-wrap gap-1">
+      {bookmark.tags.slice(0, 3).map((tag) => (
+        <Link
+          key={tag.slug}
+          href={`/tag/${tag.slug}`}
+          className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+        >
+          #{tag.name}
+        </Link>
+      ))}
+    </div>
+  );
+
+  const ActionButtons = () => (
+    <div className="flex items-center gap-3 text-neutral-500">
+      <button
+        type="button"
+        onClick={handleLike}
+        disabled={isLikeLoading}
+        className={`flex items-center gap-1 rounded-full px-3 py-1 transition ${
+          liked ? "bg-red-50 text-red-600" : "hover:bg-neutral-100"
+        }`}
+        aria-pressed={liked}
+      >
+        <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} />
+        <span>{formatNumber(likes)}</span>
+      </button>
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={isSaveLoading}
+        className={`flex items-center gap-1 rounded-full px-3 py-1 transition ${
+          saved ? "bg-blue-50 text-blue-600" : "hover:bg-neutral-100"
+        }`}
+        aria-pressed={saved}
+      >
+        <BookmarkIcon className="h-4 w-4" fill={saved ? "currentColor" : "none"} />
+        <span>{formatNumber(saves)}</span>
+      </button>
+      <button
+        type="button"
+        onClick={handleShare}
+        disabled={isShareLoading}
+        className="flex items-center gap-1 rounded-full px-3 py-1 transition hover:bg-neutral-100"
+      >
+        <Share2 className="h-4 w-4" />
+        <span>{formatNumber(shares)}</span>
+      </button>
+      <Link
+        href={visitUrl}
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+        className="flex items-center gap-1 rounded-full px-3 py-1 text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900"
+      >
+        <ExternalLink className="h-4 w-4" />
+        <span>Visit</span>
+      </Link>
+    </div>
+  );
+
+  const HeaderBadge = () =>
+    typeof rank === "number" || trendLabel ? (
+      <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
+        {typeof rank === "number" && (
+          <span className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-2 py-1 text-[11px] font-semibold text-white">
+            #{rank}
+          </span>
+        )}
+        {trendLabel && <span className="text-neutral-600">{trendLabel}</span>}
+      </div>
+    ) : null;
+
+  if (layout === "grid") {
+    return (
+      <div className="flex h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-200 sm:aspect-video">
+          {bookmark.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={bookmark.imageUrl}
+              alt={bookmark.title}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xs text-neutral-500">
+              Preview
+            </div>
+          )}
+          {(typeof rank === "number" || trendLabel) && (
+            <div className="absolute left-3 top-3 flex flex-col gap-1">
+              {typeof rank === "number" && (
+                <span className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-2 py-1 text-[11px] font-semibold text-white">
+                  #{rank}
+                </span>
+              )}
+              {trendLabel && (
+                <span className="inline-flex rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-neutral-700 shadow-sm">
+                  {trendLabel}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex flex-1 flex-col gap-3 p-4">
+          <Link
+            href={linkHref}
+            className="block text-base font-semibold leading-tight text-neutral-900 transition hover:text-neutral-700 line-clamp-2"
+          >
+            {bookmark.title}
+          </Link>
+          {bookmark.description && (
+            <p className="line-clamp-2 text-sm text-neutral-600">
+              {bookmark.description}
+            </p>
+          )}
+          {bookmark.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {bookmark.tags.slice(0, 2).map((tag) => (
+                <Link
+                  key={tag.slug}
+                  href={`/tag/${tag.slug}`}
+                  className="rounded bg-neutral-100 px-2 py-1 text-[10px] uppercase tracking-wide text-neutral-600"
+                >
+                  #{tag.name}
+                </Link>
+              ))}
+            </div>
+          )}
+          <div className="mt-auto flex items-center justify-between gap-3 text-sm text-neutral-600">
+            <div className="flex items-center gap-2">
+              {bookmark.author.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={bookmark.author.avatarUrl}
+                  alt={bookmark.author.displayName ?? bookmark.author.username}
+                  className="h-7 w-7 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
+                  {(bookmark.author.displayName ?? bookmark.author.username).charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="flex flex-col leading-tight">
+                <Link
+                  href={`/${bookmark.author.username}`}
+                  className="font-medium text-neutral-800 transition hover:text-neutral-900"
+                >
+                  {bookmark.author.displayName ?? bookmark.author.username}
+                </Link>
+                <span className="text-xs text-neutral-500">@{bookmark.author.username}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-neutral-500 sm:text-sm">
+              <button
+                type="button"
+                onClick={handleLike}
+                disabled={isLikeLoading}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition ${
+                  liked ? "bg-red-50 text-red-600" : "hover:bg-neutral-100"
+                }`}
+                aria-pressed={liked}
+              >
+                <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} />
+                <span>{formatNumber(likes)}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isSaveLoading}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition ${
+                  saved ? "bg-blue-50 text-blue-600" : "hover:bg-neutral-100"
+                }`}
+                aria-pressed={saved}
+              >
+                <BookmarkIcon className="h-4 w-4" fill={saved ? "currentColor" : "none"} />
+                <span>{formatNumber(saves)}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleShare}
+                disabled={isShareLoading}
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition hover:bg-neutral-100"
+              >
+                <Share2 className="h-4 w-4" />
+                <span>{formatNumber(shares)}</span>
+              </button>
+              <Link
+                href={visitUrl}
+                target="_blank"
+                rel="nofollow noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>Visit</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-6 transition-shadow hover:shadow-lg">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="flex-shrink-0">
           {bookmark.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={bookmark.imageUrl}
               alt={bookmark.title}
@@ -300,18 +519,9 @@ export function TrendingBookmarkCard({
           )}
         </div>
         <div className="flex-1">
-          {(typeof rank === "number" || trendLabel) && (
-            <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
-              {typeof rank === "number" && (
-                <span className="rounded bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">
-                  #{rank}
-                </span>
-              )}
-              {trendLabel && <span className="text-neutral-500">{trendLabel}</span>}
-            </div>
-          )}
+          <HeaderBadge />
           <Link
-            href={`/bookmark/${bookmark.id}/${bookmark.slug}`}
+            href={linkHref}
             className="mb-2 block text-lg font-semibold text-neutral-900 hover:text-neutral-700"
           >
             {bookmark.title}
@@ -323,6 +533,7 @@ export function TrendingBookmarkCard({
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2 text-neutral-600">
                 {bookmark.author.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={bookmark.author.avatarUrl}
                     alt={bookmark.author.displayName ?? bookmark.author.username}
@@ -340,62 +551,9 @@ export function TrendingBookmarkCard({
                   {bookmark.author.displayName ?? bookmark.author.username}
                 </Link>
               </div>
-              <div className="flex flex-wrap gap-1">
-                {bookmark.tags.slice(0, 3).map((tag) => (
-                  <Link
-                    key={tag.slug}
-                    href={`/tag/${tag.slug}`}
-                    className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
-                  >
-                    #{tag.name}
-                  </Link>
-                ))}
-              </div>
+              <TagsSection />
             </div>
-            <div className="flex flex-shrink-0 items-center gap-3 text-neutral-500">
-              <button
-                type="button"
-                onClick={handleLike}
-                disabled={isLikeLoading}
-                className={`flex items-center gap-1 rounded-full px-3 py-1 transition ${
-                  liked ? "bg-red-50 text-red-600" : "hover:bg-neutral-100"
-                }`}
-                aria-pressed={liked}
-              >
-                <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} />
-                <span>{formatNumber(likes)}</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isSaveLoading}
-                className={`flex items-center gap-1 rounded-full px-3 py-1 transition ${
-                  saved ? "bg-blue-50 text-blue-600" : "hover:bg-neutral-100"
-                }`}
-                aria-pressed={saved}
-              >
-                <BookmarkIcon className="h-4 w-4" fill={saved ? "currentColor" : "none"} />
-                <span>{formatNumber(saves)}</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleShare}
-                disabled={isShareLoading}
-                className="flex items-center gap-1 rounded-full px-3 py-1 transition hover:bg-neutral-100"
-              >
-                <Share2 className="h-4 w-4" />
-                <span>{formatNumber(shares)}</span>
-              </button>
-              <Link
-                href={visitUrl}
-                target="_blank"
-                rel="nofollow noopener noreferrer"
-                className="flex items-center gap-1 rounded-full px-3 py-1 text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>Visit</span>
-              </Link>
-            </div>
+            <ActionButtons />
           </div>
         </div>
       </div>
