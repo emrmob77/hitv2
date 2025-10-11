@@ -32,6 +32,7 @@ interface BookmarkDetailPreviewProps {
   currentUserId?: string;
   authorId: string;
   saveCount: number;
+  shareCount: number;
 }
 
 export function BookmarkDetailPreview({
@@ -51,11 +52,13 @@ export function BookmarkDetailPreview({
   currentUserId,
   authorId,
   saveCount,
+  shareCount,
 }: BookmarkDetailPreviewProps) {
   const [liked, setLiked] = useState(isLiked);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
   const [likes, setLikes] = useState(likeCount);
   const [saves, setSaves] = useState(saveCount);
+  const [shares, setShares] = useState(shareCount);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeUserId, setActiveUserId] = useState(currentUserId);
@@ -77,6 +80,20 @@ export function BookmarkDetailPreview({
   useEffect(() => {
     setSaves(saveCount);
   }, [saveCount]);
+
+  useEffect(() => {
+    setShares(shareCount);
+  }, [shareCount]);
+
+  const recordShare = useCallback(async () => {
+    try {
+      await fetch(`/api/bookmarks/${id}/visit`, {
+        method: 'POST',
+      });
+    } catch (error) {
+      console.error('Error recording share action:', error);
+    }
+  }, [id]);
 
   useEffect(() => {
     if (currentUserId) {
@@ -366,6 +383,17 @@ export function BookmarkDetailPreview({
 
   const handleShare = async () => {
     const shareUrl = window.location.href;
+    const incrementShares = () => {
+      setShares((prev) => prev + 1);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('bookmark-share', {
+            detail: { bookmarkId: id },
+          })
+        );
+      }
+      void recordShare();
+    };
 
     if (navigator.share) {
       try {
@@ -374,6 +402,7 @@ export function BookmarkDetailPreview({
           text: description || title,
           url: shareUrl,
         });
+        incrementShares();
       } catch (error) {
         // User cancelled share or error occurred
         console.log('Share cancelled or failed:', error);
@@ -386,6 +415,7 @@ export function BookmarkDetailPreview({
           title: 'Link copied!',
           description: 'Bookmark link copied to clipboard',
         });
+        incrementShares();
       } catch (error) {
         toast({
           title: 'Error',
@@ -536,10 +566,11 @@ export function BookmarkDetailPreview({
             </button>
             <button
               onClick={handleShare}
+              aria-label="Share bookmark"
               className="flex items-center space-x-2 rounded-lg bg-neutral-100 px-4 py-2 hover:bg-neutral-200 transition-all"
             >
               <Share2 className="h-4 w-4 text-neutral-600" />
-              <span className="text-sm text-neutral-700">Share</span>
+              <span className="text-sm font-medium text-neutral-900">{shares}</span>
             </button>
           </div>
           <Link

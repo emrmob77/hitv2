@@ -325,6 +325,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
   const bookmarkPageUrl = `${baseUrl}/bookmark/${bookmark.id}/${correctSlug}`;
+  const shareCount = bookmark.click_count ?? 0;
 
   let relatedBookmarks: Array<{
     id: string;
@@ -399,7 +400,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
       likes: realLikeCount || 0,
       saves: saveCount || 0,
       comments: realCommentCount || 0,
-      shares: 0, // Not tracked yet
+      shares: shareCount,
     },
     ownerCollections: ownerCollections,
     ownerUsername: bookmark.profiles?.username || null,
@@ -461,6 +462,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
                 currentUserId={user?.id}
                 authorId={bookmark.user_id}
                 saveCount={saveCount || 0}
+                shareCount={shareCount}
               />
 
               {/* Comments */}

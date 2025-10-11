@@ -83,6 +83,7 @@ export function BookmarkDetailSidebar({
     !hasPrefetchedCollections && Boolean(currentUserId)
   );
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [shareCount, setShareCount] = useState(stats.shares);
 
   useEffect(() => {
     setOwnerCollectionList(ownerCollections);
@@ -95,6 +96,29 @@ export function BookmarkDetailSidebar({
   useEffect(() => {
     setCollectionMembership(new Set(viewerMembershipIds));
   }, [viewerMembershipIds]);
+
+  useEffect(() => {
+    setShareCount(stats.shares);
+  }, [stats.shares]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const handleShareEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<{ bookmarkId: string }>;
+      if (customEvent.detail?.bookmarkId === bookmarkId) {
+        setShareCount((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener("bookmark-share", handleShareEvent);
+
+    return () => {
+      window.removeEventListener("bookmark-share", handleShareEvent);
+    };
+  }, [bookmarkId]);
 
   useEffect(() => {
     if (!currentUserId || hasPrefetchedCollections) {
@@ -360,7 +384,7 @@ export function BookmarkDetailSidebar({
               <Share2 className="mr-2 h-4 w-4" />
               Shares
             </span>
-            <span className="text-sm font-semibold text-neutral-900">{stats.shares}</span>
+            <span className="text-sm font-semibold text-neutral-900">{shareCount}</span>
           </div>
         </div>
       </div>
