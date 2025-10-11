@@ -8,8 +8,8 @@ import { Bookmark as BookmarkIcon, Heart, Share2, ExternalLink } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 
 interface TrendingBookmarkCardProps {
-  rank: number;
-  trendLabel: string;
+  rank?: number;
+  trendLabel?: string;
   bookmark: {
     id: string;
     title: string;
@@ -300,10 +300,16 @@ export function TrendingBookmarkCard({
           )}
         </div>
         <div className="flex-1">
-          <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
-            <span className="rounded bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">#{rank}</span>
-            <span className="text-neutral-500">{trendLabel}</span>
-          </div>
+          {(typeof rank === "number" || trendLabel) && (
+            <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
+              {typeof rank === "number" && (
+                <span className="rounded bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">
+                  #{rank}
+                </span>
+              )}
+              {trendLabel && <span className="text-neutral-500">{trendLabel}</span>}
+            </div>
+          )}
           <Link
             href={`/bookmark/${bookmark.id}/${bookmark.slug}`}
             className="mb-2 block text-lg font-semibold text-neutral-900 hover:text-neutral-700"

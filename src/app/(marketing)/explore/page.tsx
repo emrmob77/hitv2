@@ -2,12 +2,11 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Grid3x3, List } from 'lucide-react';
 
-import { ExploreBookmarkCard } from '@/components/explore/explore-bookmark-card';
-import { ExploreBookmarkListItem } from '@/components/explore/explore-bookmark-list-item';
 import { ExploreFilters } from '@/components/explore/explore-filters';
 import { SuggestedUsers } from '@/components/explore/suggested-users';
 import { TrendingTags } from '@/components/explore/trending-tags';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { TrendingBookmarkCard } from '@/components/trending/trending-bookmark-card';
 
 export const metadata: Metadata = {
   title: 'Explore Bookmarks',
@@ -21,6 +20,9 @@ type RawBookmark = {
   description: string | null;
   image_url: string | null;
   created_at: string;
+  like_count: number | null;
+  save_count: number | null;
+  click_count: number | null;
   profiles: {
     username: string;
     display_name: string | null;
@@ -40,6 +42,12 @@ type ExploreBookmark = {
   slug: string;
   description: string | null;
   imageUrl: string | null;
+  createdAt: string;
+  likes: number;
+  saves: number;
+  shares: number;
+  isLiked: boolean;
+  isSaved: boolean;
   author: {
     username: string;
     displayName: string | null;
@@ -76,6 +84,38 @@ function normaliseSlug(source: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
+function getTrendLabelForBookmark(createdAt: string): string {
+  const createdDate = new Date(createdAt);
+  const diffMs = Date.now() - createdDate.getTime();
+  const diffHours = Math.floor(diffMs / 36e5);
+
+  if (diffHours < 1) {
+    return 'Published within the last hour';
+  }
+
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) {
+    return 'Published yesterday';
+  }
+
+  if (diffDays < 7) {
+    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+  }
+
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks < 4) {
+    return `${diffWeeks} week${diffWeeks === 1 ? '' : 's'} ago`;
+  }
+
+  const diffMonths = Math.floor(diffDays / 30);
+  const months = diffMonths || 1;
+  return `${months} month${months === 1 ? '' : 's'} ago`;
+}
+
 async function getPublicBookmarks(): Promise<ExploreBookmark[]> {
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
@@ -94,6 +134,9 @@ async function getPublicBookmarks(): Promise<ExploreBookmark[]> {
         description,
         image_url,
         created_at,
+        like_count,
+        save_count,
+        click_count,
         profiles (
           username,
           display_name,
@@ -133,6 +176,12 @@ async function getPublicBookmarks(): Promise<ExploreBookmark[]> {
         slug,
         description: bookmark.description,
         imageUrl: bookmark.image_url,
+        createdAt: bookmark.created_at,
+        likes: bookmark.like_count ?? 0,
+        saves: bookmark.save_count ?? 0,
+        shares: bookmark.click_count ?? 0,
+        isLiked: false,
+        isSaved: false,
         author: {
           username: bookmark.profiles?.username ?? 'unknown',
           displayName: bookmark.profiles?.display_name ?? null,
@@ -270,39 +319,39 @@ export default async function ExplorePage({
               </div>
             ) : view === 'list' ? (
               <div className="space-y-4">
-                {bookmarks.map((bookmark) => (
-                  <ExploreBookmarkListItem
-                    key={bookmark.id}
-                    id={bookmark.id}
-                    title={bookmark.title}
-                    slug={bookmark.slug}
-                    description={bookmark.description}
-                    imageUrl={bookmark.imageUrl}
-                    author={bookmark.author}
-                    tags={bookmark.tags}
-                    likes={24}
-                    isLiked={false}
-                    isBookmarked={false}
-                  />
-                ))}
+                {bookmarks.map((bookmark, index) => {
+                  const detailUrl = `/bookmark/${bookmark.id}/${bookmark.slug}`;
+                  const visitUrl = `/out/bookmark/${bookmark.id}`;
+
+                  return (
+                    <TrendingBookmarkCard
+                      key={bookmark.id}
+                      rank={index + 1}
+                      trendLabel={getTrendLabelForBookmark(bookmark.createdAt)}
+                      bookmark={bookmark}
+                      detailUrl={detailUrl}
+                      visitUrl={visitUrl}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {bookmarks.map((bookmark) => (
-                  <ExploreBookmarkCard
-                    key={bookmark.id}
-                    id={bookmark.id}
-                    title={bookmark.title}
-                    slug={bookmark.slug}
-                    description={bookmark.description}
-                    imageUrl={bookmark.imageUrl}
-                    author={bookmark.author}
-                    tags={bookmark.tags}
-                    likes={24}
-                    isLiked={false}
-                    isBookmarked={false}
-                  />
-                ))}
+                {bookmarks.map((bookmark, index) => {
+                  const detailUrl = `/bookmark/${bookmark.id}/${bookmark.slug}`;
+                  const visitUrl = `/out/bookmark/${bookmark.id}`;
+
+                  return (
+                    <TrendingBookmarkCard
+                      key={bookmark.id}
+                      rank={index + 1}
+                      trendLabel={getTrendLabelForBookmark(bookmark.createdAt)}
+                      bookmark={bookmark}
+                      detailUrl={detailUrl}
+                      visitUrl={visitUrl}
+                    />
+                  );
+                })}
               </div>
             )}
           </section>
