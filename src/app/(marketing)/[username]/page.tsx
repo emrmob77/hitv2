@@ -93,8 +93,14 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
     .select('*', { count: 'exact', head: true })
     .eq('follower_id', profile.id);
 
+  const { count: premiumPostCount } = await supabase
+    .from('exclusive_posts')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', profile.id);
+
   // Check if current user follows this profile
   let isFollowing = false;
+  let isSubscribed = false;
   if (user) {
     const { data: followData } = await supabase
       .from('follows')
@@ -103,13 +109,31 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
       .eq('following_id', profile.id)
       .single();
     isFollowing = !!followData;
+
+    const { data: subscriptionData } = await supabase
+      .from('subscriptions_user')
+      .select('status')
+      .eq('subscriber_id', user.id)
+      .eq('creator_id', profile.id)
+      .maybeSingle();
+
+    isSubscribed = subscriptionData?.status === 'active';
   }
+
+  const { count: subscriberCount } = await supabase
+    .from('subscriptions_user')
+    .select('*', { count: 'exact', head: true })
+    .eq('creator_id', profile.id)
+    .eq('status', 'active');
 
   const stats = {
     bookmarks: bookmarkCount || 0,
     collections: collectionCount || 0,
     followers: followerCount || 0,
     following: followingCount || 0,
+    likes: profile.total_likes_received || 0,
+    subscribers: subscriberCount || 0,
+    premiumPosts: premiumPostCount || 0,
   };
 
   const isOwnProfile = user?.id === profile.id;
@@ -121,6 +145,7 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
           profile={profile}
           stats={stats}
           isFollowing={isFollowing}
+          isSubscribed={isSubscribed}
           isOwnProfile={isOwnProfile}
           currentUserId={user?.id}
         />
@@ -136,7 +161,13 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
           </div>
 
           <div className="lg:col-span-1">
-            <UserProfileSidebar profile={profile} stats={stats} />
+            <UserProfileSidebar
+              profile={profile}
+              stats={stats}
+              isOwnProfile={isOwnProfile}
+              isSubscribed={isSubscribed}
+              currentUserId={user?.id}
+            />
           </div>
         </div>
       </div>

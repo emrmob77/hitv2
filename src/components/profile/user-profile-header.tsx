@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Link as LinkIcon, Calendar, UserPlus, Share2, MoreHorizontal, Settings } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Calendar, Share2, MoreHorizontal, Settings } from 'lucide-react';
 import { FollowButton } from '@/components/profile/follow-button';
+import { SubscriptionButton } from '@/components/profile/subscription-button';
 import { format } from 'date-fns';
 
 interface UserProfileHeaderProps {
@@ -16,8 +16,12 @@ interface UserProfileHeaderProps {
     collections: number;
     followers: number;
     following: number;
+    likes: number;
+    subscribers: number;
+    premiumPosts: number;
   };
   isFollowing: boolean;
+  isSubscribed: boolean;
   isOwnProfile: boolean;
   currentUserId?: string;
 }
@@ -26,10 +30,13 @@ export function UserProfileHeader({
   profile,
   stats,
   isFollowing,
+  isSubscribed,
   isOwnProfile,
   currentUserId,
 }: UserProfileHeaderProps) {
   const displayName = profile.display_name || profile.username;
+  const subscriptionTier = profile.subscription_tier || profile.plan_type || 'free';
+  const isPremium = (typeof profile.is_premium === 'boolean' ? profile.is_premium : undefined) ?? subscriptionTier !== 'free';
   const joinedDate = profile.created_at ? format(new Date(profile.created_at), 'MMMM yyyy') : '';
 
   const handleShare = async () => {
@@ -65,10 +72,11 @@ export function UserProfileHeader({
           <div>
             <div className="mb-2 flex items-center space-x-3">
               <h1 className="text-3xl font-semibold text-neutral-900">{displayName}</h1>
-              {profile.plan_type !== 'free' && (
+              {isPremium && (
                 <Badge variant="secondary">
-                  {profile.plan_type === 'pro' && 'Pro Member'}
-                  {profile.plan_type === 'enterprise' && 'Enterprise'}
+                  {subscriptionTier === 'pro' && 'Pro Member'}
+                  {subscriptionTier === 'enterprise' && 'Enterprise'}
+                  {subscriptionTier !== 'pro' && subscriptionTier !== 'enterprise' && 'Premium'}
                 </Badge>
               )}
             </div>
@@ -109,7 +117,11 @@ export function UserProfileHeader({
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {!isOwnProfile && currentUserId && isPremium && (
+            <SubscriptionButton creatorId={profile.id} isSubscribed={isSubscribed} />
+          )}
+
           {isOwnProfile ? (
             <Button asChild variant="outline">
               <Link href="/dashboard/settings">
@@ -140,7 +152,7 @@ export function UserProfileHeader({
       </div>
 
       {/* Stats */}
-      <div className="mt-8 grid grid-cols-4 gap-8 border-t border-neutral-200 pt-8">
+      <div className="mt-8 grid grid-cols-2 gap-6 border-t border-neutral-200 pt-8 sm:grid-cols-3 lg:grid-cols-6">
         <div className="text-center">
           <div className="mb-1 text-2xl font-semibold text-neutral-900">{stats.bookmarks}</div>
           <div className="text-sm text-neutral-600">Bookmarks</div>
@@ -159,6 +171,16 @@ export function UserProfileHeader({
         <div className="text-center">
           <div className="mb-1 text-2xl font-semibold text-neutral-900">{stats.following}</div>
           <div className="text-sm text-neutral-600">Following</div>
+        </div>
+
+        <div className="text-center">
+          <div className="mb-1 text-2xl font-semibold text-neutral-900">{stats.likes}</div>
+          <div className="text-sm text-neutral-600">Total Likes</div>
+        </div>
+
+        <div className="text-center">
+          <div className="mb-1 text-2xl font-semibold text-neutral-900">{stats.subscribers}</div>
+          <div className="text-sm text-neutral-600">Subscribers</div>
         </div>
       </div>
     </section>

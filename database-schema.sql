@@ -203,6 +203,16 @@ CREATE TABLE follows (
     CHECK (follower_id != following_id)
 );
 
+-- Tag followers
+CREATE TABLE tag_followers (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+    UNIQUE(tag_id, user_id)
+);
+
 -- Likes system (polymorphic)
 CREATE TABLE likes (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -515,6 +525,8 @@ CREATE INDEX idx_collections_created_at ON collections(created_at);
 -- Social features indexes
 CREATE INDEX idx_follows_follower_id ON follows(follower_id);
 CREATE INDEX idx_follows_following_id ON follows(following_id);
+CREATE INDEX idx_tag_followers_tag_id ON tag_followers(tag_id);
+CREATE INDEX idx_tag_followers_user_id ON tag_followers(user_id);
 CREATE INDEX idx_likes_user_id ON likes(user_id);
 CREATE INDEX idx_likes_likeable ON likes(likeable_type, likeable_id);
 

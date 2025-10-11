@@ -4,11 +4,11 @@ import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { ChevronRight } from 'lucide-react';
 
-import { TagBookmarkCard } from '@/components/tags/tag-bookmark-card';
 import { TagFilters } from '@/components/tags/tag-filters';
 import { TagHeader } from '@/components/tags/tag-header';
 import { TagSidebar } from '@/components/tags/tag-sidebar';
-import { Button } from '@/components/ui/button';
+import { TrendingBookmarkCard } from '@/components/trending/trending-bookmark-card';
+import { siteConfig } from '@/config/site';
 import { MetadataGenerator } from '@/lib/seo/metadata';
 import { StructuredDataGenerator } from '@/lib/seo/structured-data';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -37,6 +37,7 @@ type BookmarkRecord = {
   save_count: number | null;
   click_count: number | null;
   profiles: {
+    id: string;
     username: string;
     display_name: string | null;
     avatar_url: string | null;
@@ -47,6 +48,7 @@ type BookmarkRecord = {
       slug: string;
     } | null;
   }> | null;
+  meta_data: Record<string, unknown> | null;
 };
 
 type TagBookmarkCardData = {
@@ -54,11 +56,19 @@ type TagBookmarkCardData = {
   title: string;
   slug: string;
   description: string | null;
-  domain: string | null;
   imageUrl: string | null;
   createdAt: string;
   likes: number;
+  saves: number;
+  shares: number;
+  isLiked: boolean;
+  isSaved: boolean;
+  domain: string | null;
+  domainValue: string | null;
+  contentType: string | null;
+  contentTypeValue: string | null;
   author: {
+    id?: string;
     username: string;
     displayName: string | null;
     avatarUrl: string | null;
@@ -75,10 +85,12 @@ type SidebarData = {
   };
   relatedTags: Array<{ name: string; slug: string; bookmarkCount: number }>;
   topContributors: Array<{
+    userId?: string;
     username: string;
     displayName: string | null;
     avatarUrl: string | null;
     bookmarkCount: number;
+    isFollowing?: boolean;
   }>;
   popularDomains: Array<{ domain: string; bookmarkCount: number }>;
 };
@@ -98,14 +110,148 @@ type TagPageData = {
       display_name: string | null;
     };
   }>;
+  filters: {
+    applied: TagFilterParams;
+    options: {
+      domains: TagFilterOption[];
+      types: TagFilterOption[];
+    };
+  };
+  followSupported: boolean;
 };
 
-const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> => {
+type TagFilterParams = {
+  sortBy: 'popular' | 'recent' | 'liked' | 'oldest';
+  dateRange: 'all' | 'week' | 'month' | 'year';
+  type: string;
+  domain: string;
+};
+
+type TagFilterOption = {
+  value: string;
+  label: string;
+};
+
+const DEFAULT_TAG_FILTERS: TagFilterParams = {
+  sortBy: 'recent',
+  dateRange: 'all',
+  type: 'all',
+  domain: 'all',
+};
+
+const SORT_OPTIONS = new Set<TagFilterParams['sortBy']>(['popular', 'recent', 'liked', 'oldest']);
+const DATE_RANGE_OPTIONS = new Set<TagFilterParams['dateRange']>(['all', 'week', 'month', 'year']);
+
+const TAG_FOLLOWERS_MISSING_MESSAGE =
+  'Tag followers feature is not configured. Please run migration 008_create_tag_followers.sql.';
+
+function isMissingTagFollowersTableError(error: unknown): boolean {
+  if (!error) {
+    return false;
+  }
+
+  if (typeof error === 'string') {
+    return isMissingTagFollowersTableError({ message: error });
+  }
+
+  if (typeof error === 'object' && error !== null && 'message' in error && typeof (error as { message?: string }).message === 'string') {
+    const message = (error as { message: string }).message.toLowerCase();
+    return (
+      message.includes('tag_followers') && (message.includes('does not exist') || message.includes('schema cache'))
+    );
+  }
+
+  return false;
+}
+
+function logMissingTagFollowersWarning() {
+  console.warn(TAG_FOLLOWERS_MISSING_MESSAGE);
+}
+
+function normaliseTagFilters(input: Partial<TagFilterParams> | undefined): TagFilterParams {
+  const sortBy = input?.sortBy && SORT_OPTIONS.has(input.sortBy as TagFilterParams['sortBy'])
+    ? (input.sortBy as TagFilterParams['sortBy'])
+    : DEFAULT_TAG_FILTERS.sortBy;
+
+  const dateRange = input?.dateRange && DATE_RANGE_OPTIONS.has(input.dateRange as TagFilterParams['dateRange'])
+    ? (input.dateRange as TagFilterParams['dateRange'])
+    : DEFAULT_TAG_FILTERS.dateRange;
+
+  const type = input?.type ? String(input.type).toLowerCase() : DEFAULT_TAG_FILTERS.type;
+  const domain = input?.domain ? String(input.domain).toLowerCase() : DEFAULT_TAG_FILTERS.domain;
+
+  return {
+    sortBy,
+    dateRange,
+    type: type || DEFAULT_TAG_FILTERS.type,
+    domain: domain || DEFAULT_TAG_FILTERS.domain,
+  } satisfies TagFilterParams;
+}
+
+function formatTrendLabel(createdAt: string): string {
+  const createdTime = new Date(createdAt).getTime();
+
+  if (Number.isNaN(createdTime)) {
+    return '';
+  }
+
+  const now = Date.now();
+  const diffMs = Math.max(0, now - createdTime);
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+  if (diffMinutes < 1) {
+    return 'Just now';
+  }
+
+  if (diffMinutes < 60) {
+    const minutesLabel = diffMinutes === 1 ? 'minute' : 'minutes';
+    return `${diffMinutes} ${minutesLabel} ago`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) {
+    const hoursLabel = diffHours === 1 ? 'hour' : 'hours';
+    return `${diffHours} ${hoursLabel} ago`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) {
+    const daysLabel = diffDays === 1 ? 'day' : 'days';
+    return `${diffDays} ${daysLabel} ago`;
+  }
+
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks < 5) {
+    const weeksLabel = diffWeeks === 1 ? 'week' : 'weeks';
+    return `${diffWeeks} ${weeksLabel} ago`;
+  }
+
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) {
+    const months = diffMonths || 1;
+    const monthsLabel = months === 1 ? 'month' : 'months';
+    return `${months} ${monthsLabel} ago`;
+  }
+
+  const diffYears = Math.floor(diffDays / 365);
+  const years = diffYears || 1;
+  const yearsLabel = years === 1 ? 'year' : 'years';
+  return `${years} ${yearsLabel} ago`;
+}
+
+const getTagPageData = cache(async (slug: string, filtersKey: string): Promise<TagPageData | null> => {
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
 
     if (!supabase) {
       return null;
+    }
+
+    let filters: TagFilterParams = DEFAULT_TAG_FILTERS;
+    try {
+      filters = normaliseTagFilters(JSON.parse(filtersKey));
+    } catch {
+      filters = DEFAULT_TAG_FILTERS;
     }
 
     const { data: tag, error: tagError } = await supabase
@@ -135,7 +281,9 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
           like_count,
           save_count,
           click_count,
+          meta_data,
           profiles (
+            id,
             username,
             display_name,
             avatar_url
@@ -151,7 +299,7 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
       )
       .eq('tag_id', tag.id)
       .order('created_at', { ascending: false, foreignTable: 'bookmarks' })
-      .limit(40);
+      .limit(80);
 
     if (bookmarksError) {
       console.error('Failed to load bookmarks for tag:', bookmarksError.message);
@@ -170,7 +318,15 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
           popularDomains: [],
         },
         structuredBookmarks: [],
-      };
+        filters: {
+          applied: filters,
+          options: {
+            domains: [],
+            types: [],
+          },
+        },
+        followSupported: true,
+      } satisfies TagPageData;
     }
 
     const bookmarkList = (bookmarkRows ?? [])
@@ -190,9 +346,11 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
     const relatedTagMap = new Map<string, { name: string; count: number }>();
     const contributorMap = new Map<
       string,
-      { username: string; displayName: string | null; avatarUrl: string | null; count: number }
+      { userId?: string; username: string; displayName: string | null; avatarUrl: string | null; count: number }
     >();
     const domainMap = new Map<string, number>();
+    const domainOptionMap = new Map<string, string>();
+    const typeOptionMap = new Map<string, string>();
 
     let totalLikes = 0;
     let thisWeek = 0;
@@ -213,6 +371,7 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
         .map((tagRelation) => ({ name: tagRelation.name, slug: tagRelation.slug }));
 
       const author = {
+        id: bookmark.profiles?.id ?? undefined,
         username: bookmark.profiles?.username ?? 'unknown',
         displayName: bookmark.profiles?.display_name ?? null,
         avatarUrl: bookmark.profiles?.avatar_url ?? null,
@@ -231,6 +390,7 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
           existing.count += 1;
         } else {
           contributorMap.set(author.username, {
+            userId: author.id,
             username: author.username,
             displayName: author.displayName,
             avatarUrl: author.avatarUrl,
@@ -240,7 +400,25 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
       }
 
       if (bookmark.domain) {
+        const domainKey = bookmark.domain.toLowerCase();
         domainMap.set(bookmark.domain, (domainMap.get(bookmark.domain) ?? 0) + 1);
+        if (!domainOptionMap.has(domainKey)) {
+          domainOptionMap.set(domainKey, bookmark.domain);
+        }
+      }
+
+      const metaData = bookmark.meta_data && typeof bookmark.meta_data === 'object' ? bookmark.meta_data : null;
+      const rawContentType = metaData && 'content_type' in metaData && typeof metaData.content_type === 'string'
+        ? metaData.content_type
+        : metaData && 'type' in metaData && typeof metaData.type === 'string'
+          ? metaData.type
+          : null;
+
+      if (rawContentType) {
+        const typeKey = rawContentType.toLowerCase();
+        if (!typeOptionMap.has(typeKey)) {
+          typeOptionMap.set(typeKey, rawContentType);
+        }
       }
 
       for (const relatedTag of tags) {
@@ -262,16 +440,84 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
         title: bookmark.title,
         slug: normalizedSlug,
         description: bookmark.description,
-        domain: bookmark.domain,
         imageUrl: bookmark.image_url,
         createdAt: bookmark.created_at,
         likes: likeCount,
+        saves: bookmark.save_count ?? 0,
+        shares: bookmark.click_count ?? 0,
+        isLiked: false,
+        isSaved: false,
+        domain: bookmark.domain,
+        domainValue: bookmark.domain ? bookmark.domain.toLowerCase() : null,
+        contentType: rawContentType,
+        contentTypeValue: rawContentType ? rawContentType.toLowerCase() : null,
         author,
         tags,
       } satisfies TagBookmarkCardData;
     });
 
-    const structuredBookmarks = cardBookmarks.map((bookmark) => ({
+    const domainOptions: TagFilterOption[] = Array.from(domainOptionMap.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    const typeOptions: TagFilterOption[] = Array.from(typeOptionMap.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    let filteredBookmarks = cardBookmarks;
+
+    if (filters.domain !== 'all') {
+      filteredBookmarks = filteredBookmarks.filter((bookmark) => bookmark.domainValue === filters.domain);
+    }
+
+    if (filters.type !== 'all') {
+      filteredBookmarks = filteredBookmarks.filter((bookmark) => bookmark.contentTypeValue === filters.type);
+    }
+
+    if (filters.dateRange !== 'all') {
+      const now = Date.now();
+      let threshold = 0;
+      if (filters.dateRange === 'week') {
+        threshold = now - 7 * 24 * 60 * 60 * 1000;
+      } else if (filters.dateRange === 'month') {
+        threshold = now - 30 * 24 * 60 * 60 * 1000;
+      } else if (filters.dateRange === 'year') {
+        threshold = now - 365 * 24 * 60 * 60 * 1000;
+      }
+
+      if (threshold > 0) {
+        filteredBookmarks = filteredBookmarks.filter((bookmark) => {
+          const created = new Date(bookmark.createdAt).getTime();
+          return !Number.isNaN(created) && created >= threshold;
+        });
+      }
+    }
+
+    filteredBookmarks = [...filteredBookmarks].sort((a, b) => {
+      if (filters.sortBy === 'popular') {
+        const aScore = a.likes + a.saves + a.shares;
+        const bScore = b.likes + b.saves + b.shares;
+        if (bScore !== aScore) {
+          return bScore - aScore;
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+
+      if (filters.sortBy === 'liked') {
+        if (b.likes !== a.likes) {
+          return b.likes - a.likes;
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+
+      if (filters.sortBy === 'oldest') {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    const structuredBookmarks = filteredBookmarks.map((bookmark) => ({
       id: bookmark.id,
       title: bookmark.title,
       description: bookmark.description,
@@ -286,7 +532,7 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
           : undefined,
     }));
 
-    const followers = contributorMap.size;
+    const followerEstimate = contributorMap.size;
     const avgLikes = cardBookmarks.length
       ? Math.round(totalLikes / cardBookmarks.length)
       : 0;
@@ -294,16 +540,17 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
     const relatedTags = Array.from(relatedTagMap.entries())
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 5)
-      .map(([slug, value]) => ({
+      .map(([slugValue, value]) => ({
         name: value.name,
-        slug,
+        slug: slugValue,
         bookmarkCount: value.count,
       }));
 
-    const topContributors = Array.from(contributorMap.values())
-      .sort((a, b) => b.count - a.count)
+    const topContributors = Array.from(contributorMap.entries())
+      .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 3)
-      .map((contributor) => ({
+      .map(([, contributor]) => ({
+        userId: contributor.userId,
         username: contributor.username,
         displayName: contributor.displayName,
         avatarUrl: contributor.avatarUrl,
@@ -315,14 +562,35 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
       .slice(0, 5)
       .map(([domain, count]) => ({ domain, bookmarkCount: count }));
 
+    let followerCount = followerEstimate;
+    let isFollowSupported = true;
+    const {
+      count: followerCountRaw,
+      error: followerCountError,
+    } = await supabase
+      .from('tag_followers')
+      .select('*', { count: 'exact', head: true })
+      .eq('tag_id', tag.id);
+
+    if (followerCountError) {
+      if (isMissingTagFollowersTableError(followerCountError)) {
+        logMissingTagFollowersWarning();
+        isFollowSupported = false;
+      } else {
+        console.error('Failed to retrieve tag follower count:', followerCountError);
+      }
+    } else if (typeof followerCountRaw === 'number') {
+      followerCount = followerCountRaw;
+    }
+
     return {
       tag,
-      bookmarks: cardBookmarks,
+      bookmarks: filteredBookmarks,
       sidebar: {
         statistics: {
           totalBookmarks: tag.usage_count ?? cardBookmarks.length,
           thisWeek,
-          followers,
+          followers: followerCount,
           avgLikes,
         },
         relatedTags,
@@ -330,6 +598,14 @@ const getTagPageData = cache(async (slug: string): Promise<TagPageData | null> =
         popularDomains,
       },
       structuredBookmarks,
+      filters: {
+        applied: filters,
+        options: {
+          domains: domainOptions,
+          types: typeOptions,
+        },
+      },
+      followSupported: isFollowSupported,
     } satisfies TagPageData;
   } catch (error) {
     console.error('Failed to build tag page data:', error);
@@ -342,7 +618,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const data = await getTagPageData(params.slug);
+  const data = await getTagPageData(params.slug, JSON.stringify(DEFAULT_TAG_FILTERS));
 
   if (!data) {
     return {
@@ -358,16 +634,211 @@ export async function generateMetadata({
 
 export default async function TagDetailsPage({
   params,
+  searchParams = {},
 }: {
   params: { slug: string };
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
-  const data = await getTagPageData(params.slug);
+  const sortParam = Array.isArray(searchParams.sort) ? searchParams.sort[0] : searchParams.sort;
+  const timeParam = Array.isArray(searchParams.time) ? searchParams.time[0] : searchParams.time;
+  const typeParam = Array.isArray(searchParams.type) ? searchParams.type[0] : searchParams.type;
+  const domainParam = Array.isArray(searchParams.domain) ? searchParams.domain[0] : searchParams.domain;
+
+  const filters = normaliseTagFilters({
+    sortBy: sortParam ? (sortParam.toString().toLowerCase() as TagFilterParams['sortBy']) : undefined,
+    dateRange: timeParam ? (timeParam.toString().toLowerCase() as TagFilterParams['dateRange']) : undefined,
+    type: typeParam ? typeParam.toString().toLowerCase() : undefined,
+    domain: domainParam ? domainParam.toString().toLowerCase() : undefined,
+  });
+
+  const filtersKey = JSON.stringify(filters);
+
+  const supabaseForUser = await createSupabaseServerClient({ strict: false });
+  let currentUserId: string | undefined;
+
+  if (supabaseForUser) {
+    try {
+      const {
+        data: { user },
+      } = await supabaseForUser.auth.getUser();
+      currentUserId = user?.id ?? undefined;
+    } catch (error) {
+      console.error('Failed to resolve current user for tag page:', error);
+    }
+  }
+
+  const data = await getTagPageData(params.slug, filtersKey);
 
   if (!data) {
     notFound();
   }
 
-  const { tag, bookmarks, sidebar, structuredBookmarks } = data;
+  const { tag, structuredBookmarks, filters: filterState, followSupported } = data;
+  let sidebar = data.sidebar;
+  let bookmarks = data.bookmarks;
+  let tagFollowersAvailable = followSupported;
+
+  if (supabaseForUser && bookmarks.length > 0) {
+    const bookmarkIds = bookmarks.map((bookmark) => bookmark.id);
+
+    try {
+      const [{ data: likeRowsAll }, { data: saveRowsAll }] = await Promise.all([
+        supabaseForUser
+          .from('likes')
+          .select('likeable_id')
+          .eq('likeable_type', 'bookmark')
+          .in('likeable_id', bookmarkIds),
+        supabaseForUser.from('saved_bookmarks').select('bookmark_id').in('bookmark_id', bookmarkIds),
+      ]);
+
+      let likedIds = new Set<string>();
+      let savedIds = new Set<string>();
+
+      if (currentUserId) {
+        const [{ data: likeRowsForUser }, { data: saveRowsForUser }] = await Promise.all([
+          supabaseForUser
+            .from('likes')
+            .select('likeable_id')
+            .eq('likeable_type', 'bookmark')
+            .eq('user_id', currentUserId)
+            .in('likeable_id', bookmarkIds),
+          supabaseForUser
+            .from('saved_bookmarks')
+            .select('bookmark_id')
+            .eq('user_id', currentUserId)
+            .in('bookmark_id', bookmarkIds),
+        ]);
+
+        likedIds = new Set((likeRowsForUser ?? []).map((row) => row.likeable_id as string));
+        savedIds = new Set((saveRowsForUser ?? []).map((row) => row.bookmark_id as string));
+      }
+
+      const likeCounts = new Map<string, number>();
+      const saveCounts = new Map<string, number>();
+
+      (likeRowsAll ?? []).forEach((row) => {
+        const id = row.likeable_id as string;
+        likeCounts.set(id, (likeCounts.get(id) ?? 0) + 1);
+      });
+
+      (saveRowsAll ?? []).forEach((row) => {
+        const id = row.bookmark_id as string;
+        saveCounts.set(id, (saveCounts.get(id) ?? 0) + 1);
+      });
+
+      bookmarks = bookmarks.map((bookmark) => ({
+        ...bookmark,
+        likes: likeCounts.get(bookmark.id) ?? bookmark.likes,
+        saves: saveCounts.get(bookmark.id) ?? bookmark.saves,
+        isLiked: likedIds.has(bookmark.id),
+        isSaved: savedIds.has(bookmark.id),
+      }));
+    } catch (error) {
+      console.error('Failed to enhance tag bookmarks with engagement data:', error);
+    }
+  }
+
+  let isFollowingTag = false;
+  const relatedTagFollowSet = new Set<string>();
+  const contributorFollowSet = new Set<string>();
+
+  if (supabaseForUser && currentUserId) {
+    if (tagFollowersAvailable) {
+      const {
+        data: tagFollowRow,
+        error: tagFollowError,
+      } = await supabaseForUser
+        .from('tag_followers')
+        .select('id')
+        .eq('user_id', currentUserId)
+        .eq('tag_id', tag.id)
+        .maybeSingle();
+
+      if (tagFollowError) {
+        if (isMissingTagFollowersTableError(tagFollowError)) {
+          tagFollowersAvailable = false;
+          logMissingTagFollowersWarning();
+        } else {
+          console.error('Failed to resolve follow state for tag page:', tagFollowError);
+        }
+      } else {
+        isFollowingTag = Boolean(tagFollowRow);
+      }
+
+      if (tagFollowersAvailable && sidebar.relatedTags.length > 0) {
+        const {
+          data: relatedFollowRows,
+          error: relatedFollowError,
+        } = await supabaseForUser
+          .from('tag_followers')
+          .select('tags!inner(slug)')
+          .eq('user_id', currentUserId)
+          .in(
+            'tags.slug',
+            sidebar.relatedTags.map((item) => item.slug)
+          );
+
+        if (relatedFollowError) {
+          if (isMissingTagFollowersTableError(relatedFollowError)) {
+            tagFollowersAvailable = false;
+            logMissingTagFollowersWarning();
+          } else {
+            console.error('Failed to resolve follow state for related tags:', relatedFollowError);
+          }
+        } else {
+          (relatedFollowRows ?? []).forEach((row) => {
+            const slugValue = row?.tags?.slug;
+            if (slugValue) {
+              relatedTagFollowSet.add(slugValue);
+            }
+          });
+        }
+      }
+    }
+
+    if (sidebar.topContributors.length > 0) {
+      const contributorIds = sidebar.topContributors
+        .map((contributor) => contributor.userId)
+        .filter((value): value is string => Boolean(value));
+
+      if (contributorIds.length > 0) {
+        const {
+          data: contributorFollowRows,
+          error: contributorFollowError,
+        } = await supabaseForUser
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', currentUserId)
+          .in('following_id', contributorIds);
+
+        if (contributorFollowError) {
+          console.error('Failed to resolve follow state for contributors:', contributorFollowError);
+        } else {
+          (contributorFollowRows ?? []).forEach((row) => {
+            if (row?.following_id) {
+              contributorFollowSet.add(row.following_id as string);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  sidebar = {
+    ...sidebar,
+    relatedTags: sidebar.relatedTags.map((item) => ({
+      ...item,
+      isFollowing: relatedTagFollowSet.has(item.slug),
+    })),
+    topContributors: sidebar.topContributors.map((contributor) => ({
+      ...contributor,
+      isFollowing: contributor.userId ? contributorFollowSet.has(contributor.userId) : false,
+    })),
+  };
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
+  const shareUrl = `${baseUrl}/tag/${tag.slug}`;
+
   const structuredData = StructuredDataGenerator.generateTagCollectionSchema(
     {
       id: tag.id,
@@ -413,43 +884,38 @@ export default async function TagDetailsPage({
             followerCount={sidebar.statistics.followers}
             createdAt={tag.created_at}
             color={tag.color || '#6b7280'}
+            tagSlug={tag.slug}
+            isFollowing={isFollowingTag}
+            currentUserId={currentUserId}
+            shareUrl={shareUrl}
+            followSupported={tagFollowersAvailable}
           />
 
           <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-4">
             <div className="lg:col-span-3">
               {/* Filters */}
               <div className="mb-6">
-                <TagFilters />
+                <TagFilters
+                  initialFilters={filterState.applied}
+                  options={filterState.options}
+                />
               </div>
 
               {/* Bookmarks List */}
               <section className="space-y-4">
                 {bookmarks && bookmarks.length > 0 ? (
-                  <>
+                  <div className="space-y-4">
                     {bookmarks.map((bookmark) => (
-                      <TagBookmarkCard
+                      <TrendingBookmarkCard
                         key={bookmark.id}
-                        id={bookmark.id}
-                        title={bookmark.title}
-                        slug={bookmark.slug}
-                        description={bookmark.description}
-                        domain={bookmark.domain}
-                        imageUrl={bookmark.imageUrl}
-                        createdAt={bookmark.createdAt}
-                        author={bookmark.author}
-                        tags={bookmark.tags}
-                        likes={bookmark.likes}
-                        isLiked={false}
-                        isBookmarked={false}
+                        bookmark={bookmark}
+                        detailUrl={`/bookmark/${bookmark.id}/${bookmark.slug}`}
+                        visitUrl={`/out/bookmark/${bookmark.id}`}
+                        trendLabel={formatTrendLabel(bookmark.createdAt)}
+                        currentUserId={currentUserId}
                       />
                     ))}
-
-                    <div className="flex justify-center py-8">
-                      <Button className="rounded-lg bg-neutral-900 px-6 py-3 text-white hover:bg-neutral-800">
-                        Load More Bookmarks
-                      </Button>
-                    </div>
-                  </>
+                  </div>
                 ) : (
                   <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
                     <p className="text-neutral-600">
@@ -461,7 +927,15 @@ export default async function TagDetailsPage({
             </div>
 
             {/* Sidebar */}
-            <TagSidebar {...sidebar} />
+            <TagSidebar
+              tagSlug={tag.slug}
+              statistics={sidebar.statistics}
+              relatedTags={sidebar.relatedTags}
+              topContributors={sidebar.topContributors}
+              popularDomains={sidebar.popularDomains}
+              currentUserId={currentUserId}
+              followSupported={tagFollowersAvailable}
+            />
           </div>
         </div>
       </main>

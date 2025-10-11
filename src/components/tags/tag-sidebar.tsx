@@ -1,18 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useEffect, useState, useTransition } from "react";
+
+import { useToast } from "@/hooks/use-toast";
+
+const TAG_FOLLOWERS_MISSING_MESSAGE =
+  "Tag followers feature is not configured. Please run migration 008_create_tag_followers.sql.";
 
 interface RelatedTag {
   name: string;
   slug: string;
   bookmarkCount: number;
+  isFollowing?: boolean;
 }
 
 interface TopContributor {
+  userId?: string;
   username: string;
   displayName: string | null;
   avatarUrl: string | null;
   bookmarkCount: number;
+  isFollowing?: boolean;
 }
 
 interface PopularDomain {
@@ -21,6 +30,7 @@ interface PopularDomain {
 }
 
 interface TagSidebarProps {
+  tagSlug: string;
   statistics: {
     totalBookmarks: number;
     thisWeek: number;
@@ -30,14 +40,218 @@ interface TagSidebarProps {
   relatedTags: RelatedTag[];
   topContributors: TopContributor[];
   popularDomains: PopularDomain[];
+  currentUserId?: string;
+  followSupported?: boolean;
 }
 
 export function TagSidebar({
+  tagSlug,
   statistics,
   relatedTags,
   topContributors,
   popularDomains,
+  currentUserId,
+  followSupported = true,
 }: TagSidebarProps) {
+  const { toast } = useToast();
+  const [isTagFollowPending, startTagTransition] = useTransition();
+  const [isUserFollowPending, startUserTransition] = useTransition();
+
+  const [followerCount, setFollowerCount] = useState(statistics.followers);
+  const [tagFollowSupported, setTagFollowSupported] = useState(followSupported);
+  const [tagFollowMap, setTagFollowMap] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    relatedTags.forEach((tag) => {
+      initial[tag.slug] = Boolean(tag.isFollowing);
+    });
+    return initial;
+  });
+
+  const [userFollowMap, setUserFollowMap] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    topContributors.forEach((contributor) => {
+      if (contributor.userId) {
+        initial[contributor.userId] = Boolean(contributor.isFollowing);
+      }
+    });
+    return initial;
+  });
+
+  useEffect(() => {
+    setFollowerCount(statistics.followers);
+  }, [statistics.followers]);
+
+  useEffect(() => {
+    setTagFollowSupported(followSupported);
+  }, [followSupported]);
+
+  useEffect(() => {
+    setTagFollowMap(() => {
+      if (!followSupported) {
+        return {};
+      }
+
+      const next: Record<string, boolean> = {};
+      relatedTags.forEach((tag) => {
+        next[tag.slug] = Boolean(tag.isFollowing);
+      });
+      return next;
+    });
+  }, [followSupported, relatedTags]);
+
+  useEffect(() => {
+    setUserFollowMap(() => {
+      const next: Record<string, boolean> = {};
+      topContributors.forEach((contributor) => {
+        if (contributor.userId) {
+          next[contributor.userId] = Boolean(contributor.isFollowing);
+        }
+      });
+      return next;
+    });
+  }, [topContributors]);
+
+  useEffect(() => {
+    const handleFollowUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ slug: string; followerCount: number }>;
+      if (customEvent.detail?.slug === tagSlug) {
+        setFollowerCount(customEvent.detail.followerCount);
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("tag-follow-updated", handleFollowUpdate as EventListener);
+      return () => {
+        window.removeEventListener("tag-follow-updated", handleFollowUpdate as EventListener);
+      };
+    }
+
+    return undefined;
+  }, [tagSlug]);
+
+  const ensureAuthenticated = useCallback(() => {
+    if (!tagFollowSupported) {
+      toast({
+        title: "Follow unavailable",
+        description: TAG_FOLLOWERS_MISSING_MESSAGE,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (currentUserId) {
+      return true;
+    }
+
+    toast({
+      title: "Sign in required",
+      description: "Please sign in to follow tags and creators.",
+      variant: "destructive",
+    });
+    return false;
+  }, [currentUserId, tagFollowSupported, toast]);
+
+  const toggleTagFollow = (slug: string) => {
+    if (!ensureAuthenticated()) {
+      return;
+    }
+
+    startTagTransition(async () => {
+      try {
+        const response = await fetch(`/api/tags/${slug}/follow`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          if (response.status === 503) {
+            setTagFollowSupported(false);
+            setTagFollowMap((prev) => ({
+              ...prev,
+              [slug]: false,
+            }));
+          }
+
+          throw new Error(data.error || "Unable to update tag follow state.");
+        }
+
+        setTagFollowMap((prev) => ({
+          ...prev,
+          [slug]: Boolean(data.isFollowing),
+        }));
+
+        if (slug === tagSlug && typeof data.followerCount === "number") {
+          setFollowerCount(data.followerCount);
+        }
+
+        toast({
+          title: data.isFollowing ? "Followed" : "Unfollowed",
+          description: data.isFollowing
+            ? "Tag added to your followed list."
+            : "Tag removed from your followed list.",
+        });
+      } catch (error) {
+        console.error("Failed to toggle related tag follow:", error);
+        if (error instanceof Error && error.message.includes("migration 008_create_tag_followers.sql")) {
+          setTagFollowSupported(false);
+          setTagFollowMap((prev) => ({
+            ...prev,
+            [slug]: false,
+          }));
+        }
+
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Unable to update tag follow state.",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
+  const toggleUserFollow = (userId?: string) => {
+    if (!userId || !ensureAuthenticated()) {
+      return;
+    }
+
+    startUserTransition(async () => {
+      try {
+        const response = await fetch("/api/follows", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ following_id: userId }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to update follow state.");
+        }
+
+        setUserFollowMap((prev) => ({
+          ...prev,
+          [userId]: Boolean(data.isFollowing),
+        }));
+
+        toast({
+          title: data.isFollowing ? "Followed" : "Unfollowed",
+          description: data.isFollowing
+            ? "Creator added to your followed list."
+            : "Creator removed from your followed list.",
+        });
+      } catch (error) {
+        console.error("Failed to toggle creator follow:", error);
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Unable to update follow state.",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
   return (
     <aside className="space-y-6">
       {/* Tag Statistics */}
@@ -61,7 +275,7 @@ export function TagSidebar({
           <div className="flex items-center justify-between">
             <span className="text-sm text-neutral-600">Followers</span>
             <span className="text-sm font-semibold text-neutral-900">
-              {statistics.followers.toLocaleString()}
+              {followerCount.toLocaleString()}
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -95,8 +309,13 @@ export function TagSidebar({
                   {tag.bookmarkCount.toLocaleString()} bookmarks
                 </span>
               </Link>
-              <button className="text-xs font-medium text-neutral-600 hover:text-neutral-800">
-                Follow
+              <button
+                type="button"
+                onClick={() => toggleTagFollow(tag.slug)}
+                className="text-xs font-medium text-neutral-600 hover:text-neutral-800"
+                disabled={isTagFollowPending || !tagFollowSupported}
+              >
+                {tagFollowSupported ? (tagFollowMap[tag.slug] ? "Following" : "Follow") : "Unavailable"}
               </button>
             </div>
           ))}
@@ -115,6 +334,7 @@ export function TagSidebar({
               className="flex items-center space-x-3"
             >
               {contributor.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={contributor.avatarUrl}
                   alt={contributor.displayName || contributor.username}
@@ -136,17 +356,22 @@ export function TagSidebar({
                 >
                   {contributor.displayName || contributor.username}
                 </Link>
-                <div className="text-xs text-neutral-500">
-                  {contributor.bookmarkCount} bookmarks
-                </div>
+              <div className="text-xs text-neutral-500">
+                {contributor.bookmarkCount} bookmarks
               </div>
-              <button className="text-xs font-medium text-neutral-600 hover:text-neutral-800">
-                Follow
-              </button>
             </div>
-          ))}
-        </div>
+            <button
+              type="button"
+              onClick={() => toggleUserFollow(contributor.userId)}
+              className="text-xs font-medium text-neutral-600 hover:text-neutral-800"
+              disabled={isUserFollowPending || !contributor.userId}
+            >
+              {contributor.userId && userFollowMap[contributor.userId] ? "Following" : "Follow"}
+            </button>
+          </div>
+        ))}
       </div>
+    </div>
 
       {/* Popular Domains */}
       <div className="rounded-xl border border-neutral-200 bg-white p-6">
