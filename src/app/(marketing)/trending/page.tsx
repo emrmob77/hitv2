@@ -7,11 +7,11 @@ import {
   Heart,
   Share2,
   TrendingUp,
-} from 'lucide-react';
-import type { ReactNode } from 'react';
+  } from 'lucide-react';
+  import type { ReactNode } from 'react';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { siteConfig } from '@/config/site';
+  import { createSupabaseServerClient } from '@/lib/supabase/server';
+  import { siteConfig } from '@/config/site';
 
 export const metadata: Metadata = {
   title: 'Trending Bookmarks Today',
@@ -39,6 +39,23 @@ type TrendingStats = {
   totalSaves: number;
   totalShares: number;
 };
+
+type TimePeriod = 'today' | 'week' | 'month' | 'all';
+
+function getPeriodSince(period: TimePeriod): string | null {
+  if (period === 'all') {
+    return null;
+  }
+
+  const hours =
+    period === 'today'
+      ? 24
+      : period === 'week'
+      ? 7 * 24
+      : 30 * 24;
+
+  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+}
 
 type TrendingBookmark = {
   id: string;
@@ -84,7 +101,7 @@ function normaliseSlug(source: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-async function getTrendingStats(): Promise<TrendingStats> {
+async function getTrendingStats(period: TimePeriod): Promise<TrendingStats> {
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
 
@@ -97,18 +114,26 @@ async function getTrendingStats(): Promise<TrendingStats> {
       };
     }
 
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const since = getPeriodSince(period);
+
+    let countQuery = supabase
+      .from('bookmarks')
+      .select('id', { count: 'exact', head: true })
+      .eq('privacy_level', 'public');
+
+    let aggregateQuery = supabase
+      .from('bookmarks')
+      .select('like_count, save_count, click_count')
+      .eq('privacy_level', 'public');
+
+    if (since) {
+      countQuery = countQuery.gte('created_at', since);
+      aggregateQuery = aggregateQuery.gte('created_at', since);
+    }
 
     const [{ count: trendingToday = 0 }, { data: aggregates = [] }] = await Promise.all([
-      supabase
-        .from('bookmarks')
-        .select('id', { count: 'exact', head: true })
-        .eq('privacy_level', 'public')
-        .gte('created_at', since),
-      supabase
-        .from('bookmarks')
-        .select('like_count, save_count, click_count')
-        .eq('privacy_level', 'public'),
+      countQuery,
+      aggregateQuery,
     ]);
 
     const totals = aggregates.reduce(
@@ -140,7 +165,7 @@ async function getTrendingStats(): Promise<TrendingStats> {
   }
 }
 
-async function getTrendingBookmarks(): Promise<TrendingBookmark[]> {
+async function getTrendingBookmarks(period: TimePeriod): Promise<TrendingBookmark[]> {
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
 
@@ -148,7 +173,9 @@ async function getTrendingBookmarks(): Promise<TrendingBookmark[]> {
       return [];
     }
 
-    const { data: bookmarks, error } = await supabase
+    const since = getPeriodSince(period);
+
+    let query = supabase
       .from('bookmarks')
       .select(
         `
@@ -174,7 +201,13 @@ async function getTrendingBookmarks(): Promise<TrendingBookmark[]> {
         )
       `
       )
-      .eq('privacy_level', 'public')
+      .eq('privacy_level', 'public');
+
+    if (since) {
+      query = query.gte('created_at', since);
+    }
+
+    const { data: bookmarks, error } = await query
       .order('like_count', { ascending: false })
       .limit(6);
 
@@ -276,22 +309,47 @@ async function getRisingUsers(): Promise<RisingUser[]> {
   }
 }
 
-function getTrendLabel(bookmark: TrendingBookmark): string {
+function getTrendLabel(bookmark: TrendingBookmark, period: TimePeriod): string {
   const createdAt = new Date(bookmark.createdAt);
   const hoursSince = (Date.now() - createdAt.getTime()) / 36e5;
 
-  if (hoursSince < 24) {
-    return 'New entry';
+  const totalEngagement = Math.max(0, (bookmark.likes ?? 0) + (bookmark.saves ?? 0) + (bookmark.shares ?? 0));
+
+  if (totalEngagement === 0) {
+    if (hoursSince < 24) {
+      return 'Published in the last 24 hours';
+    }
+
+    const daysSince = Math.max(1, Math.round(hoursSince / 24));
+    return `Published ${daysSince} day${daysSince === 1 ? '' : 's'} ago`;
   }
 
-  const momentum = Math.max(1, Math.round(bookmark.likes / 25));
-  return `↑ ${momentum} positions`;
+  const engagementText =
+    period === 'all'
+      ? `${formatNumber(totalEngagement)} total interactions`
+      : period === 'today'
+      ? `${formatNumber(totalEngagement)} interactions in the last 24 hours`
+      : period === 'week'
+      ? `${formatNumber(totalEngagement)} interactions this week`
+      : `${formatNumber(totalEngagement)} interactions this month`;
+
+  return engagementText;
 }
 
-export default async function TrendingPage() {
+export default async function TrendingPage({
+  searchParams,
+}: {
+  searchParams?: { period?: string };
+}) {
+  const selectedPeriodParam = searchParams?.period?.toLowerCase();
+  const period: TimePeriod =
+    selectedPeriodParam === 'week' || selectedPeriodParam === 'month' || selectedPeriodParam === 'all'
+      ? selectedPeriodParam
+      : 'today';
+
   const [stats, bookmarks, tags, users] = await Promise.all([
-    getTrendingStats(),
-    getTrendingBookmarks(),
+    getTrendingStats(period),
+    getTrendingBookmarks(period),
     getPopularTags(),
     getRisingUsers(),
   ]);
@@ -320,6 +378,20 @@ export default async function TrendingPage() {
     })),
   };
 
+  const periodOptions: Array<{ label: string; value: TimePeriod }> = [
+    { label: 'Today', value: 'today' },
+    { label: 'This Week', value: 'week' },
+    { label: 'This Month', value: 'month' },
+    { label: 'All Time', value: 'all' },
+  ];
+
+  const periodLabelMap: Record<TimePeriod, string> = {
+    today: 'Today',
+    week: 'This Week',
+    month: 'This Month',
+    all: 'All Time',
+  };
+
   return (
     <main className="bg-neutral-50 marketing-trending">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -336,10 +408,28 @@ export default async function TrendingPage() {
           <div className="flex items-center gap-4 flex-wrap">
             <label className="text-sm font-medium text-neutral-700">Time period:</label>
             <div className="flex rounded-lg border border-neutral-200 bg-white p-1">
-              <button className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm">Today</button>
-              <button className="rounded-md px-4 py-2 text-sm text-neutral-600 transition hover:bg-neutral-100">This Week</button>
-              <button className="rounded-md px-4 py-2 text-sm text-neutral-600 transition hover:bg-neutral-100">This Month</button>
-              <button className="rounded-md px-4 py-2 text-sm text-neutral-600 transition hover:bg-neutral-100">All Time</button>
+              {periodOptions.map(({ label, value }) => {
+                const isActive = value === period;
+                const href =
+                  value === 'today' ? '/trending' : `/trending?period=${value}`;
+
+                return (
+                  <Link
+                    key={value}
+                    href={href}
+                    className={[
+                      'rounded-md px-4 py-2 text-sm font-medium transition',
+                      isActive
+                        ? 'bg-neutral-900 text-white shadow-sm'
+                        : 'text-neutral-600 hover:bg-neutral-100',
+                    ].join(' ')}
+                    prefetch={false}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -349,22 +439,22 @@ export default async function TrendingPage() {
             <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <TrendingStatCard
                 icon={<Flame className="h-5 w-5" />}
-                label="Trending Today"
+                label={`Trending ${periodLabelMap[period]}`}
                 value={stats.trendingToday}
               />
               <TrendingStatCard
                 icon={<Heart className="h-5 w-5" />}
-                label="Total Likes"
+                label={`Total Likes (${period === 'all' ? 'All Time' : periodLabelMap[period]})`}
                 value={stats.totalLikes}
               />
               <TrendingStatCard
                 icon={<BookmarkIcon className="h-5 w-5" />}
-                label="Total Saves"
+                label={`Total Saves (${period === 'all' ? 'All Time' : periodLabelMap[period]})`}
                 value={stats.totalSaves}
               />
               <TrendingStatCard
                 icon={<Share2 className="h-5 w-5" />}
-                label="Total Shares"
+                label={`Total Shares (${period === 'all' ? 'All Time' : periodLabelMap[period]})`}
                 value={stats.totalShares}
               />
             </section>
@@ -379,7 +469,7 @@ export default async function TrendingPage() {
                   <TrendingBookmarkCard
                     key={bookmark.id}
                     rank={index + 1}
-                    trendLabel={getTrendLabel(bookmark)}
+                    trendLabel={getTrendLabel(bookmark, period)}
                     bookmark={bookmark}
                   />
                 ))
