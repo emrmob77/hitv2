@@ -7,11 +7,16 @@ import {
   Heart,
   Share2,
   TrendingUp,
-  } from 'lucide-react';
-  import type { ReactNode } from 'react';
+} from 'lucide-react';
+import type { ReactNode } from 'react';
+import { unstable_noStore as noStore } from 'next/cache';
 
-  import { createSupabaseServerClient } from '@/lib/supabase/server';
-  import { siteConfig } from '@/config/site';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { siteConfig } from '@/config/site';
+import { TrendingBookmarkCard } from '@/components/trending/trending-bookmark-card';
+
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Trending Bookmarks Today',
@@ -67,6 +72,8 @@ type TrendingBookmark = {
   saves: number;
   shares: number;
   createdAt: string;
+  isLiked: boolean;
+  isSaved: boolean;
   author: {
     username: string;
     displayName: string | null;
@@ -102,6 +109,7 @@ function normaliseSlug(source: string): string {
 }
 
 async function getTrendingStats(period: TimePeriod): Promise<TrendingStats> {
+  noStore();
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
 
@@ -165,7 +173,8 @@ async function getTrendingStats(period: TimePeriod): Promise<TrendingStats> {
   }
 }
 
-async function getTrendingBookmarks(period: TimePeriod): Promise<TrendingBookmark[]> {
+async function getTrendingBookmarks(period: TimePeriod, currentUserId?: string): Promise<TrendingBookmark[]> {
+  noStore();
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
 
@@ -215,6 +224,76 @@ async function getTrendingBookmarks(period: TimePeriod): Promise<TrendingBookmar
       return [];
     }
 
+    let likedIds = new Set<string>();
+    let savedIds = new Set<string>();
+    const likeCounts = new Map<string, number>();
+    const saveCounts = new Map<string, number>();
+
+    if (currentUserId && bookmarks.length > 0) {
+      const bookmarkIds = bookmarks.map((bookmark) => bookmark.id);
+
+      const [{ data: likeRowsForUser }, { data: savedRowsForUser }, { data: likeRowsAll }, { data: saveRowsAll }] =
+        await Promise.all([
+          supabase
+            .from('likes')
+            .select('likeable_id')
+            .eq('likeable_type', 'bookmark')
+            .eq('user_id', currentUserId)
+            .in('likeable_id', bookmarkIds),
+          supabase
+            .from('saved_bookmarks')
+            .select('bookmark_id')
+            .eq('user_id', currentUserId)
+            .in('bookmark_id', bookmarkIds),
+          supabase
+            .from('likes')
+            .select('likeable_id')
+            .eq('likeable_type', 'bookmark')
+            .in('likeable_id', bookmarkIds),
+          supabase
+            .from('saved_bookmarks')
+            .select('bookmark_id')
+            .in('bookmark_id', bookmarkIds),
+        ]);
+
+      likedIds = new Set((likeRowsForUser ?? []).map((row) => row.likeable_id as string));
+      savedIds = new Set((savedRowsForUser ?? []).map((row) => row.bookmark_id as string));
+
+      (likeRowsAll ?? []).forEach((row) => {
+        const id = row.likeable_id as string;
+        likeCounts.set(id, (likeCounts.get(id) ?? 0) + 1);
+      });
+
+      (saveRowsAll ?? []).forEach((row) => {
+        const id = row.bookmark_id as string;
+        saveCounts.set(id, (saveCounts.get(id) ?? 0) + 1);
+      });
+    } else if (bookmarks.length > 0) {
+      const bookmarkIds = bookmarks.map((bookmark) => bookmark.id);
+
+      const [{ data: likeRowsAll }, { data: saveRowsAll }] = await Promise.all([
+        supabase
+          .from('likes')
+          .select('likeable_id')
+          .eq('likeable_type', 'bookmark')
+          .in('likeable_id', bookmarkIds),
+        supabase
+          .from('saved_bookmarks')
+          .select('bookmark_id')
+          .in('bookmark_id', bookmarkIds),
+      ]);
+
+      (likeRowsAll ?? []).forEach((row) => {
+        const id = row.likeable_id as string;
+        likeCounts.set(id, (likeCounts.get(id) ?? 0) + 1);
+      });
+
+      (saveRowsAll ?? []).forEach((row) => {
+        const id = row.bookmark_id as string;
+        saveCounts.set(id, (saveCounts.get(id) ?? 0) + 1);
+      });
+    }
+
     return bookmarks.map((bookmark) => {
       const generatedSlug = normaliseSlug(bookmark.title);
       const slugCandidate = bookmark.slug && bookmark.slug.trim().length > 0 ? bookmark.slug : generatedSlug;
@@ -231,8 +310,8 @@ async function getTrendingBookmarks(period: TimePeriod): Promise<TrendingBookmar
         slug,
         description: bookmark.description,
         imageUrl: bookmark.image_url,
-        likes: bookmark.like_count ?? 0,
-        saves: bookmark.save_count ?? 0,
+        likes: likeCounts.get(bookmark.id) ?? bookmark.like_count ?? 0,
+        saves: saveCounts.get(bookmark.id) ?? bookmark.save_count ?? 0,
         shares: bookmark.click_count ?? 0,
         createdAt: bookmark.created_at,
         author: {
@@ -240,6 +319,8 @@ async function getTrendingBookmarks(period: TimePeriod): Promise<TrendingBookmar
           displayName: bookmark.profiles?.display_name ?? null,
           avatarUrl: bookmark.profiles?.avatar_url ?? null,
         },
+        isLiked: likedIds.has(bookmark.id),
+        isSaved: savedIds.has(bookmark.id),
         tags,
       } satisfies TrendingBookmark;
     });
@@ -250,6 +331,7 @@ async function getTrendingBookmarks(period: TimePeriod): Promise<TrendingBookmar
 }
 
 async function getPopularTags(): Promise<PopularTag[]> {
+  noStore();
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
 
@@ -279,6 +361,7 @@ async function getPopularTags(): Promise<PopularTag[]> {
 }
 
 async function getRisingUsers(): Promise<RisingUser[]> {
+  noStore();
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
 
@@ -341,6 +424,17 @@ export default async function TrendingPage({
 }: {
   searchParams?: { period?: string };
 }) {
+  noStore();
+  const supabaseForUser = await createSupabaseServerClient({ strict: false });
+  let currentUserId: string | undefined;
+
+  if (supabaseForUser) {
+    const {
+      data: { user },
+    } = await supabaseForUser.auth.getUser();
+    currentUserId = user?.id ?? undefined;
+  }
+
   const selectedPeriodParam = searchParams?.period?.toLowerCase();
   const period: TimePeriod =
     selectedPeriodParam === 'week' || selectedPeriodParam === 'month' || selectedPeriodParam === 'all'
@@ -349,7 +443,7 @@ export default async function TrendingPage({
 
   const [stats, bookmarks, tags, users] = await Promise.all([
     getTrendingStats(period),
-    getTrendingBookmarks(period),
+    getTrendingBookmarks(period, currentUserId),
     getPopularTags(),
     getRisingUsers(),
   ]);
@@ -465,14 +559,22 @@ export default async function TrendingPage({
                   There are no trending bookmarks yet. Save and share bookmarks to populate this section.
                 </div>
               ) : (
-                bookmarks.map((bookmark, index) => (
-                  <TrendingBookmarkCard
-                    key={bookmark.id}
-                    rank={index + 1}
-                    trendLabel={getTrendLabel(bookmark, period)}
-                    bookmark={bookmark}
-                  />
-                ))
+                bookmarks.map((bookmark, index) => {
+                  const detailUrl = `${siteUrl}/bookmark/${bookmark.id}/${bookmark.slug}`;
+                  const visitUrl = `/out/bookmark/${bookmark.id}`;
+
+                  return (
+                    <TrendingBookmarkCard
+                      key={bookmark.id}
+                      rank={index + 1}
+                      trendLabel={getTrendLabel(bookmark, period)}
+                      bookmark={bookmark}
+                      detailUrl={detailUrl}
+                      visitUrl={visitUrl}
+                      currentUserId={currentUserId}
+                    />
+                  );
+                })
               )}
             </section>
           </div>
@@ -579,97 +681,6 @@ function TrendingStatCard({
         <div>
           <div className="text-2xl font-semibold text-neutral-900">{formatNumber(value)}</div>
           <div className="text-sm text-neutral-600">{label}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TrendingBookmarkCard({
-  rank,
-  trendLabel,
-  bookmark,
-}: {
-  rank: number;
-  trendLabel: string;
-  bookmark: TrendingBookmark;
-}) {
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-6 transition-shadow hover:shadow-lg">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-        <div className="flex-shrink-0">
-          {bookmark.imageUrl ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={bookmark.imageUrl}
-                alt={bookmark.title}
-                className="h-16 w-16 rounded-lg object-cover"
-              />
-            </>
-          ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-neutral-100 text-xs text-neutral-500">
-              Preview
-            </div>
-          )}
-        </div>
-        <div className="flex-1">
-          <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
-            <span className="rounded bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">#{rank}</span>
-            <span className="text-neutral-500">{trendLabel}</span>
-          </div>
-          <Link href={`/bookmark/${bookmark.id}/${bookmark.slug}`} className="mb-2 block text-lg font-semibold text-neutral-900 hover:text-neutral-700">
-            {bookmark.title}
-          </Link>
-          {bookmark.description && (
-            <p className="mb-3 text-sm text-neutral-600 line-clamp-2">{bookmark.description}</p>
-          )}
-          <div className="flex flex-wrap items-center justify-between gap-4 text-sm">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2 text-neutral-600">
-                {bookmark.author.avatarUrl ? (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={bookmark.author.avatarUrl}
-                      alt={bookmark.author.displayName ?? bookmark.author.username}
-                      className="h-6 w-6 rounded-full object-cover"
-                    />
-                  </>
-                ) : (
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
-                    {(bookmark.author.displayName ?? bookmark.author.username).charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span>{bookmark.author.displayName ?? bookmark.author.username}</span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {bookmark.tags.slice(0, 3).map((tag) => (
-                  <Link
-                    key={tag.slug}
-                    href={`/tag/${tag.slug}`}
-                    className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
-                  >
-                    #{tag.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-shrink-0 items-center gap-4 text-neutral-500">
-              <span className="flex items-center gap-1">
-                <Heart className="h-4 w-4" />
-                {formatNumber(bookmark.likes)}
-              </span>
-              <span className="flex items-center gap-1">
-                <BookmarkIcon className="h-4 w-4" />
-                {formatNumber(bookmark.saves)}
-              </span>
-              <span className="flex items-center gap-1">
-                <Share2 className="h-4 w-4" />
-                {formatNumber(bookmark.shares)}
-              </span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
