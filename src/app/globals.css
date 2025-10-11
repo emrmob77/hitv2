@@ -235,6 +235,10 @@
   .data-html section {
     padding-block: clamp(3rem, 12vw, 5rem);
   }
+  .data-html .marketing-trending section {
+    padding-block: 0;
+    margin-block: 0;
+  }
   .data-html .grid.gap-8 > div,
   .data-html .grid.gap-6 > div {
     border-radius: 1rem;
