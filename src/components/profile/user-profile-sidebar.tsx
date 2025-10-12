@@ -103,6 +103,10 @@ export function UserProfileSidebar({ profile, stats, isOwnProfile, isSubscribed,
             <span className="text-neutral-600">Subscribers</span>
             <Badge variant="secondary">{stats.subscribers}</Badge>
           </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-neutral-600">Premium Posts</span>
+            <Badge variant="secondary">{stats.premiumPosts}</Badge>
+          </div>
         </CardContent>
       </Card>
 

@@ -4,17 +4,23 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bookmark, Folder, Heart, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Bookmark, Folder, Heart, Users, Lock, Sparkles } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { TrendingBookmarkCard } from '@/components/trending/trending-bookmark-card';
 import { CollectionCard } from '@/components/collections/collection-card';
+import { PremiumPostCard } from '@/components/posts/premium-post-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FollowButton } from '@/components/profile/follow-button';
+import { SubscriptionButton } from '@/components/profile/subscription-button';
 
 interface UserProfileTabsProps {
   username: string;
   userId: string;
   isOwnProfile: boolean;
+  isSubscribed: boolean;
+  isPremiumCreator: boolean;
+  premiumPostCount: number;
   currentUserId?: string;
 }
 
@@ -57,6 +63,18 @@ type FollowingUser = {
   isViewerFollowing: boolean;
 };
 
+type PremiumPost = {
+  id: string;
+  title: string;
+  slug: string;
+  visibility: 'public' | 'subscribers' | 'premium' | 'private';
+  createdAt: string;
+  likeCount: number;
+  commentCount: number;
+  viewCount: number;
+  teaser: string;
+};
+
 function normaliseSlug(source: string | null | undefined): string {
   if (!source) {
     return '';
@@ -73,13 +91,37 @@ export function UserProfileTabs({
   username,
   userId,
   isOwnProfile,
+  isSubscribed,
+  isPremiumCreator,
+  premiumPostCount,
   currentUserId,
 }: UserProfileTabsProps) {
   const [bookmarks, setBookmarks] = useState<ProfileBookmark[]>([]);
   const [collections, setCollections] = useState<ProfileCollection[]>([]);
   const [likedBookmarks, setLikedBookmarks] = useState<ProfileBookmark[]>([]);
   const [followingUsers, setFollowingUsers] = useState<FollowingUser[]>([]);
+  const [premiumPosts, setPremiumPosts] = useState<PremiumPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const showPremiumTab = isPremiumCreator || premiumPostCount > 0;
+  const visiblePremiumPosts = isOwnProfile
+    ? premiumPosts
+    : premiumPosts.filter((post) => post.visibility !== 'private');
+  const hasHiddenPremiumPosts =
+    !isOwnProfile && premiumPosts.length > 0 && visiblePremiumPosts.length === 0;
+
+  const createExcerpt = (content: string, limit = 160) => {
+    const condensed = content
+      .replace(/[#>*_`~/]/g, ' ')
+      .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (condensed.length <= limit) {
+      return condensed;
+    }
+
+    return `${condensed.slice(0, limit - 1).trimEnd()}…`;
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -95,6 +137,7 @@ export function UserProfileTabs({
           collectionsResponse,
           likesResponse,
           followingResponse,
+          premiumPostsResponse,
         ] = await Promise.all([
           supabase
             .from('bookmarks')
@@ -157,12 +200,31 @@ export function UserProfileTabs({
             .eq('follower_id', userId)
             .order('created_at', { ascending: false })
             .limit(20),
+          supabase
+            .from('exclusive_posts')
+            .select(
+              `
+                id,
+                title,
+                slug,
+                content,
+                visibility,
+                created_at,
+                like_count,
+                comment_count,
+                view_count
+              `
+            )
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(24),
         ]);
 
         const bookmarksRaw = bookmarksResponse.data || [];
         const collectionsRaw = collectionsResponse.data || [];
         const likesRaw = likesResponse.data || [];
         const followingRaw = followingResponse.data || [];
+        const premiumPostsRaw = premiumPostsResponse?.data || [];
 
         const bookmarkIds = bookmarksRaw.map((bookmark: any) => bookmark.id);
         const likedBookmarkIds = likesRaw
@@ -330,6 +392,18 @@ export function UserProfileTabs({
           })
           .filter(Boolean) as FollowingUser[];
 
+        const mappedPremiumPosts: PremiumPost[] = (premiumPostsRaw || []).map((post: any) => ({
+          id: post.id,
+          title: post.title,
+          slug: normaliseSlug(post.slug) || post.id,
+          visibility: post.visibility,
+          createdAt: post.created_at,
+          likeCount: post.like_count ?? 0,
+          commentCount: post.comment_count ?? 0,
+          viewCount: post.view_count ?? 0,
+          teaser: createExcerpt(post.content || '', 220),
+        }));
+
         if (!isMounted) {
           return;
         }
@@ -338,6 +412,7 @@ export function UserProfileTabs({
         setCollections((collectionsRaw as ProfileCollection[]) || []);
         setLikedBookmarks(mappedLikedBookmarks);
         setFollowingUsers(mappedFollowing);
+        setPremiumPosts(mappedPremiumPosts);
       } catch (error) {
         console.error('Failed to load profile content', error);
         if (!isMounted) {
@@ -347,6 +422,7 @@ export function UserProfileTabs({
         setCollections([]);
         setLikedBookmarks([]);
         setFollowingUsers([]);
+        setPremiumPosts([]);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -363,29 +439,44 @@ export function UserProfileTabs({
 
   return (
     <Tabs defaultValue="bookmarks" className="w-full">
-      <TabsList className="mb-6 w-full justify-start rounded-xl border border-neutral-200 bg-white p-0">
+      <TabsList className="mb-6 flex w-full flex-wrap gap-2 rounded-xl border border-neutral-200 bg-neutral-50/80 p-1">
         <TabsTrigger
           value="bookmarks"
-          className="rounded-l-xl data-[state=active]:bg-neutral-100"
+          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
         >
-          <Bookmark className="mr-2 h-4 w-4" />
+          <Bookmark className="h-4 w-4 text-neutral-500" />
           Bookmarks
         </TabsTrigger>
-        <TabsTrigger value="collections" className="data-[state=active]:bg-neutral-100">
-          <Folder className="mr-2 h-4 w-4" />
+        <TabsTrigger
+          value="collections"
+          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+        >
+          <Folder className="h-4 w-4 text-neutral-500" />
           Collections
         </TabsTrigger>
-        <TabsTrigger value="likes" className="data-[state=active]:bg-neutral-100">
-          <Heart className="mr-2 h-4 w-4" />
+        <TabsTrigger
+          value="likes"
+          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+        >
+          <Heart className="h-4 w-4 text-neutral-500" />
           Likes
         </TabsTrigger>
         <TabsTrigger
           value="following"
-          className="rounded-r-xl data-[state=active]:bg-neutral-100"
+          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
         >
-          <Users className="mr-2 h-4 w-4" />
+          <Users className="h-4 w-4 text-neutral-500" />
           Following
         </TabsTrigger>
+        {showPremiumTab && (
+          <TabsTrigger
+            value="premium"
+            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
+            <Lock className="h-4 w-4 text-amber-600" />
+            Premium
+          </TabsTrigger>
+        )}
       </TabsList>
 
       <TabsContent value="bookmarks" className="space-y-4">
@@ -539,6 +630,73 @@ export function UserProfileTabs({
           </div>
         )}
       </TabsContent>
+
+      {showPremiumTab && (
+        <TabsContent value="premium" className="space-y-6">
+          <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/70 via-white to-neutral-50 p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="max-w-2xl space-y-2">
+                <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Premium feed
+                </div>
+                <h3 className="text-xl font-semibold text-neutral-900">
+                  {isOwnProfile
+                    ? 'Curate premium drops and track engagement'
+                    : `Exclusive content from ${username}`}
+                </h3>
+                <p className="text-sm text-neutral-600">
+                  {isOwnProfile
+                    ? 'Draft subscriber-only insights, gated resources and weekly drops. Subscribers see everything immediately.'
+                    : 'Subscribe to unlock the full archive, gated resources and every new premium drop as soon as it lands.'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {isOwnProfile ? (
+                  <Button asChild>
+                    <Link href="/dashboard/posts/new">Create premium post</Link>
+                  </Button>
+                ) : currentUserId ? (
+                  <SubscriptionButton creatorId={userId} isSubscribed={isSubscribed} />
+                ) : (
+                  <Button asChild>
+                    <Link href="/login">Sign in to subscribe</Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="text-center text-neutral-500">Loading premium posts...</div>
+          ) : visiblePremiumPosts.length === 0 ? (
+            <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
+              <Lock className="mx-auto mb-4 h-12 w-12 text-amber-400" />
+              <h3 className="mb-2 text-lg font-medium text-neutral-900">
+                {hasHiddenPremiumPosts ? 'Premium posts are locked' : 'No premium drops yet'}
+              </h3>
+              <p className="text-sm text-neutral-600">
+                {hasHiddenPremiumPosts
+                  ? 'Subscribe to unlock the full archive of premium content.'
+                  : isOwnProfile
+                  ? 'Publish your first premium post to give subscribers something special.'
+                  : `${username} hasn’t published any premium posts yet.`}
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {visiblePremiumPosts.map((post) => (
+                <PremiumPostCard
+                  key={post.id}
+                  username={username}
+                  post={post}
+                  isLockedView={!isOwnProfile && !isSubscribed && post.visibility !== 'public'}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      )}
     </Tabs>
   );
 }

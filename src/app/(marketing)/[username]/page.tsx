@@ -137,6 +137,10 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
   };
 
   const isOwnProfile = user?.id === profile.id;
+  const subscriptionTier = profile.subscription_tier || profile.plan_type || 'free';
+  const isPremiumCreator =
+    (typeof profile.is_premium === 'boolean' ? profile.is_premium : undefined) ??
+    subscriptionTier !== 'free';
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -156,6 +160,9 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
               username={username}
               userId={profile.id}
               isOwnProfile={isOwnProfile}
+              isSubscribed={isSubscribed}
+              isPremiumCreator={isPremiumCreator}
+              premiumPostCount={stats.premiumPosts}
               currentUserId={user?.id}
             />
           </div>

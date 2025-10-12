@@ -164,9 +164,30 @@ export default async function PublicPremiumPostPage({
     notFound();
   }
 
+  const supabase = await createSupabaseServerClient({ strict: false });
+  const {
+    data: { user },
+  } = (await supabase?.auth.getUser()) ?? { data: { user: null } };
+
+  const isOwner = user?.id === post.user_id;
+  let isSubscribed = false;
+
+  if (supabase && user && !isOwner) {
+    const { data: subscription } = await supabase
+      .from('subscriptions_user')
+      .select('status')
+      .eq('subscriber_id', user.id)
+      .eq('creator_id', post.user_id)
+      .maybeSingle();
+
+    isSubscribed = subscription?.status === 'active';
+  }
+
   const authorName = profile.display_name || profile.username;
   const isPaywalled = post.visibility === 'premium' || post.visibility === 'subscribers';
   const isPrivate = post.visibility === 'private';
+  const canAccessFullContent = isOwner || isSubscribed || post.visibility === 'public';
+  const isLockedForViewer = isPaywalled && !canAccessFullContent;
   const excerpt = createExcerpt(post.content, 220);
   const structuredData = StructuredDataGenerator.generatePremiumPostSchema({
     title: post.title,
@@ -179,7 +200,7 @@ export default async function PublicPremiumPostPage({
     authorName,
   });
 
-  if (isPrivate) {
+  if (isPrivate && !isOwner) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-16">
         <Card>
@@ -207,7 +228,7 @@ export default async function PublicPremiumPostPage({
 
   await incrementViewCount(post.id, post.view_count);
 
-  const teaserContent = isPaywalled ? createExcerpt(post.content, 520) : post.content;
+  const teaserContent = isLockedForViewer ? createExcerpt(post.content, 520) : post.content;
 
   return (
     <>
@@ -265,7 +286,7 @@ export default async function PublicPremiumPostPage({
                   {isPaywalled && (
                     <span className="flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 font-medium text-amber-800">
                       <LockIcon className="h-4 w-4" />
-                      Premium preview
+                      {isLockedForViewer ? 'Premium preview' : 'Subscriber content'}
                     </span>
                   )}
                 </div>
@@ -296,13 +317,15 @@ export default async function PublicPremiumPostPage({
 
                 <div
                   className={
-                    isPaywalled
+                    isLockedForViewer
                       ? 'premium-content relative overflow-hidden rounded-xl border border-amber-100 bg-amber-50/40 p-6 text-base text-neutral-800'
                       : 'prose prose-neutral max-w-none'
                   }
                 >
-                  {renderPostBody(post, teaserContent, { forcePlain: isPaywalled })}
-                  {isPaywalled && (
+                  {renderPostBody(post, isLockedForViewer ? teaserContent : post.content, {
+                    forcePlain: isLockedForViewer,
+                  })}
+                  {isLockedForViewer && (
                     <>
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-amber-50 via-amber-50/70 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 flex justify-center pb-6">
@@ -315,7 +338,7 @@ export default async function PublicPremiumPostPage({
                   )}
                 </div>
 
-                {isPaywalled && (
+                {isLockedForViewer && (
                   <p className="mt-4 text-sm text-amber-800">
                     Enjoy this preview. Subscribers receive the complete article, attachments, and every new release.
                   </p>
@@ -353,28 +376,42 @@ export default async function PublicPremiumPostPage({
               </Card>
             </div>
 
-            <Card className={isPaywalled ? 'border-amber-200 bg-amber-50' : 'border-blue-200 bg-blue-50'}>
+            <Card className={isLockedForViewer ? 'border-amber-200 bg-amber-50' : 'border-blue-200 bg-blue-50'}>
               <CardContent className="p-6 text-center">
                 <h3
                   className={
-                    isPaywalled
+                    isLockedForViewer
                       ? 'mb-2 text-xl font-semibold text-amber-900'
                       : 'mb-2 text-xl font-semibold text-blue-900'
                   }
                 >
-                  {isPaywalled
+                  {isLockedForViewer
                     ? `Unlock the full drop from ${authorName}`
+                    : isPaywalled
+                    ? 'You have full access to this premium drop'
                     : `Want more from ${authorName}?`}
                 </h3>
-                <p className={isPaywalled ? 'mb-4 text-amber-800' : 'mb-4 text-blue-700'}>
-                  {isPaywalled
+                <p className={isLockedForViewer ? 'mb-4 text-amber-800' : 'mb-4 text-blue-700'}>
+                  {isLockedForViewer
                     ? 'Subscribe to access the complete write-up, premium resources, and every new release.'
+                    : isPaywalled
+                    ? 'Thanks for supporting this creator. Enjoy the complete premium experience.'
                     : 'Subscribe to get exclusive content and support their work.'}
                 </p>
                 <div className="flex items-center justify-center gap-3">
-                  <Button asChild>
-                    <Link href={`/${username}`}>Subscribe Now</Link>
-                  </Button>
+                  {isOwner ? (
+                    <Button asChild>
+                      <Link href="/dashboard/posts">Manage Posts</Link>
+                    </Button>
+                  ) : isLockedForViewer ? (
+                    <Button asChild>
+                      <Link href={`/${username}`}>Subscribe Now</Link>
+                    </Button>
+                  ) : (
+                    <Button asChild>
+                      <Link href={`/${username}`}>Explore More Premium Posts</Link>
+                    </Button>
+                  )}
                   <Button variant="outline" asChild>
                     <Link href={`/${username}`}>View Profile</Link>
                   </Button>

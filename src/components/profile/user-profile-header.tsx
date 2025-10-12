@@ -182,6 +182,12 @@ export function UserProfileHeader({
           <div className="mb-1 text-2xl font-semibold text-neutral-900">{stats.subscribers}</div>
           <div className="text-sm text-neutral-600">Subscribers</div>
         </div>
+        {stats.premiumPosts > 0 && (
+          <div className="text-center">
+            <div className="mb-1 text-2xl font-semibold text-neutral-900">{stats.premiumPosts}</div>
+            <div className="text-sm text-neutral-600">Premium Posts</div>
+          </div>
+        )}
       </div>
     </section>
   );
