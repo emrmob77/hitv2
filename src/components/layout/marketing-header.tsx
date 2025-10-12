@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
 import { UserDropdown } from "@/components/layout/user-dropdown";
+import { GlobalSearchBar } from "@/components/search/global-search-bar";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -70,13 +71,8 @@ export async function MarketingHeader() {
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            <div className="relative hidden lg:block">
-              <input
-                type="search"
-                placeholder="Search bookmarks..."
-                className="w-64 pl-10 pr-4 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
-              />
-              <i className="fa-solid fa-search absolute left-3 top-3 text-neutral-400" />
+            <div className="hidden lg:block">
+              <GlobalSearchBar />
             </div>
             {isAuthenticated ? (
               <>

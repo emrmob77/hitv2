@@ -67,21 +67,27 @@
   - [x] Public collection view'da "View Public Page" butonu ekle (username bilgisi gerekli)
   - _Gereksinimler: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 8. Sosyal özellikler ve etkileşim sistemini kodla
-  - User profil sayfalarını ve public bookmark görünümlerini oluştur
-  - Follow/unfollow sistemini ve personalized feed algoritmasını implement et
-  - Like, comment ve share işlevselliklerini geliştir
-  - Activity feed ve notification sistemini kodla
-  - Real-time updates için Supabase subscriptions kullan
+- [x] 8. Sosyal özellikler ve etkileşim sistemini kodla ✅
+  - [x] User profil sayfalarını (/[username]) ve public bookmark görünümlerini oluştur
+  - [x] Follow/unfollow sistemini (FollowButton component) implement et
+  - [x] Like (LikeButton - polymorphic), comment (BookmarkComments) ve share işlevselliklerini geliştir
+  - [x] Activity feed (RecentActivityTimeline) ve notification sistemini kodla
+  - [x] API endpoints: /api/likes, /api/comments, /api/tags/[slug]/follow
+  - [x] Activity tracking ve notification generation entegrasyonu
+  - [ ] Real-time updates için Supabase subscriptions kullan (sonraya bırakıldı)
+  - [ ] Personalized feed algoritması (sonraya bırakıldı)
   - _Gereksinimler: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 9. Arama ve keşif özelliklerini implement et
-  - Real-time search işlevselliğini ve filtreleme sistemini kodla
+- [x] 9. Arama ve keşif özelliklerini implement et ✅
+  - [x] Real-time search işlevselliğini (GlobalSearchBar component) ve filtreleme sistemini kodla
+  - [x] Search API endpoint (/api/search) - bookmarks, collections, tags, users
+  - [x] Search results page (/search) with tabs and filters
   - [x] Trending bookmarks algoritmasını geliştir (Supabase tabanlı)
-  - [ ] Popular collections algoritmalarını geliştir
-  - Related content ve recommendation engine'i implement et
-  - Personalized recommendations sistemini kodla
+  - [x] Popular collections algoritmasını geliştir (popularity score: bookmarks*3 + followers*2 + views)
+  - [x] Related content recommendation engine (getRelatedBookmarksByTags, getRelatedCollections)
+  - [x] Personalized recommendations sistemini kodla (getPersonalizedRecommendations)
   - [x] Tag hierarchy ve related tags özelliklerini geliştir
+  - [x] Debounce hook (use-debounce) ve dropdown search results
   - _Gereksinimler: 6.1, 6.2, 6.3, 6.4, 6.5_
 
 - [ ] 10. Üçlü premium paket sistemini geliştir

@@ -4,10 +4,10 @@ import { NextResponse } from 'next/server';
 // GET /api/collections/[username]/[slug] - Get collection by username and slug
 export async function GET(
   request: Request,
-  { params }: { params: { username: string; slug: string } }
+  { params }: { params: Promise<{ username: string; slug: string }> }
 ) {
   try {
-    const { username, slug } = params;
+    const { username, slug } = await params;
     const supabase = await createSupabaseServerClient();
 
     // Get user by username
@@ -110,10 +110,10 @@ export async function GET(
 // PUT /api/collections/[username]/[slug] - Update collection
 export async function PUT(
   request: Request,
-  { params }: { params: { username: string; slug: string } }
+  { params }: { params: Promise<{ username: string; slug: string }> }
 ) {
   try {
-    const { username, slug } = params;
+    const { username, slug } = await params;
     const supabase = await createSupabaseServerClient();
 
     // Check authentication
@@ -175,10 +175,10 @@ export async function PUT(
 // DELETE /api/collections/[username]/[slug] - Delete collection
 export async function DELETE(
   request: Request,
-  { params }: { params: { username: string; slug: string } }
+  { params }: { params: Promise<{ username: string; slug: string }> }
 ) {
   try {
-    const { username, slug } = params;
+    const { username, slug } = await params;
     const supabase = await createSupabaseServerClient();
 
     // Check authentication
