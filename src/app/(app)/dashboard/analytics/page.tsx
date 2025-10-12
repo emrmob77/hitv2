@@ -1,57 +1,116 @@
 import { Metadata } from 'next';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookmarkIcon, FolderIcon, HeartIcon, EyeIcon, UsersIcon, TrendingUpIcon, LinkIcon, FileTextIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { BookmarkIcon, FolderIcon, HeartIcon, EyeIcon, UsersIcon, TrendingUpIcon, LinkIcon, FileTextIcon, Activity as ActivityIcon, Globe as GlobeIcon } from 'lucide-react';
+
 import { ClickTrendChart } from '@/components/analytics/click-trend-chart';
 import { DeviceBreakdownChart } from '@/components/analytics/device-breakdown-chart';
+import { RealtimeAnalyticsFeed } from '@/components/analytics/realtime-activity';
 import { TopLinksChart } from '@/components/analytics/top-links-chart';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { getAnalyticsSummary, type AnalyticsSummary } from '@/lib/analytics/summary';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
   title: 'Analytics',
 };
 
-interface AnalyticsData {
+type AnalyticsData = AnalyticsSummary;
+
+const emptyAnalytics: AnalyticsData = {
   bookmarks: {
-    total: number;
-    public: number;
-    private: number;
-    totalLikes: number;
-    totalViews: number;
-  };
+    total: 0,
+    public: 0,
+    private: 0,
+    totalLikes: 0,
+    totalViews: 0,
+  },
   collections: {
-    total: number;
-    totalBookmarks: number;
-    totalFollowers: number;
-  };
+    total: 0,
+    totalBookmarks: 0,
+    totalFollowers: 0,
+    totalViews: 0,
+  },
   posts: {
-    total: number;
-    totalViews: number;
-    totalLikes: number;
-  };
+    total: 0,
+    totalViews: 0,
+    totalLikes: 0,
+  },
   linkGroups: {
-    total: number;
-    totalViews: number;
-    totalClicks: number;
-  };
+    total: 0,
+    totalViews: 0,
+    totalClicks: 0,
+  },
   social: {
-    followers: number;
-    following: number;
-    totalLikesReceived: number;
-  };
-}
+    followers: 0,
+    following: 0,
+    totalLikesReceived: 0,
+    username: '',
+    displayName: '',
+  },
+  traffic: {
+    currentViews: 0,
+    previousViews: 0,
+    change: 0,
+    dailyViews: [],
+    deviceBreakdown: [],
+    geoDistribution: [],
+    topReferrers: [],
+    recentPageViews: [],
+    ownedContentIds: {
+      bookmark: [],
+      collection: [],
+      link_group: [],
+      profile: '',
+    },
+    contentMeta: {
+      bookmark: [],
+      collection: [],
+      link_group: [],
+      profile: null,
+    },
+  },
+};
 
 export default async function AnalyticsPage() {
   const analytics = await fetchAnalytics();
   const profile = await fetchUserProfile();
 
+  const trendData = analytics.traffic.dailyViews.map((entry) => ({
+    date: format(new Date(`${entry.date}T00:00:00Z`), 'MMM d'),
+    clicks: entry.value,
+  }));
+
+  const deviceData = analytics.traffic.deviceBreakdown;
+  const referrerData = analytics.traffic.topReferrers.map((item) => ({
+    name: item.source,
+    clicks: item.value,
+  }));
+  const geoData = analytics.traffic.geoDistribution;
+  const geoMax = geoData.reduce((max, entry) => Math.max(max, entry.value), 0);
+  const trafficChangePositive = analytics.traffic.change >= 0;
+  const trafficChangeValue = Math.abs(analytics.traffic.change).toFixed(2);
+
   return (
     <div className="space-y-8">
       {/* Header */}
-      <header className="mx-auto w-full max-w-7xl">
-        <h1 className="mb-2 text-3xl font-semibold text-neutral-900">Analytics Dashboard</h1>
-        <p className="text-sm text-neutral-600">
-          Track your performance and engagement across HitTags.
-        </p>
+      <header className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="mb-2 text-3xl font-semibold text-neutral-900">Analytics Dashboard</h1>
+          <p className="text-sm text-neutral-600">Track your performance and engagement across HitTags.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <a href="/api/analytics/export?format=csv" download>
+              Export CSV
+            </a>
+          </Button>
+          <Button asChild>
+            <a href="/api/analytics/export?format=pdf" download>
+              Export PDF
+            </a>
+          </Button>
+        </div>
       </header>
 
       {/* Overview Stats */}
@@ -257,61 +316,117 @@ export default async function AnalyticsPage() {
         <div className="mx-auto w-full max-w-7xl space-y-6">
           <h2 className="text-2xl font-semibold">Performance Insights</h2>
 
-          {/* Click Trend */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Click Trends (Last 7 Days)</CardTitle>
-              <CardDescription>Daily click performance across all your links</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ClickTrendChart
-                data={[
-                  { date: 'Mon', clicks: 45 },
-                  { date: 'Tue', clicks: 52 },
-                  { date: 'Wed', clicks: 38 },
-                  { date: 'Thu', clicks: 65 },
-                  { date: 'Fri', clicks: 78 },
-                  { date: 'Sat', clicks: 92 },
-                  { date: 'Sun', clicks: 71 },
-                ]}
-              />
-            </CardContent>
-          </Card>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Device Breakdown */}
+          <div className="grid gap-6 lg:grid-cols-3">
             <Card>
               <CardHeader>
-                <CardTitle>Device Breakdown</CardTitle>
-                <CardDescription>Visitor distribution by device type</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUpIcon className="h-4 w-4 text-neutral-500" />
+                  7-day Traffic
+                </CardTitle>
+                <CardDescription>Comparing the last 7 days with the previous week.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <DeviceBreakdownChart
-                  data={[
-                    { name: 'Mobile', value: 58 },
-                    { name: 'Desktop', value: 32 },
-                    { name: 'Tablet', value: 10 },
-                  ]}
-                />
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="text-3xl font-semibold text-neutral-900">{analytics.traffic.currentViews}</div>
+                  <p className="text-sm text-neutral-500">Views in the last 7 days</p>
+                </div>
+                <div className={`flex items-center gap-2 text-sm ${trafficChangePositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {trafficChangePositive ? '▲' : '▼'} {trafficChangeValue}%
+                  <span className="text-neutral-500">
+                    vs previous period ({analytics.traffic.previousViews})
+                  </span>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Top Links */}
-            <Card>
+            <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Top Performing Links</CardTitle>
-                <CardDescription>Your most clicked links this month</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <ActivityIcon className="h-4 w-4 text-neutral-500" />
+                  Live Engagement
+                </CardTitle>
+                <CardDescription>Recently recorded views across your public surfaces.</CardDescription>
               </CardHeader>
               <CardContent>
-                <TopLinksChart
-                  data={[
-                    { name: 'Product Launch', clicks: 234 },
-                    { name: 'Blog Post', clicks: 187 },
-                    { name: 'Newsletter', clicks: 156 },
-                    { name: 'Portfolio', clicks: 142 },
-                    { name: 'Contact', clicks: 98 },
-                  ]}
+                <RealtimeAnalyticsFeed
+                  initialEvents={analytics.traffic.recentPageViews}
+                  ownedContentIds={analytics.traffic.ownedContentIds}
+                  contentMeta={analytics.traffic.contentMeta}
                 />
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Traffic Trend (Last 14 Days)</CardTitle>
+              <CardDescription>Daily views across bookmarks, collections, and link groups.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {trendData.length === 0 ? (
+                <p className="text-sm text-neutral-500">Traffic data will appear once you start receiving views.</p>
+              ) : (
+                <ClickTrendChart data={trendData} />
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Device Breakdown</CardTitle>
+                <CardDescription>Visitor distribution by device type.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {deviceData.length === 0 ? (
+                  <p className="text-sm text-neutral-500">No device data yet.</p>
+                ) : (
+                  <DeviceBreakdownChart data={deviceData} />
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Traffic Sources</CardTitle>
+                <CardDescription>Referrers sending the most visits.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {referrerData.length === 0 ? (
+                  <p className="text-sm text-neutral-500">No referral data yet.</p>
+                ) : (
+                  <TopLinksChart data={referrerData} />
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GlobeIcon className="h-4 w-4 text-neutral-500" />
+                  Top Regions
+                </CardTitle>
+                <CardDescription>Where your audience viewed your content.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {geoData.length === 0 ? (
+                  <p className="text-sm text-neutral-500">No regional data yet.</p>
+                ) : (
+                  geoData.slice(0, 6).map((item) => (
+                    <div key={item.country} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span>{item.country}</span>
+                        <span className="font-medium">{item.value}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-neutral-100">
+                        <div
+                          className="h-2 rounded-full bg-blue-500"
+                          style={{ width: `${geoMax > 0 ? Math.max((item.value / geoMax) * 100, 6) : 0}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </div>
@@ -366,85 +481,10 @@ async function fetchAnalytics(): Promise<AnalyticsData> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return {
-      bookmarks: { total: 0, public: 0, private: 0, totalLikes: 0, totalViews: 0 },
-      collections: { total: 0, totalBookmarks: 0, totalFollowers: 0 },
-      posts: { total: 0, totalViews: 0, totalLikes: 0 },
-      linkGroups: { total: 0, totalViews: 0, totalClicks: 0 },
-      social: { followers: 0, following: 0, totalLikesReceived: 0 },
-    };
+    return emptyAnalytics;
   }
 
-  // Fetch bookmarks stats
-  const { data: bookmarks } = await supabase
-    .from('bookmarks')
-    .select('privacy_level, like_count')
-    .eq('user_id', user.id);
-
-  const bookmarkStats = {
-    total: bookmarks?.length || 0,
-    public: bookmarks?.filter(b => b.privacy_level === 'public').length || 0,
-    private: bookmarks?.filter(b => b.privacy_level === 'private').length || 0,
-    totalLikes: bookmarks?.reduce((sum, b) => sum + (b.like_count || 0), 0) || 0,
-    totalViews: 0, // Would come from page_views table
-  };
-
-  // Fetch collections stats
-  const { data: collections } = await supabase
-    .from('collections')
-    .select('bookmark_count, follower_count')
-    .eq('user_id', user.id);
-
-  const collectionStats = {
-    total: collections?.length || 0,
-    totalBookmarks: collections?.reduce((sum, c) => sum + (c.bookmark_count || 0), 0) || 0,
-    totalFollowers: collections?.reduce((sum, c) => sum + (c.follower_count || 0), 0) || 0,
-  };
-
-  // Fetch posts stats
-  const { data: posts } = await supabase
-    .from('exclusive_posts')
-    .select('view_count, like_count')
-    .eq('user_id', user.id);
-
-  const postStats = {
-    total: posts?.length || 0,
-    totalViews: posts?.reduce((sum, p) => sum + (p.view_count || 0), 0) || 0,
-    totalLikes: posts?.reduce((sum, p) => sum + (p.like_count || 0), 0) || 0,
-  };
-
-  // Fetch link groups stats
-  const { data: linkGroups } = await supabase
-    .from('link_groups')
-    .select('view_count, click_count')
-    .eq('user_id', user.id);
-
-  const linkGroupStats = {
-    total: linkGroups?.length || 0,
-    totalViews: linkGroups?.reduce((sum, lg) => sum + (lg.view_count || 0), 0) || 0,
-    totalClicks: linkGroups?.reduce((sum, lg) => sum + (lg.click_count || 0), 0) || 0,
-  };
-
-  // Fetch social stats
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('follower_count, following_count, total_likes_received')
-    .eq('id', user.id)
-    .single();
-
-  const socialStats = {
-    followers: profile?.follower_count || 0,
-    following: profile?.following_count || 0,
-    totalLikesReceived: profile?.total_likes_received || 0,
-  };
-
-  return {
-    bookmarks: bookmarkStats,
-    collections: collectionStats,
-    posts: postStats,
-    linkGroups: linkGroupStats,
-    social: socialStats,
-  };
+  return getAnalyticsSummary(supabase, user.id);
 }
 
 async function fetchUserProfile() {

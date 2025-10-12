@@ -13,6 +13,8 @@ import { MetadataGenerator } from '@/lib/seo/metadata';
 import { StructuredDataGenerator } from '@/lib/seo/structured-data';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
+export const revalidate = 600;
+
 type TagRecord = {
   id: string;
   name: string;

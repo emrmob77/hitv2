@@ -205,6 +205,92 @@ export class StructuredDataGenerator {
     };
   }
 
+  static generatePremiumPostSchema(input: {
+    title: string;
+    slug: string;
+    username: string;
+    createdAt: string;
+    visibility: 'public' | 'subscribers' | 'premium' | 'private';
+    excerpt: string;
+    mediaUrls?: string[];
+    authorName: string;
+  }) {
+    const pageUrl = `${BASE_URL}/p/${input.username}/${input.slug}`;
+    const isAccessibleForFree = input.visibility === 'public';
+
+    const article: Record<string, unknown> = {
+      '@type': 'Article',
+      headline: input.title,
+      description: input.excerpt,
+      datePublished: input.createdAt,
+      mainEntityOfPage: pageUrl,
+      url: pageUrl,
+      author: {
+        '@type': 'Person',
+        name: input.authorName,
+        url: `${BASE_URL}/${input.username}`,
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'HitTags',
+        url: BASE_URL,
+        logo: {
+          '@type': 'ImageObject',
+          url: `${BASE_URL}/logo.png`,
+        },
+      },
+      isAccessibleForFree,
+    };
+
+    if (input.mediaUrls && input.mediaUrls.length > 0) {
+      article.image = input.mediaUrls.slice(0, 4);
+    }
+
+    if (!isAccessibleForFree) {
+      article.hasPart = {
+        '@type': 'WebPageElement',
+        name: 'Premium Content',
+        isAccessibleForFree: false,
+        cssSelector: '.premium-content',
+      };
+      article.isPartOf = {
+        '@type': 'CreativeWork',
+        name: 'HitTags Premium Feed',
+        url: `${BASE_URL}/${input.username}`,
+      };
+    }
+
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: BASE_URL,
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: input.authorName,
+              item: `${BASE_URL}/${input.username}`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: input.title,
+              item: pageUrl,
+            },
+          ],
+        },
+        article,
+      ],
+    };
+  }
+
   // Collection Page Schema
   static generateCollectionSchema(
     collection: {

@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { cache } from 'react';
 import { MetadataGenerator } from '@/lib/seo/metadata';
 import { StructuredDataGenerator } from '@/lib/seo/structured-data';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -18,7 +19,9 @@ interface Props {
   };
 }
 
-async function getBookmark(id: string) {
+export const revalidate = 900;
+
+const getBookmark = cache(async (id: string) => {
   try {
     const supabase = await createSupabaseServerClient();
 
@@ -63,9 +66,9 @@ async function getBookmark(id: string) {
     console.error('Error fetching bookmark:', error);
     return null;
   }
-}
+});
 
-async function getUserCollections(userId: string) {
+const getUserCollections = cache(async (userId: string) => {
   try {
     const supabase = await createSupabaseServerClient();
 
@@ -100,7 +103,7 @@ async function getUserCollections(userId: string) {
     console.error('Error fetching collections:', error);
     return [];
   }
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
