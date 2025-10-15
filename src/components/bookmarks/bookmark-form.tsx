@@ -793,11 +793,20 @@ function BaseBookmarkForm({ mode, initialValues, bookmarkId }: BaseBookmarkFormP
           <h3 className="text-base font-semibold text-neutral-900">Preview</h3>
           <div className="mt-3 rounded-2xl border border-neutral-100 bg-neutral-50/70 p-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white text-[10px] font-semibold text-neutral-500 shadow-sm">
-                Preview
-              </div>
+              {formValues.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={formValues.imageUrl}
+                  alt="Preview"
+                  className="h-16 w-16 flex-shrink-0 rounded-lg object-cover shadow-sm"
+                />
+              ) : (
+                <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-100 to-neutral-200 text-[10px] font-semibold text-neutral-400 shadow-sm">
+                  {formValues.title ? formValues.title.charAt(0).toUpperCase() : 'Preview'}
+                </div>
+              )}
               <div className="flex-1 space-y-2">
-                <p className="text-sm font-semibold text-neutral-800">
+                <p className="text-sm font-semibold text-neutral-800 line-clamp-2">
                   {formValues.title || 'Title will appear here…'}
                 </p>
                 <p className="line-clamp-3 text-xs leading-5 text-neutral-500">

@@ -305,8 +305,10 @@ async function extractMetadataFromUrl(targetUrl: string): Promise<BookmarkMetada
   try {
     const response = await fetch(targetUrl, {
       headers: {
-        "user-agent": `HitTagsBot/1.0 (+${BASE_URL})`,
-        accept: "text/html,application/xhtml+xml",
+        "user-agent": "Mozilla/5.0 (compatible; HitTagsBot/1.0; +https://hittags.com)",
+        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "accept-language": "en-US,en;q=0.9",
+        "cache-control": "no-cache",
       },
       redirect: "follow",
       next: { revalidate: 60 * 60 },
@@ -318,47 +320,70 @@ async function extractMetadataFromUrl(targetUrl: string): Promise<BookmarkMetada
 
     const html = await response.text();
 
-    const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-    const descriptionMatch = html.match(
-      /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["'][^>]*>/i
-    );
-    const ogTitleMatch = html.match(
-      /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)["'][^>]*>/i
-    );
-    const ogDescriptionMatch = html.match(
-      /<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']*)["'][^>]*>/i
-    );
-    const ogImageMatch = html.match(
-      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']*)["'][^>]*>/i
-    );
-    const iconMatch = html.match(
-      /<link[^>]+rel=["'](?:shortcut\s+)?icon(?:\s+icon)?["'][^>]+href=["']([^"']+)["'][^>]*>/i
-    );
+    // Helper function to extract meta content
+    const getMeta = (pattern: RegExp): string | null => {
+      const match = html.match(pattern);
+      return match?.[1] || null;
+    };
+
+    // Extract all possible meta tags
+    const ogTitle = getMeta(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)["'][^>]*>/i) ||
+                    getMeta(/<meta[^>]+content=["']([^"']*)["'][^>]+property=["']og:title["'][^>]*>/i);
+
+    const ogDescription = getMeta(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']*)["'][^>]*>/i) ||
+                          getMeta(/<meta[^>]+content=["']([^"']*)["'][^>]+property=["']og:description["'][^>]*>/i);
+
+    const ogImage = getMeta(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']*)["'][^>]*>/i) ||
+                    getMeta(/<meta[^>]+content=["']([^"']*)["'][^>]+property=["']og:image["'][^>]*>/i) ||
+                    getMeta(/<meta[^>]+property=["']og:image:url["'][^>]+content=["']([^"']*)["'][^>]*>/i) ||
+                    getMeta(/<meta[^>]+property=["']og:image:secure_url["'][^>]+content=["']([^"']*)["'][^>]*>/i);
+
+    const twitterImage = getMeta(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']*)["'][^>]*>/i) ||
+                         getMeta(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']twitter:image["'][^>]*>/i);
+
+    const title = getMeta(/<title[^>]*>([^<]*)<\/title>/i);
+
+    const description = getMeta(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["'][^>]*>/i) ||
+                        getMeta(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["'][^>]*>/i);
+
+    const icon = getMeta(/<link[^>]+rel=["'](?:shortcut\s+)?icon(?:\s+icon)?["'][^>]+href=["']([^"']+)["'][^>]*>/i) ||
+                 getMeta(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:shortcut\s+)?icon(?:\s+icon)?["'][^>]*>/i);
 
     const metadata: BookmarkMetadata = {};
 
-    if (ogTitleMatch?.[1]) {
-      metadata.title = ogTitleMatch[1];
-    } else if (titleMatch?.[1]) {
-      metadata.title = titleMatch[1];
+    // Title priority: og:title > title tag
+    if (ogTitle) {
+      metadata.title = ogTitle.trim();
+    } else if (title) {
+      metadata.title = title.trim();
     }
 
-    if (ogDescriptionMatch?.[1]) {
-      metadata.description = ogDescriptionMatch[1];
-    } else if (descriptionMatch?.[1]) {
-      metadata.description = descriptionMatch[1];
+    // Description priority: og:description > meta description
+    if (ogDescription) {
+      metadata.description = ogDescription.trim();
+    } else if (description) {
+      metadata.description = description.trim();
     }
 
-    if (ogImageMatch?.[1]) {
-      metadata.imageUrl = resolveUrl(targetUrl, ogImageMatch[1]);
+    // Image priority: og:image > twitter:image
+    const imageUrl = ogImage || twitterImage;
+    if (imageUrl) {
+      const resolved = resolveUrl(targetUrl, imageUrl.trim());
+      // Validate image URL
+      if (resolved.startsWith('http://') || resolved.startsWith('https://')) {
+        metadata.imageUrl = resolved;
+      }
     }
 
-    if (iconMatch?.[1]) {
-      metadata.faviconUrl = resolveUrl(targetUrl, iconMatch[1]);
+    // Favicon
+    if (icon) {
+      metadata.faviconUrl = resolveUrl(targetUrl, icon.trim());
     } else {
+      // Try common favicon paths
       const faviconFallbacks = [
         '/favicon.ico',
         '/favicon.png',
+        '/apple-touch-icon.png',
         '/favicon-32x32.png',
         '/favicon-16x16.png',
       ];
@@ -366,18 +391,19 @@ async function extractMetadataFromUrl(targetUrl: string): Promise<BookmarkMetada
       for (const path of faviconFallbacks) {
         const resolved = resolveUrl(targetUrl, path);
         try {
-          const response = await fetch(resolved, {
+          const faviconResponse = await fetch(resolved, {
             method: 'HEAD',
             headers: {
-              'user-agent': `HitTagsBot/1.0 (+${BASE_URL})`,
+              'user-agent': 'Mozilla/5.0 (compatible; HitTagsBot/1.0)',
             },
+            signal: AbortSignal.timeout(3000), // 3 second timeout
           });
-          if (response.ok) {
+          if (faviconResponse.ok) {
             metadata.faviconUrl = resolved;
             break;
           }
-        } catch (error) {
-          console.warn('Failed to fetch favicon fallback', resolved, error);
+        } catch {
+          // Silently continue to next fallback
         }
       }
     }
