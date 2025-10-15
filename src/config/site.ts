@@ -16,6 +16,7 @@ import {
   Heart,
   Bookmark,
   Bell,
+  TrendingUp,
 } from "lucide-react";
 
 export type MainNavItem = {
@@ -149,6 +150,13 @@ export const siteConfig = {
       icon: DollarSign,
       badge: "Pro",
       description: "Track affiliate links and earnings",
+    },
+    {
+      title: "Monetization",
+      href: "/dashboard/monetization",
+      icon: TrendingUp,
+      badge: "Creator",
+      description: "Apply for creator monetization program",
     },
     {
       title: "Analytics",
