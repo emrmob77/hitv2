@@ -11,7 +11,7 @@ type BookmarkRecord = {
   id: string;
   slug: string | null;
   updated_at: string;
-  view_count: number | null;
+  click_count: number | null;
   like_count: number | null;
 };
 
@@ -50,8 +50,8 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('bookmarks')
-      .select('id, slug, updated_at, view_count, like_count')
-      .eq('is_public', true)
+      .select('id, slug, updated_at, click_count, like_count')
+      .eq('privacy_level', 'public')
       .order('updated_at', { ascending: false })
       .limit(1500);
 
@@ -61,7 +61,7 @@ export async function GET() {
     }
 
     const entries = (data as BookmarkRecord[]).map((bookmark) => {
-      const engagementScore = (bookmark.view_count ?? 0) + (bookmark.like_count ?? 0) * 2;
+      const engagementScore = (bookmark.click_count ?? 0) + (bookmark.like_count ?? 0) * 2;
       const priority = Math.min(0.9, 0.5 + Math.min(engagementScore / 1000, 0.4));
 
       return {

@@ -29,6 +29,7 @@ interface Bookmark {
   slug?: string | null;
   tags?: StructuredBookmarkTag[];
   user?: StructuredBookmarkAuthor;
+  privacy_level?: 'public' | 'private' | 'subscribers';
 }
 
 export class StructuredDataGenerator {
@@ -142,6 +143,7 @@ export class StructuredDataGenerator {
   // Bookmark Page Schema
   static generateBookmarkSchema(bookmark: Bookmark) {
     const pageUrl = `${BASE_URL}/bookmark/${bookmark.id}/${bookmark.slug ?? bookmark.id}`;
+    const isAccessibleForFree = bookmark.privacy_level !== 'subscribers';
 
     const author =
       bookmark.user && (bookmark.user.display_name || bookmark.user.username)
@@ -156,6 +158,41 @@ export class StructuredDataGenerator {
       bookmark.tags && bookmark.tags.length > 0
         ? bookmark.tags.map((tag) => tag.name)
         : undefined;
+
+    const article: Record<string, unknown> = {
+      '@type': 'Article',
+      headline: bookmark.title,
+      description: bookmark.description ?? undefined,
+      url: bookmark.url,
+      mainEntityOfPage: pageUrl,
+      author,
+      datePublished: bookmark.created_at,
+      keywords,
+      isAccessibleForFree,
+      publisher: {
+        '@type': 'Organization',
+        name: 'HitTags',
+        logo: {
+          '@type': 'ImageObject',
+          url: `${BASE_URL}/logo.png`,
+        },
+      },
+    };
+
+    // Add premium content metadata for subscriber-only bookmarks
+    if (!isAccessibleForFree && author) {
+      article.hasPart = {
+        '@type': 'WebPageElement',
+        name: 'Subscriber-only Content',
+        isAccessibleForFree: false,
+        cssSelector: '.bookmark-content',
+      };
+      article.isPartOf = {
+        '@type': 'CreativeWork',
+        name: 'HitTags Subscriber Feed',
+        url: bookmark.user?.username ? `${BASE_URL}/${bookmark.user.username}` : BASE_URL,
+      };
+    }
 
     return {
       '@context': 'https://schema.org',
@@ -183,24 +220,7 @@ export class StructuredDataGenerator {
             },
           ],
         },
-        {
-          '@type': 'Article',
-          headline: bookmark.title,
-          description: bookmark.description ?? undefined,
-          url: bookmark.url,
-          mainEntityOfPage: pageUrl,
-          author,
-          datePublished: bookmark.created_at,
-          keywords,
-          publisher: {
-            '@type': 'Organization',
-            name: 'HitTags',
-            logo: {
-              '@type': 'ImageObject',
-              url: `${BASE_URL}/logo.png`,
-            },
-          },
-        },
+        article,
       ],
     };
   }

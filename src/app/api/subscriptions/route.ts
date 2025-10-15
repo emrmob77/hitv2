@@ -89,6 +89,39 @@ export async function POST(request: Request) {
       }
 
       isSubscribed = true;
+
+      // Create notification for creator
+      const { data: subscriberProfile } = await supabase
+        .from('profiles')
+        .select('username, display_name')
+        .eq('id', user.id)
+        .single();
+
+      if (subscriberProfile) {
+        await supabase.from('notifications').insert({
+          user_id: creatorId,
+          type: 'subscription',
+          title: 'New subscriber',
+          message: `${subscriberProfile.display_name || subscriberProfile.username} subscribed to your content`,
+          data: {
+            subscriber_id: user.id,
+            subscriber_username: subscriberProfile.username,
+            subscriber_display_name: subscriberProfile.display_name,
+            action: 'subscribed',
+          },
+          action_url: `/${subscriberProfile.username}`,
+          is_read: false,
+        });
+
+        // Create activity
+        await supabase.from('activities').insert({
+          user_id: user.id,
+          action: 'subscribe',
+          object_type: 'user',
+          object_id: creatorId,
+          is_public: false,
+        });
+      }
     }
 
     return NextResponse.json({

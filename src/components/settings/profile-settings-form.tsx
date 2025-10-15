@@ -30,13 +30,19 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
     setIsLoading(true);
 
     try {
+      // Validate and normalize website URL
+      let websiteUrl = formData.website_url.trim();
+      if (websiteUrl && !websiteUrl.startsWith('http://') && !websiteUrl.startsWith('https://')) {
+        websiteUrl = 'https://' + websiteUrl;
+      }
+
       const supabase = createSupabaseBrowserClient();
       const { error } = await supabase
         .from('profiles')
         .update({
           display_name: formData.display_name,
           bio: formData.bio,
-          website_url: formData.website_url,
+          website_url: websiteUrl || null,
           twitter_handle: formData.twitter_handle,
           github_handle: formData.github_handle,
         })
@@ -45,6 +51,12 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
       if (error) throw error;
 
       toast.success('Profile updated successfully');
+
+      // Update local form data with normalized URL
+      if (websiteUrl !== formData.website_url) {
+        setFormData({ ...formData, website_url: websiteUrl });
+      }
+
       router.refresh();
     } catch (error: any) {
       toast.error(error.message || 'Failed to update profile');
@@ -100,13 +112,16 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
         <Label htmlFor="website_url">Website</Label>
         <Input
           id="website_url"
-          type="url"
+          type="text"
           value={formData.website_url}
           onChange={(e) =>
             setFormData({ ...formData, website_url: e.target.value })
           }
           placeholder="https://example.com"
         />
+        <p className="text-xs text-muted-foreground">
+          Enter a full URL (e.g., https://example.com)
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

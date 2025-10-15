@@ -4,6 +4,8 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookmarkIcon, FolderIcon, TagIcon, TrendingUpIcon, PlusIcon } from 'lucide-react';
+import { UsageLimitsCard } from '@/components/dashboard/usage-limits-card';
+import { FeatureGate } from '@/lib/features/feature-gate';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -22,6 +24,7 @@ const EMPTY_DASHBOARD_STATS = {
 export default async function DashboardPage() {
   const stats = await fetchDashboardStats();
   const recentBookmarks = await fetchRecentBookmarks();
+  const userProfile = await fetchUserProfile();
 
   return (
     <div className="space-y-8">
@@ -32,6 +35,15 @@ export default async function DashboardPage() {
           Welcome back! Here&apos;s an overview of your activity.
         </p>
       </header>
+
+      {/* Usage Limits Card */}
+      {userProfile && (
+        <UsageLimitsCard
+          tier={userProfile.subscription_tier}
+          bookmarkCount={stats.bookmarkCount}
+          collectionCount={stats.collectionCount}
+        />
+      )}
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -268,4 +280,28 @@ async function fetchRecentBookmarks() {
     .limit(5);
 
   return data || [];
+}
+
+async function fetchUserProfile() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('subscription_tier, is_premium')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile) return null;
+
+  // Determine tier from profile
+  const featureGate = FeatureGate.fromProfile(profile);
+
+  return {
+    subscription_tier: featureGate.getTier(),
+  };
 }

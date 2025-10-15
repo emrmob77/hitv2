@@ -15,6 +15,7 @@ import {
   Star,
   Heart,
   Bookmark,
+  Bell,
 } from "lucide-react";
 
 export type MainNavItem = {
@@ -121,6 +122,12 @@ export const siteConfig = {
       href: "/dashboard/tags",
       icon: Tags,
       description: "Trending topics and SEO signals",
+    },
+    {
+      title: "Subscribers",
+      href: "/dashboard/subscribers",
+      icon: Bell,
+      description: "Manage subscriptions and exclusive content",
     },
     {
       title: "Premium Posts",

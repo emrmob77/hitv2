@@ -10,6 +10,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { BookmarkDetailPreview } from '@/components/bookmarks/bookmark-detail-preview';
 import { BookmarkDetailSidebar } from '@/components/bookmarks/bookmark-detail-sidebar';
 import { BookmarkComments } from '@/components/bookmarks/bookmark-comments';
+import { SubscriberPaywall } from '@/components/paywall/subscriber-paywall';
 import { siteConfig } from '@/config/site';
 
 interface Props {
@@ -54,7 +55,6 @@ const getBookmark = cache(async (id: string) => {
       `
       )
       .eq('id', id)
-      .eq('privacy_level', 'public')
       .single();
 
     if (error || !bookmark) {
@@ -150,6 +150,7 @@ export default async function BookmarkDetailPage({ params }: Props) {
     url: bookmark.url,
     created_at: bookmark.created_at,
     slug: correctSlug,
+    privacy_level: bookmark.privacy_level,
     tags,
     user: bookmark.profiles
       ? {
@@ -179,6 +180,11 @@ export default async function BookmarkDetailPage({ params }: Props) {
   let currentUser = undefined;
   let isLiked = false;
   let isBookmarked = false;
+  let isSubscribed = false;
+
+  // Check if bookmark is private/subscriber-only and user has access
+  const isOwner = user?.id === bookmark.user_id;
+  const privacyLevel = bookmark.privacy_level || 'public';
 
   if (user) {
     const { data: profile } = await supabase
@@ -212,6 +218,19 @@ export default async function BookmarkDetailPage({ params }: Props) {
         .single();
 
       isBookmarked = !!savedData;
+
+      // Check subscription status
+      if (!isOwner && privacyLevel === 'subscribers') {
+        const { data: subscriptionData } = await supabase
+          .from('subscriptions_user')
+          .select('id, status')
+          .eq('subscriber_id', user.id)
+          .eq('creator_id', bookmark.user_id)
+          .eq('status', 'active')
+          .single();
+
+        isSubscribed = !!subscriptionData;
+      }
     }
   }
 
@@ -440,8 +459,24 @@ export default async function BookmarkDetailPage({ params }: Props) {
             <span className="text-neutral-900">{bookmark.title}</span>
           </nav>
 
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2">
+          {/* Check if user has access to subscriber-only content */}
+          {privacyLevel === 'subscribers' && !isOwner && !isSubscribed ? (
+            <SubscriberPaywall
+              contentType="bookmark"
+              contentTitle={bookmark.title}
+              contentDescription={bookmark.description || undefined}
+              teaserContent={bookmark.description || bookmark.title}
+              creator={{
+                id: bookmark.user_id,
+                username: bookmark.profiles?.username || 'unknown',
+                displayName: bookmark.profiles?.display_name || undefined,
+                avatarUrl: bookmark.profiles?.avatar_url || undefined,
+              }}
+              currentUserId={user?.id}
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              <div className="lg:col-span-2">
               {/* Bookmark Preview */}
               <BookmarkDetailPreview
                 id={bookmark.id}
@@ -476,9 +511,10 @@ export default async function BookmarkDetailPage({ params }: Props) {
               />
             </div>
 
-            {/* Sidebar */}
-            <BookmarkDetailSidebar {...sidebarData} />
-          </div>
+              {/* Sidebar */}
+              <BookmarkDetailSidebar {...sidebarData} />
+            </div>
+          )}
         </div>
       </main>
     </>

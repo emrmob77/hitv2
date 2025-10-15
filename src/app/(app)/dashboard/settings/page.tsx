@@ -8,6 +8,8 @@ import { PrivacySettingsSection } from '@/components/settings/privacy-settings-s
 import { NotificationSettingsSection } from '@/components/settings/notification-settings-section';
 import { DataExportSection } from '@/components/settings/data-export-section';
 import { DangerZoneSection } from '@/components/settings/danger-zone-section';
+import { BillingSubscriptionSection } from '@/components/settings/billing-subscription-section';
+import { FeatureGate } from '@/lib/features/feature-gate';
 
 export const metadata: Metadata = {
   title: 'Settings',
@@ -30,6 +32,24 @@ export default async function SettingsPage() {
     .select('*')
     .eq('id', user.id)
     .single();
+
+  // Fetch usage stats
+  const { data: bookmarks } = await supabase
+    .from('bookmarks')
+    .select('id')
+    .eq('user_id', user.id);
+
+  const { data: collections } = await supabase
+    .from('collections')
+    .select('id')
+    .eq('user_id', user.id);
+
+  const bookmarkCount = bookmarks?.length || 0;
+  const collectionCount = collections?.length || 0;
+
+  // Get subscription tier
+  const featureGate = FeatureGate.fromProfile(profile || {});
+  const currentTier = featureGate.getTier();
 
   return (
     <div className="space-y-8">
@@ -86,36 +106,21 @@ export default async function SettingsPage() {
         </Card>
       </div>
 
-      {/* Subscription Info */}
+      {/* Billing & Subscription */}
       <div className="mx-auto w-full max-w-5xl">
         <Card>
           <CardHeader>
-            <CardTitle>Subscription</CardTitle>
+            <CardTitle>Billing & Subscription</CardTitle>
             <CardDescription>
-              Manage your subscription plan
+              Manage your subscription plan and usage
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Current Plan</p>
-                  <p className="text-sm text-muted-foreground">
-                    {profile?.plan_type === 'free' && 'Free Plan'}
-                    {profile?.plan_type === 'pro' && 'Pro Plan'}
-                    {profile?.plan_type === 'enterprise' && 'Enterprise Plan'}
-                  </p>
-                </div>
-                {profile?.plan_type === 'free' && (
-                  <a
-                    href="/pricing"
-                    className="inline-flex items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
-                  >
-                    Upgrade Plan
-                  </a>
-                )}
-              </div>
-            </div>
+            <BillingSubscriptionSection
+              currentTier={currentTier}
+              bookmarkCount={bookmarkCount}
+              collectionCount={collectionCount}
+            />
           </CardContent>
         </Card>
       </div>
