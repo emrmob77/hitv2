@@ -20,6 +20,7 @@ CREATE TABLE profiles (
     location VARCHAR(100),
     is_verified BOOLEAN DEFAULT FALSE,
     is_premium BOOLEAN DEFAULT FALSE,
+    is_admin BOOLEAN DEFAULT FALSE,
     subscription_tier VARCHAR(20) DEFAULT 'free' CHECK (subscription_tier IN ('free', 'pro', 'enterprise')),
     bookmark_count INTEGER DEFAULT 0,
     follower_count INTEGER DEFAULT 0,
@@ -502,6 +503,7 @@ CREATE TABLE trending_topics (
 CREATE INDEX idx_profiles_username ON profiles(username);
 CREATE INDEX idx_profiles_subscription_tier ON profiles(subscription_tier);
 CREATE INDEX idx_profiles_created_at ON profiles(created_at);
+CREATE INDEX idx_profiles_is_admin ON profiles(is_admin) WHERE is_admin = true;
 
 -- Bookmarks indexes
 CREATE INDEX idx_bookmarks_user_id ON bookmarks(user_id);

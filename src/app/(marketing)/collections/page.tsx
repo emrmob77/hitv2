@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 import { siteConfig } from '@/config/site';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
   title: 'Popular Bookmark Collections',
@@ -26,21 +27,48 @@ export const metadata: Metadata = {
   },
 };
 
+export const revalidate = 1800; // Revalidate every 30 minutes
+
 async function getCollections() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/collections?limit=50`, {
-      next: { revalidate: 1800 }, // Revalidate every 30 minutes
-    });
+    const supabase = await createSupabaseServerClient({ strict: false });
 
-    if (!res.ok) {
+    if (!supabase) {
+      console.warn('Supabase client not available');
       return [];
     }
 
-    const data = await res.json();
-    return data.collections || [];
+    const { data: collections, error } = await supabase
+      .from('collections')
+      .select(
+        `
+        id,
+        name,
+        slug,
+        description,
+        cover_image_url,
+        bookmark_count,
+        is_collaborative,
+        privacy_level,
+        profiles:user_id (
+          username,
+          display_name,
+          avatar_url
+        )
+        `
+      )
+      .eq('privacy_level', 'public')
+      .order('bookmark_count', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error('Error fetching collections:', error.message || error);
+      return [];
+    }
+
+    return collections || [];
   } catch (error) {
-    console.error('Error fetching collections:', error);
+    console.error('Error fetching collections (catch):', error);
     return [];
   }
 }

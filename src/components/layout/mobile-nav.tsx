@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Menu, Search, Plus, UserRound, Sparkles } from "lucide-react";
+import { Menu, Search, Plus, UserRound, Sparkles, Shield } from "lucide-react";
 
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
@@ -19,10 +19,11 @@ import {
 type MobileNavProps = {
   className?: string;
   isAuthenticated: boolean;
+  isAdmin?: boolean;
   navItems?: { title: string; href: string }[];
 };
 
-export function MobileNav({ className, isAuthenticated, navItems }: MobileNavProps) {
+export function MobileNav({ className, isAuthenticated, isAdmin = false, navItems }: MobileNavProps) {
   const pathname = usePathname();
   const items = navItems ?? siteConfig.mainNav.map((item) => ({ title: item.title, href: item.href }));
 
@@ -129,6 +130,15 @@ export function MobileNav({ className, isAuthenticated, navItems }: MobileNavPro
                   <Plus className="size-4" />
                   Add bookmark
                 </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin/dashboard"
+                    className="flex items-center justify-center gap-2 rounded-lg border-2 border-blue-600 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
+                  >
+                    <Shield className="size-4" />
+                    Admin Panel
+                  </Link>
+                )}
                 <Link
                   href="/dashboard"
                   className="flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-600 hover:border-neutral-400 hover:text-neutral-900"

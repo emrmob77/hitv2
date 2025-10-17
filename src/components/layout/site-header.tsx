@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, Plus, Search } from "lucide-react";
+import { Bell, Plus, Search, Shield } from "lucide-react";
 
 import { siteConfig } from "@/config/site";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -17,6 +17,7 @@ const marketingNav = [
 
 export async function SiteHeader() {
   let isAuthenticated = false;
+  let isAdmin = false;
 
   try {
     const supabase = await createSupabaseServerClient({ strict: false });
@@ -25,17 +26,28 @@ export async function SiteHeader() {
         data: { user },
       } = await supabase.auth.getUser();
       isAuthenticated = Boolean(user);
+
+      // Check if user is admin
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .single();
+        isAdmin = profile?.is_admin === true;
+      }
     }
   } catch (error) {
     console.warn("Supabase user check failed", error);
     isAuthenticated = false;
+    isAdmin = false;
   }
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
-          <MobileNav isAuthenticated={isAuthenticated} navItems={marketingNav} />
+          <MobileNav isAuthenticated={isAuthenticated} isAdmin={isAdmin} navItems={marketingNav} />
           <Link href="/" className="text-2xl font-semibold text-neutral-900">
             {siteConfig.name}
           </Link>
@@ -76,6 +88,16 @@ export async function SiteHeader() {
                 <Plus className="size-4" />
                 Add bookmark
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin/dashboard"
+                  className="hidden items-center gap-2 rounded-lg border-2 border-blue-600 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 md:flex"
+                  title="Admin Panel"
+                >
+                  <Shield className="size-4" />
+                  <span className="hidden lg:inline">Admin</span>
+                </Link>
+              )}
               <Link
                 href="/dashboard"
                 className="hidden rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 md:flex"

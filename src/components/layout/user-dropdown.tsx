@@ -9,7 +9,8 @@ import {
   Bookmark,
   BarChart3,
   FolderKanban,
-  Tag
+  Tag,
+  Shield
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -29,6 +30,7 @@ interface UserProfile {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  is_admin?: boolean;
 }
 
 interface UserDropdownProps {
@@ -110,6 +112,17 @@ export function UserDropdown({ userProfile, avatarLabel }: UserDropdownProps) {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        {userProfile?.is_admin && (
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/admin/dashboard" className="cursor-pointer bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800">
+                <Shield className="mr-2 h-4 w-4" />
+                <span className="font-medium">Admin Panel</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem asChild>
           <Link href="/dashboard/settings" className="cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />

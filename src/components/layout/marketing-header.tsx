@@ -31,7 +31,7 @@ export async function MarketingHeader() {
         // Get user profile data
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id, username, display_name, avatar_url')
+          .select('id, username, display_name, avatar_url, is_admin')
           .eq('id', user.id)
           .single();
 
