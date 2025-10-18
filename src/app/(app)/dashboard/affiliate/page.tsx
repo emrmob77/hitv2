@@ -63,7 +63,7 @@ export default async function AffiliatePage() {
   // Fetch affiliate links
   const { data: affiliateLinksRaw } = await supabase
     .from('affiliate_links')
-    .select('*')
+    .select('id, bookmark_id, original_url, affiliate_url, commission_rate, total_clicks, total_earnings, created_at, short_code')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 

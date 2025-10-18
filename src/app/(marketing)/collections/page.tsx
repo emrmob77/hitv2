@@ -27,7 +27,9 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 1800; // Revalidate every 30 minutes
+// Use dynamic rendering to avoid build timeout
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 async function getCollections() {
   try {
