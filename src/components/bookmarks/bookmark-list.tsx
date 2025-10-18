@@ -8,6 +8,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { deleteBookmarkAction } from '@/app/(app)/dashboard/bookmarks/actions';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { BulkActionsBar } from './bulk-actions-bar';
 
 export type BookmarkListItem = {
   id: string;
@@ -51,6 +52,32 @@ const privacyTone: Record<BookmarkListItem['privacy_level'], string> = {
 };
 
 export function BookmarkList({ items, view, redirectTo }: BookmarkListProps) {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map((item) => item.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
   if (items.length === 0) {
     return (
       <div className="rounded-3xl border border-dashed border-neutral-200 bg-white p-10 text-center">
@@ -68,22 +95,56 @@ export function BookmarkList({ items, view, redirectTo }: BookmarkListProps) {
     );
   }
 
-  if (view === 'grid') {
-    return (
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {items.map((bookmark) => (
-          <GridBookmarkCard key={bookmark.id} bookmark={bookmark} redirectTo={redirectTo} />
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-3">
-      {items.map((bookmark) => (
-        <ListBookmarkCard key={bookmark.id} bookmark={bookmark} redirectTo={redirectTo} />
-      ))}
-    </div>
+    <>
+      {/* Select All Checkbox */}
+      <div className="mb-4 flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3">
+        <input
+          type="checkbox"
+          checked={selectedIds.size === items.length && items.length > 0}
+          onChange={toggleAll}
+          id="select-all-bookmarks"
+          className="h-4 w-4 cursor-pointer rounded border-neutral-300 text-primary focus:ring-2 focus:ring-primary"
+        />
+        <label htmlFor="select-all-bookmarks" className="cursor-pointer text-sm font-medium text-neutral-700">
+          Select All ({selectedIds.size} selected)
+        </label>
+      </div>
+
+      {view === 'grid' ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {items.map((bookmark) => (
+            <GridBookmarkCard
+              key={bookmark.id}
+              bookmark={bookmark}
+              redirectTo={redirectTo}
+              isSelected={selectedIds.has(bookmark.id)}
+              onToggleSelection={toggleSelection}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {items.map((bookmark) => (
+            <ListBookmarkCard
+              key={bookmark.id}
+              bookmark={bookmark}
+              redirectTo={redirectTo}
+              isSelected={selectedIds.has(bookmark.id)}
+              onToggleSelection={toggleSelection}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedCount={selectedIds.size}
+        totalCount={items.length}
+        onClearSelection={clearSelection}
+        selectedIds={Array.from(selectedIds)}
+      />
+    </>
   );
 }
 
@@ -120,7 +181,17 @@ function BookmarkActions({
   );
 }
 
-function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem; redirectTo: string }) {
+function GridBookmarkCard({
+  bookmark,
+  redirectTo,
+  isSelected,
+  onToggleSelection,
+}: {
+  bookmark: BookmarkListItem;
+  redirectTo: string;
+  isSelected: boolean;
+  onToggleSelection: (id: string) => void;
+}) {
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
 
@@ -138,7 +209,23 @@ function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
   );
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md">
+    <article
+      className={cn(
+        'group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md',
+        isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-neutral-200'
+      )}
+    >
+      {/* Selection Checkbox - Top Left */}
+      <div className="absolute left-2 top-2 z-20">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => onToggleSelection(bookmark.id)}
+          className="h-5 w-5 cursor-pointer rounded border-neutral-300 text-primary focus:ring-2 focus:ring-primary"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+
       <div className="absolute right-2 top-2 z-20 opacity-0 transition-opacity group-hover:opacity-100">
         <BookmarkActions id={bookmark.id} redirectTo={redirectTo} />
       </div>
@@ -237,7 +324,17 @@ function GridBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
   );
 }
 
-function ListBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem; redirectTo: string }) {
+function ListBookmarkCard({
+  bookmark,
+  redirectTo,
+  isSelected,
+  onToggleSelection,
+}: {
+  bookmark: BookmarkListItem;
+  redirectTo: string;
+  isSelected: boolean;
+  onToggleSelection: (id: string) => void;
+}) {
   const [imageError, setImageError] = useState(false);
   const fallbackLabel = (bookmark.domain?.slice(0, 2) || 'BK').toUpperCase();
   const showImage = Boolean(bookmark.image_url && !imageError);
@@ -251,13 +348,28 @@ function ListBookmarkCard({ bookmark, redirectTo }: { bookmark: BookmarkListItem
   });
 
   return (
-    <article className="group relative rounded-2xl border border-neutral-200 bg-white px-4 py-5 shadow-sm transition hover:border-neutral-300 hover:shadow-md">
+    <article
+      className={cn(
+        'group relative rounded-2xl border bg-white px-4 py-5 shadow-sm transition hover:border-neutral-300 hover:shadow-md',
+        isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-neutral-200'
+      )}
+    >
       {/* Actions - Top Right */}
       <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100">
         <BookmarkActions id={bookmark.id} redirectTo={redirectTo} />
       </div>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-5">
+        {/* Selection Checkbox */}
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onToggleSelection(bookmark.id)}
+            className="h-5 w-5 cursor-pointer rounded border-neutral-300 text-primary focus:ring-2 focus:ring-primary"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 text-[11px] font-semibold uppercase text-neutral-500">
           {showImage ? (
             <img

@@ -17,6 +17,7 @@ import {
   Bookmark,
   Bell,
   TrendingUp,
+  Download,
 } from "lucide-react";
 
 export type MainNavItem = {
@@ -163,6 +164,12 @@ export const siteConfig = {
       href: "/dashboard/analytics",
       icon: BarChart3,
       description: "Performance, traffic, and conversion reports",
+    },
+    {
+      title: "Import/Export",
+      href: "/dashboard/import-export",
+      icon: Download,
+      description: "Import bookmarks from browsers or export your data",
     },
     {
       title: "Settings",

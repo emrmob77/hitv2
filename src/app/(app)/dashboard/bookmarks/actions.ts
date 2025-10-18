@@ -7,6 +7,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/config/site";
+import { parseTags } from "@/lib/bookmarks/tag-utils";
+import type { NormalizedTag } from "@/lib/bookmarks/tag-utils";
 
 const PRIVACY_LEVELS = new Set(["public", "private", "subscribers"] as const);
 
@@ -69,41 +71,7 @@ function slugify(value: string): string {
     .slice(0, 200) || "bookmark";
 }
 
-type NormalizedTag = {
-  name: string;
-  slug: string;
-};
-
-function parseTags(raw: unknown): NormalizedTag[] {
-  if (typeof raw !== "string") {
-    return [];
-  }
-
-  const tokens = raw
-    .replace(/,/g, " ")
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter(Boolean)
-    .map((token) => token.replace(/^#+/, ""));
-
-  const unique = new Map<string, NormalizedTag>();
-
-  for (const token of tokens) {
-    const slug = slugify(token);
-    if (!slug || unique.has(slug)) {
-      continue;
-    }
-
-    unique.set(slug, {
-      name: token,
-      slug,
-    });
-  }
-
-  return Array.from(unique.values());
-}
-
-async function syncBookmarkTags(
+export async function syncBookmarkTags(
   supabase: SupabaseClient<any, any, any>,
   bookmarkId: string,
   tags: NormalizedTag[]
@@ -196,7 +164,7 @@ async function syncBookmarkTags(
   }
 }
 
-async function syncBookmarkCollection(
+export async function syncBookmarkCollection(
   supabase: SupabaseClient<any, any, any>,
   bookmarkId: string,
   userId: string,

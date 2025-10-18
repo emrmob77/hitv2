@@ -203,12 +203,16 @@
   - Performance monitoring ve alerting sistemini kur
   - _Gereksinimler: 9.1, 9.5, 18.5_
 
-- [ ] 22. Tarayıcı bookmark import ve veri geçiş sistemini implement et
-  - Browser bookmark parser (BrowserBookmarkParser) sistemini kodla
-  - Chrome, Firefox, Safari HTML export dosyalarını parse etme özelliğini geliştir
-  - Sosyal platform import (Twitter, Reddit, Pocket) sistemini implement et
-  - Toplu export (JSON, CSV, HTML) ve migration araçlarını kodla
-  - Import job tracking ve progress indicator sistemini geliştir
+- [x] 22. Tarayıcı bookmark import ve veri geçiş sistemini implement et ✅
+  - [x] Browser bookmark parser (BrowserBookmarkParser) sistemini kodla
+  - [x] Chrome, Firefox, Safari, Edge HTML export dosyalarını parse etme özelliğini geliştir
+  - [x] Toplu export (JSON, CSV, HTML/Netscape) araçlarını kodla
+  - [x] Import API endpoint (/api/import/bookmarks) oluştur
+  - [x] Export API endpoint (/api/export/bookmarks) oluştur
+  - [x] Import/Export UI sayfası (/dashboard/import-export) oluştur
+  - [x] Navigation'a Import/Export linki ekle
+  - [ ] Sosyal platform import (Twitter, Reddit, Pocket) sistemini implement et (sonraya bırakıldı)
+  - [ ] Import job tracking tablosu ekle (şimdilik analytics_events ile takip edilebilir)
   - _Gereksinimler: 19.1, 19.2, 19.3, 19.4, 19.5_
 
 - [ ] 23. AI destekli içerik işleme sistemini geliştir
