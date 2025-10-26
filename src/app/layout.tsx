@@ -4,6 +4,8 @@ import "./globals.css";
 
 import { siteConfig } from "@/config/site";
 import { WebVitals } from "@/components/analytics/web-vitals";
+import { MarketingHeader } from "@/components/layout/marketing-header";
+import { MarketingFooter } from "@/components/layout/marketing-footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -71,7 +73,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
         <WebVitals />
-        {children}
+        <div className="marketing-html">
+          <MarketingHeader />
+          <div className="data-html">{children}</div>
+          <MarketingFooter />
+        </div>
       </body>
     </html>
   );
