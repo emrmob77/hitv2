@@ -1,15 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Ignore errors for build (will be caught by ESLint warnings)
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
-  turbopack: {
-    root: __dirname,
-  },
+  // Turbopack only for development
+  ...(process.env.NODE_ENV !== 'production' && {
+    turbopack: {
+      root: __dirname,
+    },
+  }),
   // Performance Optimizations
   compress: true, // Enable gzip compression
 
