@@ -1,0 +1,27 @@
+# HitTags Robots.txt
+User-agent: *
+Allow: /
+
+# Disallow private areas
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /onboarding/
+Disallow: /bookmarks/add
+
+# Disallow auth pages
+Disallow: /login
+Disallow: /signup
+Disallow: /reset-password
+
+# Allow important pages for SEO
+Allow: /explore
+Allow: /trending
+Allow: /tags/
+Allow: /collections/
+Allow: /users/
+
+# Sitemap location
+Sitemap: https://hittags.com/sitemap.xml
+Sitemap: https://hittags.com/sitemap-bookmarks.xml
+Sitemap: https://hittags.com/sitemap-tags.xml
