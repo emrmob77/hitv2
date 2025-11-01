@@ -10,9 +10,11 @@ export default async function MarketingLayout({
 }) {
   return (
     <div className="marketing-html">
-      <MarketingHeader />
-      <div className="data-html">{children}</div>
-      <MarketingFooter />
+      <div className="data-html">
+        <MarketingHeader />
+        {children}
+        <MarketingFooter />
+      </div>
     </div>
   );
 }

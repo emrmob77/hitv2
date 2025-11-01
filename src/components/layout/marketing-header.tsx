@@ -56,7 +56,13 @@ export async function MarketingHeader() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <h1 className="text-2xl text-neutral-900">HitTags</h1>
+              <Link
+                href="/"
+                aria-label="HitTags homepage"
+                className="text-2xl font-semibold text-neutral-900"
+              >
+                HitTags
+              </Link>
             </div>
             <nav className="hidden md:ml-10 md:flex md:space-x-8">
               {NAV_ITEMS.map((item) => (
