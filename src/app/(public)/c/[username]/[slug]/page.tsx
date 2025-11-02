@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { siteConfig } from '@/config/site';
 import { FolderIcon, CalendarIcon, ClockIcon, EyeIcon, UsersIcon, HeartIcon, ShareIcon } from 'lucide-react';
+import { TrendingBookmarkCard } from '@/components/trending/trending-bookmark-card';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
 
@@ -23,15 +24,28 @@ interface Collection {
   };
 }
 
-interface Bookmark {
+interface PublicBookmarkCardData {
   id: string;
+  detailUrl: string;
+  visitUrl: string;
+  likes: number;
+  saves: number;
+  shares: number;
+  isLiked: boolean;
+  isSaved: boolean;
+  createdAt: string;
   title: string;
   description: string | null;
-  url: string;
-  domain: string | null;
-  favicon_url: string | null;
-  image_url: string | null;
-  created_at: string;
+  imageUrl: string | null;
+  author: {
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+  tags: Array<{
+    name: string;
+    slug: string;
+  }>;
 }
 
 export async function generateMetadata({
@@ -96,6 +110,27 @@ export default async function PublicCollectionPage({
   }
 
   const bookmarks = await fetchCollectionBookmarks(collection.id);
+
+  const normalizedBookmarks: PublicBookmarkCardData[] = bookmarks.map((bookmark) => ({
+    id: bookmark.id,
+    title: bookmark.title,
+    description: bookmark.description,
+    imageUrl: bookmark.image_url,
+    likes: bookmark.like_count ?? 0,
+    saves: bookmark.save_count ?? 0,
+    shares: bookmark.click_count ?? 0,
+    isLiked: false,
+    isSaved: false,
+    createdAt: bookmark.created_at,
+    detailUrl: `/bookmark/${bookmark.id}/${bookmark.slug ?? ''}`,
+    visitUrl: bookmark.url,
+    author: {
+      username: bookmark.author?.username ?? collection.user.username,
+      displayName: bookmark.author?.display_name ?? collection.user.display_name,
+      avatarUrl: bookmark.author?.avatar_url ?? collection.user.avatar_url,
+    },
+    tags: bookmark.tags?.map((tag) => ({ name: tag.name, slug: tag.slug })) ?? [],
+  }));
 
   // Structured Data (JSON-LD) for SEO
   const structuredData = {
@@ -231,66 +266,21 @@ export default async function PublicCollectionPage({
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="lg:col-span-3">
               <section className="space-y-4">
-                {bookmarks.length === 0 ? (
+                {normalizedBookmarks.length === 0 ? (
                   <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
                     <FolderIcon className="mx-auto mb-4 h-12 w-12 text-neutral-300" />
                     <p className="text-neutral-600">This collection is empty.</p>
                   </div>
                 ) : (
-                  bookmarks.map((bookmark) => (
-                    <div
+                  normalizedBookmarks.map((bookmark, index) => (
+                    <TrendingBookmarkCard
                       key={bookmark.id}
-                      className="rounded-xl border border-neutral-200 bg-white p-6 transition-shadow hover:shadow-lg"
-                    >
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0">
-                          {bookmark.image_url || bookmark.favicon_url ? (
-                            <img
-                              src={bookmark.image_url || bookmark.favicon_url || ''}
-                              alt=""
-                              className="h-16 w-16 rounded-lg object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-neutral-200">
-                              <span className="text-xs text-neutral-600">Preview</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <a
-                            href={bookmark.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mb-2 block text-lg font-semibold text-neutral-900 hover:text-neutral-700"
-                          >
-                            {bookmark.title}
-                          </a>
-                          {bookmark.description && (
-                            <p className="mb-3 text-sm text-neutral-600">{bookmark.description}</p>
-                          )}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <span className="text-xs text-neutral-500">
-                                Added {new Date(bookmark.created_at).toLocaleDateString()}
-                              </span>
-                              {bookmark.domain && (
-                                <span className="text-xs text-neutral-500">{bookmark.domain}</span>
-                              )}
-                            </div>
-                            <div className="flex items-center space-x-4">
-                              <div className="flex items-center space-x-1 text-sm text-neutral-500">
-                                <HeartIcon className="h-4 w-4" />
-                                <span>-</span>
-                              </div>
-                              <div className="flex items-center space-x-1 text-sm text-neutral-500">
-                                <ShareIcon className="h-4 w-4" />
-                                <span>-</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                      bookmark={bookmark}
+                      detailUrl={bookmark.detailUrl}
+                      visitUrl={bookmark.visitUrl}
+                      rank={index + 1}
+                      layout="list"
+                    />
                   ))
                 )}
               </section>
@@ -336,13 +326,12 @@ async function fetchPublicCollection(
   };
 }
 
-async function fetchCollectionBookmarks(collectionId: string): Promise<Bookmark[]> {
+async function fetchCollectionBookmarks(collectionId: string) {
   const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase
     .from('collection_bookmarks')
     .select(`
-      bookmark_id,
       bookmarks (
         id,
         title,
@@ -351,7 +340,22 @@ async function fetchCollectionBookmarks(collectionId: string): Promise<Bookmark[
         domain,
         favicon_url,
         image_url,
-        created_at
+        created_at,
+        slug,
+        like_count,
+        save_count,
+        click_count,
+        profiles (
+          username,
+          display_name,
+          avatar_url
+        ),
+        bookmark_tags (
+          tags (
+            name,
+            slug
+          )
+        )
       )
     `)
     .eq('collection_id', collectionId)
@@ -366,6 +370,24 @@ async function fetchCollectionBookmarks(collectionId: string): Promise<Bookmark[
   if (!data) return [];
 
   return data
-    .map((item: any) => item.bookmarks)
+    .map((item: any) => (
+      item.bookmarks
+        ? {
+            id: item.bookmarks.id,
+            title: item.bookmarks.title,
+            description: item.bookmarks.description,
+            url: item.bookmarks.url,
+            domain: item.bookmarks.domain,
+            image_url: item.bookmarks.image_url ?? item.bookmarks.favicon_url,
+            slug: item.bookmarks.slug,
+            created_at: item.bookmarks.created_at,
+            like_count: item.bookmarks.like_count,
+            save_count: item.bookmarks.save_count,
+            click_count: item.bookmarks.click_count,
+            author: item.bookmarks.profiles,
+            tags: item.bookmarks.bookmark_tags?.map((entry: any) => entry.tags).filter(Boolean) ?? [],
+          }
+        : null
+    ))
     .filter(Boolean);
 }
