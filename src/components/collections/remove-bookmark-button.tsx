@@ -9,11 +9,13 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 interface RemoveBookmarkButtonProps {
   collectionId: string;
   bookmarkId: string;
+  onRemoved?: () => void;
 }
 
 export function RemoveBookmarkButton({
   collectionId,
   bookmarkId,
+  onRemoved,
 }: RemoveBookmarkButtonProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const router = useRouter();
@@ -39,6 +41,7 @@ export function RemoveBookmarkButton({
         return;
       }
 
+      onRemoved?.();
       router.refresh();
     } catch (error) {
       console.error('Remove error:', error);

@@ -167,10 +167,12 @@ export interface Database {
           slug: string;
           description: string | null;
           cover_image_url: string | null;
-          is_public: boolean;
+          privacy_level: 'public' | 'private' | 'subscribers';
           is_collaborative: boolean;
           bookmark_count: number;
           follower_count: number;
+          like_count: number;
+          view_count: number;
           created_at: string;
           updated_at: string;
         };
@@ -181,10 +183,12 @@ export interface Database {
           slug: string;
           description?: string | null;
           cover_image_url?: string | null;
-          is_public?: boolean;
+          privacy_level?: 'public' | 'private' | 'subscribers';
           is_collaborative?: boolean;
           bookmark_count?: number;
           follower_count?: number;
+          like_count?: number;
+          view_count?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -195,29 +199,60 @@ export interface Database {
           slug?: string;
           description?: string | null;
           cover_image_url?: string | null;
-          is_public?: boolean;
+          privacy_level?: 'public' | 'private' | 'subscribers';
           is_collaborative?: boolean;
           bookmark_count?: number;
           follower_count?: number;
+          like_count?: number;
+          view_count?: number;
           created_at?: string;
           updated_at?: string;
         };
       };
       collection_bookmarks: {
         Row: {
+          id: string;
           collection_id: string;
           bookmark_id: string;
-          added_at: string;
+          added_by: string | null;
+          position: number | null;
+          created_at: string;
         };
         Insert: {
+          id?: string;
           collection_id: string;
           bookmark_id: string;
-          added_at?: string;
+          added_by?: string | null;
+          position?: number | null;
+          created_at?: string;
         };
         Update: {
+          id?: string;
           collection_id?: string;
           bookmark_id?: string;
-          added_at?: string;
+          added_by?: string | null;
+          position?: number | null;
+          created_at?: string;
+        };
+      };
+      collection_followers: {
+        Row: {
+          id: string;
+          collection_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          collection_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          collection_id?: string;
+          user_id?: string;
+          created_at?: string;
         };
       };
     };

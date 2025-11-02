@@ -8,6 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeftIcon } from 'lucide-react';
+import {
+  CollaboratorManager,
+  type CollaboratorRecord,
+} from '@/components/collections/collaborator-manager';
 
 interface Collection {
   id: string;
@@ -47,6 +51,8 @@ export default async function EditCollectionPage({
   if (!collection) {
     notFound();
   }
+
+  const collaborators = await fetchCollaborators(collectionId);
 
   async function updateCollection(formData: FormData) {
     'use server';
@@ -203,6 +209,20 @@ export default async function EditCollectionPage({
           </form>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Collaboration</CardTitle>
+          <CardDescription>Invite collaborators and assign roles.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CollaboratorManager
+            collectionId={collectionId}
+            initialCollaborators={collaborators}
+            currentUserRole="owner"
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -215,7 +235,7 @@ async function fetchCollection(collectionId: string): Promise<Collection | null>
 
   if (!user) return null;
 
-  const { data, error} = await supabase
+  const { data, error } = await supabase
     .from('collections')
     .select('id, name, description, slug, privacy_level, cover_image_url, user_id')
     .eq('id', collectionId)
@@ -228,4 +248,49 @@ async function fetchCollection(collectionId: string): Promise<Collection | null>
   }
 
   return data;
+}
+
+async function fetchCollaborators(collectionId: string): Promise<CollaboratorRecord[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('collection_collaborators')
+    .select(
+      `
+      id,
+      role,
+      permissions,
+      created_at,
+      user:profiles!collection_collaborators_user_id_fkey (
+        id,
+        username,
+        display_name,
+        avatar_url
+      )
+    `
+    )
+    .eq('collection_id', collectionId)
+    .order('created_at', { ascending: true });
+
+  if (error || !data) {
+    if (error) {
+      console.error('Failed to load collaborators:', error);
+    }
+    return [];
+  }
+
+  return data
+    .filter((record) => Boolean(record.user))
+    .map((record) => ({
+      id: record.id,
+      role: record.role as CollaboratorRecord['role'],
+      permissions: record.permissions,
+      created_at: record.created_at,
+      user: {
+        id: record.user.id,
+        username: record.user.username,
+        display_name: record.user.display_name,
+        avatar_url: record.user.avatar_url,
+      },
+    }));
 }

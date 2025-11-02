@@ -1,31 +1,33 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { BookmarkCard } from '@/components/bookmarks/bookmark-card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Users, TrendingUp } from 'lucide-react';
+import { FeedStream, type FeedBookmark } from '@/components/feed/feed-stream';
+import { getPersonalizedRecommendations } from '@/lib/recommendations';
 
 export const metadata = {
   title: 'Feed - HitTags',
   description: 'Discover bookmarks from people you follow',
 };
 
-async function getFeedBookmarks(userId: string) {
+async function getFeedBookmarks(userId: string): Promise<{
+  bookmarks: FeedBookmark[];
+  followingIds: string[];
+}> {
   const supabase = await createSupabaseServerClient();
 
-  // Get users that current user follows
   const { data: following } = await supabase
     .from('follows')
     .select('following_id')
     .eq('follower_id', userId);
 
-  const followingIds = following?.map((f) => f.following_id) || [];
+  const followingIds = following?.map((f) => f.following_id) ?? [];
 
   if (followingIds.length === 0) {
-    return [];
+    return { bookmarks: [], followingIds };
   }
 
-  // Get bookmarks from followed users
   const { data: bookmarks, error } = await supabase
     .from('bookmarks')
     .select(
@@ -53,21 +55,13 @@ async function getFeedBookmarks(userId: string) {
 
   if (error) {
     console.error('Error fetching feed:', error);
-    return [];
+    return { bookmarks: [], followingIds };
   }
 
-  return bookmarks || [];
-}
-
-async function getFollowingCount(userId: string) {
-  const supabase = await createSupabaseServerClient();
-
-  const { count } = await supabase
-    .from('follows')
-    .select('*', { count: 'exact', head: true })
-    .eq('follower_id', userId);
-
-  return count || 0;
+  return {
+    bookmarks: (bookmarks as FeedBookmark[]) ?? [],
+    followingIds,
+  };
 }
 
 async function getSuggestedUsers(userId: string) {
@@ -107,11 +101,13 @@ export default async function FeedPage() {
     redirect('/login');
   }
 
-  const [bookmarks, followingCount, suggestedUsers] = await Promise.all([
+  const [{ bookmarks, followingIds }, suggestedUsers, personalized] = await Promise.all([
     getFeedBookmarks(user.id),
-    getFollowingCount(user.id),
     getSuggestedUsers(user.id),
+    getPersonalizedRecommendations(user.id),
   ]);
+
+  const followingCount = followingIds.length;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -125,39 +121,37 @@ export default async function FeedPage() {
             </p>
           </div>
 
-          {bookmarks.length === 0 ? (
-            <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
-              <Users className="mx-auto h-12 w-12 text-neutral-400" />
-              <h3 className="mt-4 text-lg font-semibold text-neutral-900">
-                No bookmarks in your feed
-              </h3>
-              <p className="mt-2 text-neutral-600">
-                {followingCount === 0
-                  ? 'Start following people to see their bookmarks here'
-                  : 'The people you follow haven\'t shared any bookmarks yet'}
-              </p>
-              <div className="mt-6 flex justify-center gap-4">
-                <Link href="/explore">
-                  <Button>
-                    <Users className="mr-2 h-4 w-4" />
-                    Find People to Follow
-                  </Button>
-                </Link>
-                <Link href="/trending">
-                  <Button variant="outline">
-                    <TrendingUp className="mr-2 h-4 w-4" />
-                    Explore Trending
-                  </Button>
-                </Link>
+          <FeedStream
+            initialBookmarks={bookmarks}
+            followingIds={followingIds}
+            emptyState={
+              <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
+                <Users className="mx-auto h-12 w-12 text-neutral-400" />
+                <h3 className="mt-4 text-lg font-semibold text-neutral-900">
+                  No bookmarks in your feed
+                </h3>
+                <p className="mt-2 text-neutral-600">
+                  {followingCount === 0
+                    ? 'Start following people to see their bookmarks here'
+                    : "The people you follow haven't shared any bookmarks yet"}
+                </p>
+                <div className="mt-6 flex justify-center gap-4">
+                  <Link href="/explore">
+                    <Button>
+                      <Users className="mr-2 h-4 w-4" />
+                      Find People to Follow
+                    </Button>
+                  </Link>
+                  <Link href="/trending">
+                    <Button variant="outline">
+                      <TrendingUp className="mr-2 h-4 w-4" />
+                      Explore Trending
+                    </Button>
+                  </Link>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {bookmarks.map((bookmark: any) => (
-                <BookmarkCard key={bookmark.id} bookmark={bookmark} showAuthor />
-              ))}
-            </div>
-          )}
+            }
+          />
         </div>
 
         {/* Sidebar */}
@@ -244,6 +238,38 @@ export default async function FeedPage() {
                 </Link>
               </div>
             </div>
+
+            {/* Personalized Recommendations */}
+            {personalized.length > 0 && (
+              <div className="rounded-xl border border-neutral-200 bg-white p-6">
+                <h3 className="mb-4 text-lg font-semibold text-neutral-900">
+                  Recommended for You
+                </h3>
+                <div className="space-y-3">
+                  {personalized.map((bookmark) => (
+                    <Link
+                      key={bookmark.id}
+                      href={`/bookmark/${bookmark.id}/${bookmark.slug}`}
+                      className="block rounded-lg border border-neutral-200 p-3 transition-colors hover:bg-neutral-50"
+                    >
+                      <p className="font-medium text-neutral-900">{bookmark.title}</p>
+                      {bookmark.description && (
+                        <p className="mt-1 text-sm text-neutral-600 line-clamp-2">
+                          {bookmark.description}
+                        </p>
+                      )}
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral-500">
+                        {bookmark.tags?.slice(0, 3).map((tag) => (
+                          <span key={tag.slug} className="rounded-full bg-neutral-100 px-2 py-1">
+                            #{tag.slug}
+                          </span>
+                        ))}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

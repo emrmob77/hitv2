@@ -189,6 +189,16 @@ CREATE TABLE collection_collaborators (
     UNIQUE(collection_id, user_id)
 );
 
+-- Collection followers
+CREATE TABLE collection_followers (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    collection_id UUID REFERENCES collections(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+    UNIQUE(collection_id, user_id)
+);
+
 -- =============================================
 -- SOCIAL FEATURES
 -- =============================================
@@ -667,6 +677,7 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookmarks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE collections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE collection_bookmarks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE exclusive_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
@@ -695,6 +706,59 @@ CREATE POLICY "Users can delete own bookmarks" ON bookmarks FOR DELETE USING (au
 CREATE POLICY "Public collections are viewable by everyone" ON collections FOR SELECT USING (privacy_level = 'public');
 CREATE POLICY "Private collections are viewable by owner" ON collections FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can manage own collections" ON collections FOR ALL USING (auth.uid() = user_id);
+
+-- Collection bookmarks policies
+CREATE POLICY "Collection bookmarks accessible to collaborators" ON collection_bookmarks
+FOR SELECT USING (
+    auth.uid() = (SELECT user_id FROM collections WHERE id = collection_id)
+    OR EXISTS (
+        SELECT 1 FROM collection_collaborators cc
+        WHERE cc.collection_id = collection_bookmarks.collection_id
+          AND cc.user_id = auth.uid()
+    )
+);
+
+CREATE POLICY "Collection bookmarks can be reordered by editors" ON collection_bookmarks
+FOR UPDATE USING (
+    auth.uid() = (SELECT user_id FROM collections WHERE id = collection_id)
+    OR EXISTS (
+        SELECT 1 FROM collection_collaborators cc
+        WHERE cc.collection_id = collection_bookmarks.collection_id
+          AND cc.user_id = auth.uid()
+          AND cc.role IN ('owner', 'editor')
+    )
+)
+WITH CHECK (
+    auth.uid() = (SELECT user_id FROM collections WHERE id = collection_id)
+    OR EXISTS (
+        SELECT 1 FROM collection_collaborators cc
+        WHERE cc.collection_id = collection_bookmarks.collection_id
+          AND cc.user_id = auth.uid()
+          AND cc.role IN ('owner', 'editor')
+    )
+);
+
+CREATE POLICY "Collection bookmarks can be removed by editors" ON collection_bookmarks
+FOR DELETE USING (
+    auth.uid() = (SELECT user_id FROM collections WHERE id = collection_id)
+    OR EXISTS (
+        SELECT 1 FROM collection_collaborators cc
+        WHERE cc.collection_id = collection_bookmarks.collection_id
+          AND cc.user_id = auth.uid()
+          AND cc.role IN ('owner', 'editor')
+    )
+);
+
+CREATE POLICY "Collection bookmarks can be added by contributors" ON collection_bookmarks
+FOR INSERT WITH CHECK (
+    auth.uid() = (SELECT user_id FROM collections WHERE id = collection_id)
+    OR EXISTS (
+        SELECT 1 FROM collection_collaborators cc
+        WHERE cc.collection_id = collection_bookmarks.collection_id
+          AND cc.user_id = auth.uid()
+          AND cc.role IN ('owner', 'editor', 'contributor')
+    )
+);
 
 -- Exclusive posts policies (premium feature)
 CREATE POLICY "Exclusive posts viewable by subscribers" ON exclusive_posts FOR SELECT USING (

@@ -245,6 +245,52 @@ export type Database = {
           updated_at?: string | null
         }
       }
+      collection_bookmarks: {
+        Row: {
+          id: string
+          collection_id: string | null
+          bookmark_id: string | null
+          added_by: string | null
+          position: number | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          collection_id?: string | null
+          bookmark_id?: string | null
+          added_by?: string | null
+          position?: number | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          collection_id?: string | null
+          bookmark_id?: string | null
+          added_by?: string | null
+          position?: number | null
+          created_at?: string | null
+        }
+      }
+      collection_followers: {
+        Row: {
+          id: string
+          collection_id: string | null
+          user_id: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          collection_id?: string | null
+          user_id?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          collection_id?: string | null
+          user_id?: string | null
+          created_at?: string | null
+        }
+      }
       // Add other tables as needed
     }
     Views: {

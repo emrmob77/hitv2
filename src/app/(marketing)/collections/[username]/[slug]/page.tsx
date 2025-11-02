@@ -15,7 +15,7 @@ async function getCollectionData(username: string, slug: string) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const res = await fetch(
-      `${baseUrl}/api/collections/${username}/${slug}`,
+      `${baseUrl}/api/public/collections/${username}/${slug}`,
       {
         next: { revalidate: 3600 }, // Revalidate every hour
       }

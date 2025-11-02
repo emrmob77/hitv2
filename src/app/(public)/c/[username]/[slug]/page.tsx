@@ -355,6 +355,7 @@ async function fetchCollectionBookmarks(collectionId: string): Promise<Bookmark[
       )
     `)
     .eq('collection_id', collectionId)
+    .order('position', { ascending: true })
     .order('created_at', { ascending: false });
 
   if (error) {

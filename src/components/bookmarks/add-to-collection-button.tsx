@@ -96,9 +96,19 @@ export function AddToCollectionButton({
         });
       } else {
         // Add to collection
+        const { data: existingPositions } = await supabase
+          .from('collection_bookmarks')
+          .select('position')
+          .eq('collection_id', collectionId)
+          .order('position', { ascending: false })
+          .limit(1);
+
+        const nextPosition = (existingPositions?.[0]?.position ?? -1) + 1;
+
         const { error } = await supabase.from('collection_bookmarks').insert({
           collection_id: collectionId,
           bookmark_id: bookmarkId,
+          position: nextPosition,
         });
 
         if (error) throw error;
