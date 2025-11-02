@@ -3,7 +3,15 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { siteConfig } from '@/config/site';
-import { FolderIcon, CalendarIcon, ClockIcon, EyeIcon, UsersIcon, HeartIcon, ShareIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  ClockIcon,
+  EyeIcon,
+  HeartIcon,
+  ShareIcon,
+  UsersIcon,
+  FolderIcon,
+} from "lucide-react";
 import { TrendingBookmarkCard } from '@/components/trending/trending-bookmark-card';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url;
@@ -15,6 +23,8 @@ interface Collection {
   slug: string;
   cover_image_url: string | null;
   bookmark_count: number;
+  view_count: number | null;
+  follower_count: number | null;
   created_at: string;
   updated_at: string;
   user: {
@@ -132,6 +142,9 @@ export default async function PublicCollectionPage({
     tags: bookmark.tags?.map((tag) => ({ name: tag.name, slug: tag.slug })) ?? [],
   }));
 
+  const totalSaves = normalizedBookmarks.reduce((acc, item) => acc + item.saves, 0);
+  const viewCount = collection.view_count ?? 0;
+
   // Structured Data (JSON-LD) for SEO
   const structuredData = {
     '@context': 'https://schema.org',
@@ -184,80 +197,91 @@ export default async function PublicCollectionPage({
           </nav>
 
           {/* Collection Header */}
-          <section className="mb-8 rounded-xl border border-neutral-200 bg-white p-8">
-            <div className="mb-6 flex items-start justify-between">
-              <div className="flex items-start space-x-6">
-                <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600">
-                  <FolderIcon className="h-10 w-10 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="mb-2 flex items-center space-x-3">
-                    <h1 className="text-3xl font-bold text-neutral-900">{collection.name}</h1>
-                    <span className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-700">
-                      Public
+          <section className="mb-10 overflow-hidden rounded-3xl border border-neutral-200 bg-gradient-to-br from-neutral-50 via-white to-neutral-100 p-8 shadow-sm">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex flex-1 flex-col gap-6">
+                <div>
+                  <div className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-green-700">
+                      Public Collection
+                    </span>
+                    <span className="inline-flex items-center gap-2 text-neutral-500">
+                      <EyeIcon className="h-4 w-4" />
+                      {viewCount}
                     </span>
                   </div>
+                  <h1 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+                    {collection.name}
+                  </h1>
                   {collection.description && (
-                    <p className="mb-4 max-w-3xl text-neutral-600">{collection.description}</p>
+                    <p className="mt-3 max-w-3xl text-lg text-neutral-600">
+                      {collection.description}
+                    </p>
                   )}
-                  <div className="flex items-center space-x-6 text-sm text-neutral-600">
-                    <div className="flex items-center space-x-2">
-                      {collection.user.avatar_url ? (
-                        <img
-                          src={collection.user.avatar_url}
-                          alt={collection.user.username}
-                          className="h-6 w-6 rounded-full"
-                        />
-                      ) : (
-                        <div className="h-6 w-6 rounded-full bg-neutral-200" />
-                      )}
-                      <Link
-                        href={`/${collection.user.username}`}
-                        className="cursor-pointer text-neutral-900 hover:text-neutral-700"
-                      >
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600">
+                  <Link href={`/${collection.user.username}`} className="flex items-center gap-2">
+                    {collection.user.avatar_url ? (
+                      <img
+                        src={collection.user.avatar_url}
+                        alt={collection.user.username}
+                        className="h-8 w-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-500">
+                        {(collection.user.display_name || collection.user.username).charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-medium text-neutral-900">
                         {collection.user.display_name || collection.user.username}
-                      </Link>
+                      </span>
+                      <span className="ml-2 text-neutral-500">@{collection.user.username}</span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <CalendarIcon className="h-4 w-4" />
-                      <span>Created {new Date(collection.created_at).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <ClockIcon className="h-4 w-4" />
-                      <span>Updated {new Date(collection.updated_at).toLocaleDateString()}</span>
-                    </div>
+                  </Link>
+
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4" />
+                    <span>Created {new Date(collection.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ClockIcon className="h-4 w-4" />
+                    <span>Updated {new Date(collection.updated_at).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <button className="rounded-lg bg-neutral-600 px-4 py-2 text-sm text-white hover:bg-neutral-700">
-                  <UsersIcon className="mr-2 inline-block h-4 w-4" />
-                  Follow
+
+              <div className="flex flex-col gap-4">
+                <button className="inline-flex items-center justify-center gap-2 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-neutral-800">
+                  <UsersIcon className="h-4 w-4" />
+                  Follow Collection
                 </button>
-                <button className="rounded-lg border border-neutral-300 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50">
-                  <ShareIcon className="mr-2 inline-block h-4 w-4" />
+                <button className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100">
+                  <ShareIcon className="h-4 w-4" />
                   Share
                 </button>
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-4 gap-8 border-t border-neutral-200 pt-6">
-              <div className="text-center">
-                <div className="mb-1 text-2xl font-bold text-neutral-900">{collection.bookmark_count}</div>
-                <div className="text-sm text-neutral-600">Bookmarks</div>
+            <div className="mt-10 grid grid-cols-2 gap-4 rounded-2xl border border-neutral-200 bg-white p-6 sm:grid-cols-4">
+              <div className="flex flex-col gap-1 text-center">
+                <span className="text-xs uppercase tracking-wide text-neutral-500">Bookmarks</span>
+                <span className="text-2xl font-semibold text-neutral-900">
+                  {collection.bookmark_count}
+                </span>
               </div>
-              <div className="text-center">
-                <div className="mb-1 text-2xl font-bold text-neutral-900">-</div>
-                <div className="text-sm text-neutral-600">Views</div>
+              <div className="flex flex-col gap-1 text-center">
+                <span className="text-xs uppercase tracking-wide text-neutral-500">Views</span>
+                <span className="text-2xl font-semibold text-neutral-900">{viewCount}</span>
               </div>
-              <div className="text-center">
-                <div className="mb-1 text-2xl font-bold text-neutral-900">-</div>
-                <div className="text-sm text-neutral-600">Followers</div>
+              <div className="flex flex-col gap-1 text-center">
+                <span className="text-xs uppercase tracking-wide text-neutral-500">Followers</span>
+                <span className="text-2xl font-semibold text-neutral-900">{collection.follower_count ?? 0}</span>
               </div>
-              <div className="text-center">
-                <div className="mb-1 text-2xl font-bold text-neutral-900">-</div>
-                <div className="text-sm text-neutral-600">Saves</div>
+              <div className="flex flex-col gap-1 text-center">
+                <span className="text-xs uppercase tracking-wide text-neutral-500">Saves</span>
+                <span className="text-2xl font-semibold text-neutral-900">{totalSaves}</span>
               </div>
             </div>
           </section>
@@ -309,7 +333,7 @@ async function fetchPublicCollection(
   // Then get the collection
   const { data, error } = await supabase
     .from('collections')
-    .select('id, name, description, slug, cover_image_url, bookmark_count, created_at, updated_at')
+    .select('id, name, description, slug, cover_image_url, bookmark_count, view_count, created_at, updated_at, follower_count')
     .eq('user_id', profile.id)
     .eq('slug', slug)
     .eq('privacy_level', 'public')
