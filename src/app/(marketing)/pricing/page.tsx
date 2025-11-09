@@ -1,16 +1,45 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Check, Crown, Sparkles } from 'lucide-react';
+import { Check, Crown, Sparkles, Loader2, XCircle, AlertCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { STRIPE_PLANS, getYearlyDiscount, type StripePlan } from '@/config/stripe';
+import { initiateCheckout, isStripeConfigured } from '@/lib/stripe/client';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PricingPage() {
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
+  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+  const { toast } = useToast();
+  const searchParams = useSearchParams();
+
+  // Show messages based on URL params
+  useEffect(() => {
+    const canceled = searchParams.get('canceled');
+    const portal = searchParams.get('portal');
+
+    if (canceled === 'true') {
+      toast({
+        title: 'Checkout Canceled',
+        description: 'Your checkout was canceled. No charges were made.',
+        variant: 'default',
+      });
+    }
+
+    if (portal === 'demo') {
+      toast({
+        title: 'Demo Portal',
+        description: 'This is a demo environment. Configure Stripe to access the real customer portal.',
+        variant: 'default',
+      });
+    }
+  }, [searchParams, toast]);
 
   const handleUpgrade = async (plan: StripePlan) => {
     if (plan.tier === 'free') {
@@ -26,6 +55,8 @@ export default function PricingPage() {
     }
 
     // For Pro plan, initiate checkout
+    setLoadingPlanId(plan.id);
+
     try {
       const priceId =
         billingInterval === 'monthly'
@@ -33,33 +64,44 @@ export default function PricingPage() {
           : plan.stripePriceIdYearly;
 
       if (!priceId) {
-        // Stripe not configured, show message
-        alert(
-          'Stripe checkout is not configured yet. This is a demo environment. In production, you would be redirected to Stripe checkout.'
-        );
+        // Stripe not configured, show demo message
+        toast({
+          title: 'Demo Mode',
+          description:
+            'Stripe checkout is not configured yet. This is a demo environment. Add your Stripe API keys to enable real payments.',
+          variant: 'default',
+        });
+        setLoadingPlanId(null);
         return;
       }
 
-      // Call checkout API
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId }),
-      });
+      const result = await initiateCheckout(priceId);
 
-      const { sessionId, error } = await response.json();
-
-      if (error) {
-        alert(error);
-        return;
+      if (!result.success) {
+        toast({
+          title: 'Checkout Failed',
+          description: result.error || 'Failed to initiate checkout. Please try again.',
+          variant: 'destructive',
+        });
+      } else if (!isStripeConfigured()) {
+        // Demo mode success
+        toast({
+          title: 'Demo Checkout',
+          description:
+            'In production, you would be redirected to Stripe checkout. Configure Stripe to enable real payments.',
+          variant: 'default',
+        });
       }
-
-      // Redirect to Stripe checkout would happen here
-      console.log('Stripe checkout session:', sessionId);
-      alert('Checkout initiated! In production, you would be redirected to Stripe.');
+      // If Stripe is configured, user will be redirected, no need for toast
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Failed to initiate checkout. Please try again.');
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingPlanId(null);
     }
   };
 
@@ -182,8 +224,16 @@ export default function PricingPage() {
                           'bg-neutral-900 hover:bg-neutral-800 text-white'
                       )}
                       size="lg"
+                      disabled={loadingPlanId !== null}
                     >
-                      {plan.ctaText}
+                      {loadingPlanId === plan.id ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        plan.ctaText
+                      )}
                     </Button>
                   </CardHeader>
 

@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Crown, Check, AlertCircle, CreditCard } from 'lucide-react';
+import { Crown, Check, AlertCircle, CreditCard, Settings, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { FeatureGate, SubscriptionTier } from '@/lib/features/feature-gate';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BillingHistorySection } from './billing-history-section';
+import { openCustomerPortal } from '@/lib/stripe/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface BillingSubscriptionSectionProps {
   currentTier: SubscriptionTier;
@@ -23,6 +25,8 @@ export function BillingSubscriptionSection({
   const featureGate = new FeatureGate(currentTier);
   const limits = featureGate.getLimits();
   const isPremium = featureGate.isPremium();
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const { toast } = useToast();
 
   // Calculate if approaching limits
   const bookmarkLimit = featureGate.canCreate('bookmarks', bookmarkCount);
@@ -30,6 +34,30 @@ export function BillingSubscriptionSection({
   const isApproachingLimit =
     (bookmarkLimit.remaining <= 5 && bookmarkLimit.remaining > 0) ||
     (collectionLimit.remaining <= 2 && collectionLimit.remaining > 0);
+
+  const handleManageSubscription = async () => {
+    setIsOpeningPortal(true);
+
+    try {
+      const result = await openCustomerPortal();
+
+      if (!result.success) {
+        toast({
+          title: 'Failed to open portal',
+          description: result.error || 'Please try again later.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsOpeningPortal(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -62,12 +90,29 @@ export function BillingSubscriptionSection({
               </Link>
             </Button>
           )}
-          {currentTier === 'pro' && (
-            <Button asChild variant="outline">
-              <Link href="/pricing">
-                View Plans
-              </Link>
-            </Button>
+          {isPremium && (
+            <>
+              <Button variant="outline" asChild>
+                <Link href="/pricing">View Plans</Link>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleManageSubscription}
+                disabled={isOpeningPortal}
+              >
+                {isOpeningPortal ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Opening...
+                  </>
+                ) : (
+                  <>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Manage Subscription
+                  </>
+                )}
+              </Button>
+            </>
           )}
         </div>
       </div>
