@@ -58,12 +58,12 @@
     - [x] AddToCollectionButton component (bookmark detay sayfasından)
     - [x] RemoveBookmarkButton component (collection detay sayfasından)
     - [x] Modal ile collection seçimi ve toggle işlevi
-  - [ ] Collection içinde bookmark sıralama (position) özelliğini implement et (drag-drop - dnd-kit gerekli)
+  - [x] Collection içinde bookmark sıralama (position) özelliğini implement et (drag-drop - dnd-kit gerekli)
   - [x] Collection cover image upload işlevselliğini ekle (URL input ile - Supabase Storage entegrasyonu sonraya)
   - [x] Public collection view sayfasını oluştur (/c/[username]/[slug])
   - [x] SEO optimize edilmiş public collection sayfalarını geliştir (meta tags, Open Graph)
   - [ ] Collaborative collection özelliklerini ve izin sistemini implement et (collection_collaborators tablosu)
-  - [ ] Collection istatistikleri (view_count, follower_count) tracking sistemini ekle
+  - [x] Collection istatistikleri (view_count, follower_count) tracking sistemini ekle
   - [x] Public collection view'da "View Public Page" butonu ekle (username bilgisi gerekli)
   - _Gereksinimler: 4.1, 4.2, 4.3, 4.4, 4.5_
 
