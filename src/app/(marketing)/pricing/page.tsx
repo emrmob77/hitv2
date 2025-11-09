@@ -259,9 +259,9 @@ export default function PricingPage() {
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-4 px-6 text-neutral-700">Premium Posts</td>
+                  <td className="py-4 px-6 text-neutral-700">Public Sharing</td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-neutral-300 inline" />
+                    <Check className="h-5 w-5 text-green-600 inline" />
                   </td>
                   <td className="text-center py-4 px-6">
                     <Check className="h-5 w-5 text-green-600 inline" />
@@ -271,10 +271,8 @@ export default function PricingPage() {
                   </td>
                 </tr>
                 <tr className="bg-neutral-50">
-                  <td className="py-4 px-6 text-neutral-700">Link Groups</td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-neutral-300 inline" />
-                  </td>
+                  <td className="py-4 px-6 text-neutral-700">Premium Posts</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
                   <td className="text-center py-4 px-6">
                     <Check className="h-5 w-5 text-green-600 inline" />
                   </td>
@@ -283,10 +281,28 @@ export default function PricingPage() {
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-4 px-6 text-neutral-700">Affiliate Links</td>
+                  <td className="py-4 px-6 text-neutral-700">Link Groups</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-neutral-300 inline" />
+                    <Check className="h-5 w-5 text-green-600 inline" />
                   </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="h-5 w-5 text-green-600 inline" />
+                  </td>
+                </tr>
+                <tr className="bg-neutral-50">
+                  <td className="py-4 px-6 text-neutral-700">Affiliate Links</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="h-5 w-5 text-green-600 inline" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="h-5 w-5 text-green-600 inline" />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 text-neutral-700">Subscriber System</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
                   <td className="text-center py-4 px-6">
                     <Check className="h-5 w-5 text-green-600 inline" />
                   </td>
@@ -296,9 +312,25 @@ export default function PricingPage() {
                 </tr>
                 <tr className="bg-neutral-50">
                   <td className="py-4 px-6 text-neutral-700">Advanced Analytics</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-neutral-300 inline" />
+                    <Check className="h-5 w-5 text-green-600 inline" />
                   </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="h-5 w-5 text-green-600 inline" />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 text-neutral-700">Team Collaboration</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="h-5 w-5 text-green-600 inline" />
+                  </td>
+                </tr>
+                <tr className="bg-neutral-50">
+                  <td className="py-4 px-6 text-neutral-700">Priority Support</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
                   <td className="text-center py-4 px-6">
                     <Check className="h-5 w-5 text-green-600 inline" />
                   </td>
@@ -308,39 +340,15 @@ export default function PricingPage() {
                 </tr>
                 <tr>
                   <td className="py-4 px-6 text-neutral-700">API Access</td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-neutral-300 inline" />
-                  </td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-neutral-300 inline" />
-                  </td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
-                  </td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6 text-neutral-600 text-sm">Coming soon</td>
                 </tr>
                 <tr className="bg-neutral-50">
-                  <td className="py-4 px-6 text-neutral-700">Team Collaboration</td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-neutral-300 inline" />
-                  </td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-neutral-300 inline" />
-                  </td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 text-neutral-700">White Label</td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-neutral-300 inline" />
-                  </td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-neutral-300 inline" />
-                  </td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
-                  </td>
+                  <td className="py-4 px-6 text-neutral-700">Custom Domain</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6 text-neutral-600 text-sm">Coming soon</td>
                 </tr>
               </tbody>
             </table>
