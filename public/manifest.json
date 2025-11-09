@@ -1,0 +1,118 @@
+{
+  "name": "HitTags - Social Bookmarking Platform",
+  "short_name": "HitTags",
+  "description": "Professional social bookmarking platform with collections, affiliate tracking, and premium content creation",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "categories": ["productivity", "social", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Add Bookmark",
+      "short_name": "Add",
+      "description": "Quickly add a new bookmark",
+      "url": "/dashboard/bookmarks/new",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "My Bookmarks",
+      "short_name": "Bookmarks",
+      "description": "View your bookmarks",
+      "url": "/dashboard/bookmarks",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Collections",
+      "short_name": "Collections",
+      "description": "View your collections",
+      "url": "/dashboard/collections",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Analytics",
+      "short_name": "Analytics",
+      "description": "View your analytics",
+      "url": "/dashboard/analytics",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ],
+  "share_target": {
+    "action": "/dashboard/bookmarks/new",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "description",
+      "url": "url"
+    }
+  },
+  "related_applications": [],
+  "prefer_related_applications": false
+}

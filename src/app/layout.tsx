@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { siteConfig } from "@/config/site";
 import { WebVitals } from "@/components/analytics/web-vitals";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,15 @@ export const metadata: Metadata = {
     "HitTags",
     "premium content",
   ],
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: siteConfig.name,
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: `${siteConfig.name} | Social Bookmark Platform`,
     description: siteConfig.description,
@@ -58,6 +68,16 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
+  ],
 };
 
 export default function RootLayout({
@@ -71,6 +91,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
         <WebVitals />
+        <ServiceWorkerRegister />
         {children}
       </body>
     </html>

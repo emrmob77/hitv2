@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HitTags - Save Bookmark</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 400px;
+      min-height: 400px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .status.success {
+      background: #d1fae5;
+      color: #065f46;
+      display: block;
+    }
+
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+    }
+
+    .checkbox-group label {
+      margin: 0;
+      font-weight: 400;
+    }
+
+    .button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .button-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .button-primary:hover {
+      background: #2563eb;
+    }
+
+    .button-primary:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .button-secondary {
+      background: #f3f4f6;
+      color: #374151;
+      margin-top: 8px;
+    }
+
+    .button-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      color: #3b82f6;
+      border-bottom-color: #3b82f6;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      border: 3px solid #f3f4f6;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .link {
+      color: #3b82f6;
+      text-decoration: none;
+      font-size: 12px;
+      text-align: center;
+      display: block;
+      margin-top: 12px;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>HitTags</h1>
+    <p>Save bookmarks & create affiliate links</p>
+  </div>
+
+  <div class="container">
+    <div id="status" class="status"></div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="bookmark">Save Bookmark</button>
+      <button class="tab" data-tab="affiliate">Affiliate Link</button>
+    </div>
+
+    <!-- Bookmark Tab -->
+    <div id="bookmark-tab" class="tab-content active">
+      <form id="bookmark-form">
+        <div class="form-group">
+          <label for="title">Title *</label>
+          <input type="text" id="title" name="title" required>
+        </div>
+
+        <div class="form-group">
+          <label for="url">URL *</label>
+          <input type="url" id="url" name="url" required>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="tags">Tags (comma-separated)</label>
+          <input type="text" id="tags" name="tags" placeholder="web, design, tech">
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="is-public" name="is_public">
+          <label for="is-public">Make this bookmark public</label>
+        </div>
+
+        <button type="submit" class="button button-primary" id="save-btn">
+          Save Bookmark
+        </button>
+      </form>
+    </div>
+
+    <!-- Affiliate Tab -->
+    <div id="affiliate-tab" class="tab-content">
+      <form id="affiliate-form">
+        <div class="form-group">
+          <label for="aff-title">Link Title *</label>
+          <input type="text" id="aff-title" name="title" required>
+        </div>
+
+        <div class="form-group">
+          <label for="aff-url">Target URL *</label>
+          <input type="url" id="aff-url" name="url" required>
+        </div>
+
+        <div class="form-group">
+          <label for="aff-description">Description</label>
+          <textarea id="aff-description" name="description"></textarea>
+        </div>
+
+        <button type="submit" class="button button-primary" id="affiliate-btn">
+          Create Affiliate Link
+        </button>
+      </form>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p style="margin-top: 12px; font-size: 13px; color: #6b7280;">Processing...</p>
+    </div>
+
+    <a href="#" class="link" id="open-dashboard">Open Dashboard</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

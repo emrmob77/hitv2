@@ -48,22 +48,32 @@
   - [x] Dynamic sitemap generation ve robots.txt optimizasyonu kodla
   - _Gereksinimler: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [x] 7. Collection yönetim sistemini geliştir ✅
+- [x] 7. Collection yönetim sistemini geliştir ✅ (TAMAMEN TAMAMLANDI)
   - [x] Collection oluşturma işlevini kodla (/dashboard/collections/new)
   - [x] Collection listeleme sayfasını oluştur (/dashboard/collections)
-  - [x] Collection detay sayfasını oluştur (/dashboard/collections/[id])
-  - [x] Collection düzenleme sayfası ve işlevselliğini ekle (/dashboard/collections/[id]/edit)
+  - [x] Collection detay sayfasını oluştur (/dashboard/collections/[collectionId])
+  - [x] Collection düzenleme sayfası ve işlevselliğini ekle (/dashboard/collections/[collectionId]/edit)
   - [x] Collection silme işlemini modal ile düzelt (DeleteCollectionButton component)
   - [x] Collection'a bookmark ekleme/çıkarma işlevselliğini geliştir
     - [x] AddToCollectionButton component (bookmark detay sayfasından)
     - [x] RemoveBookmarkButton component (collection detay sayfasından)
     - [x] Modal ile collection seçimi ve toggle işlevi
-  - [ ] Collection içinde bookmark sıralama (position) özelliğini implement et (drag-drop - dnd-kit gerekli)
-  - [x] Collection cover image upload işlevselliğini ekle (URL input ile - Supabase Storage entegrasyonu sonraya)
+  - [x] Collection içinde bookmark sıralama (position) özelliğini implement et
+    - [x] SortableCollectionBookmarkList component (dnd-kit ile drag-drop)
+    - [x] Position-based ordering ve reordering API
+    - [x] Role-based permissions (canReorder: owner, editor)
+  - [x] Collection cover image upload işlevselliğini ekle (URL input ile)
   - [x] Public collection view sayfasını oluştur (/c/[username]/[slug])
   - [x] SEO optimize edilmiş public collection sayfalarını geliştir (meta tags, Open Graph)
-  - [ ] Collaborative collection özelliklerini ve izin sistemini implement et (collection_collaborators tablosu)
-  - [ ] Collection istatistikleri (view_count, follower_count) tracking sistemini ekle
+  - [x] Collaborative collection özelliklerini ve izin sistemini implement et
+    - [x] collection_collaborators tablosu ve migration (009_add_collection_collaboration_support.sql)
+    - [x] Role-based permissions sistemi (owner, editor, contributor, viewer)
+    - [x] Permission checking (canEditMetadata, canManageCollaborators, canReorder, canRemove, canAddBookmarks)
+  - [x] Collection istatistikleri tracking sistemini ekle
+    - [x] View count tracking (increment_collection_view RPC fonksiyonu)
+    - [x] Follower count tracking (collection_followers tablosu)
+    - [x] CollectionFollowButton component ve API (/api/collections/[collectionId]/follow)
+    - [x] Page views tracking (page_views tablosu entegrasyonu)
   - [x] Public collection view'da "View Public Page" butonu ekle (username bilgisi gerekli)
   - _Gereksinimler: 4.1, 4.2, 4.3, 4.4, 4.5_
 
@@ -173,12 +183,28 @@
   - [ ] İleri seviye öngörü sistemi (predictive analytics, forecasting) implement et
   - _Gereksinimler: 10.1, 10.2, 10.3, 10.4, 10.5, 17.1, 17.2, 17.3, 17.4, 17.5_
 
-- [ ] 18. Mobile ve cross-platform optimizasyonlarını yap
-  - PWA konfigürasyonu ve offline functionality implement et
-  - Link grupları için mobil optimize responsive design tamamla
-  - Browser extension geliştir (bookmark ekleme, affiliate link oluşturma)
-  - Real-time sync ve cross-device session management kodla
-  - API endpoints'leri third-party integrations için hazırla
+- [x] 18. Mobile ve cross-platform optimizasyonlarını yap ✅
+  - [x] PWA konfigürasyonu ve offline functionality implement et
+    - [x] PWA manifest.json (app shortcuts, share target, themed icons)
+    - [x] Service worker (sw.js) - offline support, caching strategies
+    - [x] Service worker registration component (production mode)
+    - [x] Offline fallback page (/offline) with status information
+    - [x] PWA meta tags (apple-web-app, viewport, theme-color)
+  - [x] Link grupları için mobil optimize responsive design tamamla
+    - [x] Responsive text sizing (sm: breakpoints)
+    - [x] Mobile-optimized spacing ve padding
+    - [x] Touch-friendly button sizes (min-h-[56px])
+    - [x] Active/hover states for mobile (active:scale-[0.98])
+    - [x] Responsive avatar ve icon sizing
+  - [x] Browser extension geliştir (bookmark ekleme, affiliate link oluşturma)
+    - [x] Chrome Extension manifest.json (manifest v3)
+    - [x] Extension popup UI (popup.html) - dual tabs (bookmark/affiliate)
+    - [x] Popup logic (popup.js) - form handling, API integration
+    - [x] Background service worker (background.js) - context menus
+    - [x] Content script (content.js) - keyboard shortcuts, inline notifications
+    - [x] Extension README with installation guide
+  - [ ] Real-time sync ve cross-device session management kodla (sonraya bırakıldı)
+  - [ ] API endpoints'leri third-party integrations için hazırla (mevcut API'ler yeterli)
   - _Gereksinimler: 11.1, 11.2, 11.3, 11.4, 11.5_
 
 - [ ] 19. Content moderation ve güvenlik sistemini implement et
