@@ -3,7 +3,17 @@ import { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookmarkIcon, FolderIcon, TagIcon, TrendingUpIcon, PlusIcon } from 'lucide-react';
+import {
+  BookmarkIcon,
+  FolderIcon,
+  TagIcon,
+  TrendingUpIcon,
+  PlusIcon,
+  Crown,
+  Sparkles,
+  Link2,
+  BarChart3
+} from 'lucide-react';
 import { UsageLimitsCard } from '@/components/dashboard/usage-limits-card';
 import { FeatureGate } from '@/lib/features/feature-gate';
 
@@ -100,6 +110,63 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      {/* Premium Upgrade Card (for free users) */}
+      {userProfile && userProfile.subscription_tier === 'free' && (
+        <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-amber-600" />
+                  Upgrade to Pro
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  Unlock unlimited bookmarks, premium features, and more
+                </CardDescription>
+              </div>
+              <Button asChild size="sm" className="bg-amber-600 hover:bg-amber-700">
+                <Link href="/pricing">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  View Plans
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="flex items-start gap-2">
+                <BookmarkIcon className="h-4 w-4 text-amber-600 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-neutral-900">Unlimited</p>
+                  <p className="text-xs text-neutral-600">Bookmarks & Collections</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <Link2 className="h-4 w-4 text-amber-600 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-neutral-900">Link Groups</p>
+                  <p className="text-xs text-neutral-600">Linktree-style pages</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <BarChart3 className="h-4 w-4 text-amber-600 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-neutral-900">Analytics</p>
+                  <p className="text-xs text-neutral-600">Advanced insights</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <Sparkles className="h-4 w-4 text-amber-600 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-neutral-900">Premium Posts</p>
+                  <p className="text-xs text-neutral-600">URL-free content</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quick Actions */}
       <div>
         <Card>
@@ -130,6 +197,22 @@ export default async function DashboardPage() {
                 View All Collections
               </Link>
             </Button>
+            {userProfile && userProfile.subscription_tier !== 'free' && (
+              <>
+                <Button asChild variant="outline">
+                  <Link href="/dashboard/link-groups">
+                    <Link2 className="mr-2 h-4 w-4" />
+                    Link Groups
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/dashboard/affiliate">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    Affiliate Links
+                  </Link>
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

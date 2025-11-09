@@ -10,11 +10,10 @@ export function CheckoutSuccessBanner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const success = searchParams.get('success');
-  const portal = searchParams.get('portal');
 
   // Auto-dismiss after 10 seconds
   useEffect(() => {
-    if (success === 'true' || portal === 'demo') {
+    if (success === 'true') {
       const timeout = setTimeout(() => {
         // Remove query params
         router.replace('/dashboard/settings');
@@ -22,7 +21,7 @@ export function CheckoutSuccessBanner() {
 
       return () => clearTimeout(timeout);
     }
-  }, [success, portal, router]);
+  }, [success, router]);
 
   if (success === 'true') {
     return (
@@ -35,25 +34,6 @@ export function CheckoutSuccessBanner() {
           <Button
             variant="link"
             className="h-auto p-0 text-green-700 underline"
-            onClick={() => router.replace('/dashboard/settings')}
-          >
-            Dismiss
-          </Button>
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (portal === 'demo') {
-    return (
-      <Alert>
-        <CheckCircle2 className="h-4 w-4" />
-        <AlertTitle>Demo Mode</AlertTitle>
-        <AlertDescription>
-          This is a demo environment. Add your Stripe API keys to enable the real customer portal.{' '}
-          <Button
-            variant="link"
-            className="h-auto p-0 underline"
             onClick={() => router.replace('/dashboard/settings')}
           >
             Dismiss

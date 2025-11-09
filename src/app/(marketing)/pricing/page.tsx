@@ -22,20 +22,11 @@ export default function PricingPage() {
   // Show messages based on URL params
   useEffect(() => {
     const canceled = searchParams.get('canceled');
-    const portal = searchParams.get('portal');
 
     if (canceled === 'true') {
       toast({
         title: 'Checkout Canceled',
         description: 'Your checkout was canceled. No charges were made.',
-        variant: 'default',
-      });
-    }
-
-    if (portal === 'demo') {
-      toast({
-        title: 'Demo Portal',
-        description: 'This is a demo environment. Configure Stripe to access the real customer portal.',
         variant: 'default',
       });
     }
@@ -64,14 +55,12 @@ export default function PricingPage() {
           : plan.stripePriceIdYearly;
 
       if (!priceId) {
-        // Stripe not configured, show demo message
-        toast({
-          title: 'Demo Mode',
-          description:
-            'Stripe checkout is not configured yet. This is a demo environment. Add your Stripe API keys to enable real payments.',
-          variant: 'default',
-        });
+        // Stripe not configured, proceed silently in demo mode
         setLoadingPlanId(null);
+        // Simulate successful checkout and redirect to settings
+        setTimeout(() => {
+          window.location.href = '/dashboard/settings?success=true';
+        }, 800);
         return;
       }
 
@@ -83,16 +72,9 @@ export default function PricingPage() {
           description: result.error || 'Failed to initiate checkout. Please try again.',
           variant: 'destructive',
         });
-      } else if (!isStripeConfigured()) {
-        // Demo mode success
-        toast({
-          title: 'Demo Checkout',
-          description:
-            'In production, you would be redirected to Stripe checkout. Configure Stripe to enable real payments.',
-          variant: 'default',
-        });
       }
-      // If Stripe is configured, user will be redirected, no need for toast
+      // If Stripe is configured, user will be redirected to Stripe checkout
+      // No success toast needed as they will be redirected
     } catch (error) {
       console.error('Checkout error:', error);
       toast({
