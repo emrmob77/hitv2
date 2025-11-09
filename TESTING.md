@@ -124,6 +124,109 @@ describe('MyComponent', () => {
 });
 ```
 
+## E2E Testing with Playwright
+
+### Setup
+
+Install Playwright (note: requires network access to npm registry):
+
+```bash
+npm install -D @playwright/test
+npx playwright install
+```
+
+### Running E2E Tests
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run E2E tests in UI mode
+npm run test:e2e:ui
+
+# Run E2E tests in debug mode
+npm run test:e2e:debug
+
+# Run E2E tests in headed mode (see browser)
+npm run test:e2e:headed
+
+# Run E2E tests in specific browser
+npm run test:e2e:chromium
+
+# View test report
+npm run test:e2e:report
+```
+
+### E2E Test Structure
+
+```
+tests/
+└── e2e/
+    ├── auth.spec.ts           # Authentication flow tests
+    ├── bookmarks.spec.ts      # Bookmark management tests
+    ├── subscription.spec.ts   # Subscription/payment flow tests
+    └── affiliate.spec.ts      # Affiliate link tests
+```
+
+### Writing E2E Tests
+
+E2E tests simulate real user interactions with the application:
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('should create bookmark', async ({ page }) => {
+  await page.goto('/login');
+  await page.fill('input[type="email"]', 'test@example.com');
+  await page.fill('input[type="password"]', 'password123');
+  await page.click('button[type="submit"]');
+
+  await page.goto('/dashboard/bookmarks');
+  await page.click('button:has-text("Add")');
+  await page.fill('input[name="url"]', 'https://example.com');
+  await page.fill('input[name="title"]', 'Test Bookmark');
+  await page.click('button[type="submit"]');
+
+  await expect(page.locator('text=Test Bookmark')).toBeVisible();
+});
+```
+
+### E2E Test Environment Variables
+
+Create `.env.test.local` for test credentials:
+
+```bash
+TEST_USER_EMAIL=test@example.com
+TEST_USER_PASSWORD=your_test_password
+PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000
+```
+
+### E2E Best Practices
+
+1. **Use Data Attributes**: Add `data-testid` attributes for reliable selectors
+2. **Isolate Tests**: Each test should be independent and set up its own state
+3. **Clean Up**: Delete test data after tests complete
+4. **Use Page Objects**: For complex flows, create page object models
+5. **Handle Async**: Always await Playwright actions and assertions
+6. **Test User Flows**: Focus on complete user journeys, not individual components
+7. **Mock External Services**: Mock payment providers, email services, etc.
+
+### Debugging E2E Tests
+
+```bash
+# Run with headed browser
+npm run test:e2e:headed
+
+# Run with debug mode (step through tests)
+npm run test:e2e:debug
+
+# Run specific test file
+npx playwright test tests/e2e/auth.spec.ts
+
+# Run specific test by name
+npx playwright test -g "should login with valid credentials"
+```
+
 ## Test Coverage
 
 We aim for:
