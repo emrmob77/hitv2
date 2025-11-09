@@ -34,12 +34,12 @@ This guide will help you integrate Stripe for subscription payments when you're 
 
 ## Step 2: Create Products and Prices
 
-### Pro Plan (Monthly)
+### Pro Plan
 ```bash
 # Create product
 stripe products create \
   --name="Pro Plan" \
-  --description="Unlimited bookmarks and premium features"
+  --description="For power users and content creators"
 
 # Create monthly price
 stripe prices create \
@@ -47,10 +47,8 @@ stripe prices create \
   --unit-amount=2900 \
   --currency=usd \
   --recurring[interval]=month
-```
 
-### Pro Plan (Yearly - Optional)
-```bash
+# Create yearly price (save 17%)
 stripe prices create \
   --product=prod_XXX \
   --unit-amount=29000 \
@@ -63,9 +61,21 @@ stripe prices create \
 # Create product
 stripe products create \
   --name="Enterprise Plan" \
-  --description="Full platform access with team features"
+  --description="For teams and organizations"
 
-# Create price (contact sales, or set custom pricing)
+# Create monthly price
+stripe prices create \
+  --product=prod_XXX \
+  --unit-amount=9900 \
+  --currency=usd \
+  --recurring[interval]=month
+
+# Create yearly price
+stripe prices create \
+  --product=prod_XXX \
+  --unit-amount=99000 \
+  --currency=usd \
+  --recurring[interval]=year
 ```
 
 ## Step 3: Configure Environment Variables
@@ -79,9 +89,10 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Stripe Price IDs
-STRIPE_PRO_MONTHLY_PRICE_ID=price_...
-STRIPE_PRO_YEARLY_PRICE_ID=price_...
-STRIPE_ENTERPRISE_PRICE_ID=price_...
+NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID=price_...
+NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID=price_...
+NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID=price_...
+NEXT_PUBLIC_STRIPE_ENTERPRISE_YEARLY_PRICE_ID=price_...
 ```
 
 ## Step 4: Install Stripe SDK

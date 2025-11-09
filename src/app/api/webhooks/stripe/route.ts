@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getTierFromPriceId } from '@/config/stripe';
+// import Stripe from 'stripe'; // Uncomment when Stripe is configured
 
 /**
  * Stripe Webhook Handler
@@ -208,20 +210,4 @@ async function handleInvoicePaymentFailed(invoice: any) {
   console.log('[Stripe] Would notify user about failed payment');
 }
 
-/**
- * Helper: Map Stripe price ID to subscription tier
- */
-function getTierFromPriceId(priceId: string): 'free' | 'pro' | 'enterprise' {
-  // TODO: Map actual Stripe price IDs to tiers
-  // const PRICE_TO_TIER: Record<string, 'free' | 'pro' | 'enterprise'> = {
-  //   'price_pro_monthly': 'pro',
-  //   'price_pro_yearly': 'pro',
-  //   'price_enterprise_monthly': 'enterprise',
-  //   'price_enterprise_yearly': 'enterprise',
-  // };
-  //
-  // return PRICE_TO_TIER[priceId] || 'free';
-
-  console.log('[Stripe] Would map price ID to tier:', priceId);
-  return 'pro'; // Default for testing
-}
+// Note: getTierFromPriceId is now imported from @/config/stripe
