@@ -84,8 +84,15 @@
   - [x] Activity feed (RecentActivityTimeline) ve notification sistemini kodla
   - [x] API endpoints: /api/likes, /api/comments, /api/tags/[slug]/follow
   - [x] Activity tracking ve notification generation entegrasyonu
-  - [ ] Real-time updates için Supabase subscriptions kullan (sonraya bırakıldı)
-  - [ ] Personalized feed algoritması (sonraya bırakıldı)
+  - [x] Real-time updates için Supabase subscriptions kullan
+    - [x] useRealtimeBookmarks hook
+    - [x] useRealtimeCollections hook
+    - [x] useRealtimeNotifications hook
+    - [x] RealtimeIndicator component
+  - [x] Personalized feed algoritması
+    - [x] PersonalizedFeedGenerator class
+    - [x] Feed scoring (engagement, recency, relevance)
+    - [x] API endpoint: /api/feed/personalized
   - _Gereksinimler: 5.1, 5.2, 5.3, 5.4, 5.5_
 
 - [x] 9. Arama ve keşif özelliklerini implement et ✅
@@ -154,12 +161,21 @@
   - [x] Subscribe/Unsubscribe notification sistemi ekle
   - _Gereksinimler: 16.1, 16.2, 16.3, 16.4, 16.5_
 
-- [x] 15. Content monetization ve partnership sistemini kodla ✅ (Temel)
+- [x] 15. Content monetization ve partnership sistemini kodla ✅
   - [x] Creator monetization başvuru ve onay sistemini implement et
   - [x] Revenue sharing hesaplama ve ödeme sistemini geliştir
-  - [ ] Sponsored content placement ve marking sistemini kodla
-  - [ ] Brand partnership dashboard ve analytics'i oluştur
-  - [ ] Transparent revenue reporting sistemini implement et
+  - [x] Sponsored content placement ve marking sistemini kodla
+    - [x] Database migration (012_add_sponsored_content.sql)
+    - [x] sponsored_content, brand_partnerships, sponsored_content_analytics tables
+    - [x] SponsoredBadge component for transparency
+    - [x] API endpoint: /api/sponsored-content
+  - [x] Brand partnership dashboard ve analytics'i oluştur
+    - [x] /dashboard/brand-partnerships page
+    - [x] Partnership stats and metrics
+    - [x] Sponsored content campaigns tracking
+  - [x] Transparent revenue reporting sistemini implement et
+    - [x] Revenue tracking in sponsored_content table
+    - [x] Analytics dashboard with revenue metrics
   - _Gereksinimler: 8.1, 8.2, 8.3, 8.4, 8.5_
 
 - [x] 16. SEO ve performance optimizasyonlarını implement et ✅
@@ -180,7 +196,12 @@
   - [x] Coğrafi dağılım, cihaz türü, trafik kaynağı analizlerini geliştir
   - [x] Trend analizi (7-day comparison, 14-day charts) ve temel karşılaştırmalı raporlar kodla
   - [x] CSV, PDF export ve veri işleme (DataExporter) implement et
-  - [ ] İleri seviye öngörü sistemi (predictive analytics, forecasting) implement et
+  - [x] İleri seviye öngörü sistemi (predictive analytics, forecasting) implement et
+    - [x] PredictiveAnalytics class
+    - [x] Time series forecasting (exponential smoothing)
+    - [x] Trend analysis and anomaly detection
+    - [x] API endpoint: /api/analytics/forecast
+    - [x] Forecast affiliate earnings and bookmark growth
   - _Gereksinimler: 10.1, 10.2, 10.3, 10.4, 10.5, 17.1, 17.2, 17.3, 17.4, 17.5_
 
 - [x] 18. Mobile ve cross-platform optimizasyonlarını yap ✅
@@ -203,8 +224,13 @@
     - [x] Background service worker (background.js) - context menus
     - [x] Content script (content.js) - keyboard shortcuts, inline notifications
     - [x] Extension README with installation guide
-  - [ ] Real-time sync ve cross-device session management kodla (sonraya bırakıldı)
-  - [ ] API endpoints'leri third-party integrations için hazırla (mevcut API'ler yeterli)
+  - [x] Real-time sync ve cross-device session management kodla
+    - [x] Database migration (013_add_session_management.sql)
+    - [x] device_sessions, sync_queue, sync_conflicts tables
+    - [x] CrossDeviceSync class for sync management
+    - [x] Device registration and session tracking
+    - [x] Automatic sync with conflict resolution
+  - [x] API endpoints'leri third-party integrations için hazırla (mevcut API'ler yeterli)
   - _Gereksinimler: 11.1, 11.2, 11.3, 11.4, 11.5_
 
 - [x] 19. Content moderation ve güvenlik sistemini implement et ✅
@@ -319,7 +345,13 @@
   - [x] Export API endpoint (/api/export/bookmarks) oluştur
   - [x] Import/Export UI sayfası (/dashboard/import-export) oluştur
   - [x] Navigation'a Import/Export linki ekle
-  - [ ] Sosyal platform import (Twitter, Reddit, Pocket) sistemini implement et (sonraya bırakıldı)
+  - [x] Sosyal platform import (Twitter, Reddit, Pocket) sistemini implement et
+    - [x] SocialImportManager class
+    - [x] TwitterImporter (archive data parser)
+    - [x] RedditImporter (OAuth + saved posts API)
+    - [x] PocketImporter (OAuth + saved items API)
+    - [x] API endpoint: /api/import/social
+    - [x] Import result tracking and error handling
   - [ ] Import job tracking tablosu ekle (şimdilik analytics_events ile takip edilebilir)
   - _Gereksinimler: 19.1, 19.2, 19.3, 19.4, 19.5_
 
