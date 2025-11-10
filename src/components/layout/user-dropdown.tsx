@@ -10,7 +10,8 @@ import {
   BarChart3,
   FolderKanban,
   Tag,
-  Shield
+  Shield,
+  Code
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -108,6 +109,12 @@ export function UserDropdown({ userProfile, avatarLabel }: UserDropdownProps) {
             <Link href="/dashboard/analytics" className="cursor-pointer">
               <BarChart3 className="mr-2 h-4 w-4" />
               <span>Analytics</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard/developer" className="cursor-pointer">
+              <Code className="mr-2 h-4 w-4" />
+              <span>Developer</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
