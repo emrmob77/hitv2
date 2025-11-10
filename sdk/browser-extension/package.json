@@ -1,0 +1,32 @@
+{
+  "name": "@hitv2/browser-extension-sdk",
+  "version": "1.0.0",
+  "description": "Browser Extension SDK for HitV2 bookmark management",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "npm run build"
+  },
+  "keywords": [
+    "hitv2",
+    "bookmarks",
+    "browser-extension",
+    "chrome-extension",
+    "firefox-addon"
+  ],
+  "author": "HitV2",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.260",
+    "typescript": "^5.3.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emrmob77/hitv2"
+  },
+  "bugs": {
+    "url": "https://github.com/emrmob77/hitv2/issues"
+  },
+  "homepage": "https://hitv2.app"
+}
