@@ -400,12 +400,46 @@
     - [x] Filter by types, tags, dates, public/private
   - _Gereksinimler: 22.1, 22.2, 22.3, 22.4, 22.5_
 
-- [ ] 26. Developer tools ve API ekosistemini geliştir
-  - Public RESTful API ve GraphQL endpoint'lerini kodla
-  - Webhook sistemi (WebhookManager) ve real-time event notifications implement et
-  - Browser extension SDK ve third-party development tools geliştir
-  - Zapier entegrasyonu ve workflow automation sistemini kodla
-  - Interactive API documentation ve developer portal oluştur
+- [x] 26. Developer tools ve API ekosistemini geliştir ✅
+  - [x] Database schema (016_add_developer_api.sql)
+    - [x] API keys with scopes, rate limiting, and authentication
+    - [x] API usage analytics and tracking
+    - [x] Webhook subscriptions and delivery logs
+    - [x] Zapier integrations table
+    - [x] OAuth applications and tokens
+  - [x] API key management system
+    - [x] APIKeyManager class (generation, validation, rate limiting)
+    - [x] API endpoints: /api/developer/api-keys, /api/developer/api-keys/[id]/stats
+    - [x] Scope-based permissions system
+    - [x] Usage statistics and analytics
+    - [x] IP whitelisting and CORS support
+  - [x] Public RESTful API ve GraphQL endpoint'lerini kodla
+    - [x] API authentication middleware (api-auth-middleware.ts)
+    - [x] REST API v1 endpoints: /api/v1/bookmarks, /api/v1/collections, /api/v1/tags
+    - [x] GraphQL schema and resolvers (typeDefs, resolvers)
+    - [x] GraphQL endpoint: /api/graphql
+    - [x] Rate limiting with headers, pagination support
+  - [x] Webhook sistemi (WebhookManager) ve real-time event notifications implement et
+    - [x] WebhookManager class (subscription, delivery, retry logic)
+    - [x] Webhook endpoints: /api/developer/webhooks, /api/developer/webhooks/[id]/deliveries
+    - [x] Event types (bookmark.*, collection.*)
+    - [x] Signature verification (HMAC-SHA256)
+    - [x] Cron job: /api/cron/process-webhooks
+    - [x] Automatic triggers on database events
+  - [x] Browser extension SDK ve third-party development tools geliştir
+    - [x] TypeScript SDK (@hitv2/browser-extension-sdk)
+    - [x] Full API client with browser helpers
+    - [x] Example Chrome extension (manifest v3)
+    - [x] SDK package.json and build configuration
+  - [x] Zapier entegrasyonu ve workflow automation sistemini kodla
+    - [x] Zapier triggers: /api/zapier/triggers/new-bookmark
+    - [x] Zapier actions: /api/zapier/actions/create-bookmark
+    - [x] REST Hooks support (subscribe/unsubscribe)
+    - [x] Zapier app definition (zapier/app-definition.json)
+  - [x] Interactive API documentation ve developer portal oluştur
+    - [x] API documentation page: /docs/api
+    - [x] Comprehensive docs (Overview, Auth, REST, GraphQL, Webhooks, SDK, Zapier)
+    - [x] Code examples and usage guides
   - _Gereksinimler: 23.1, 23.2, 23.3, 23.4, 23.5_
 
 - [ ] 27. Topluluk ve işbirliği özelliklerini implement et
