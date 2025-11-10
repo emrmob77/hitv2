@@ -355,12 +355,18 @@
   - [ ] Import job tracking tablosu ekle (şimdilik analytics_events ile takip edilebilir)
   - _Gereksinimler: 19.1, 19.2, 19.3, 19.4, 19.5_
 
-- [ ] 23. AI destekli içerik işleme sistemini geliştir
-  - Otomatik etiketleme (AutoTagger) ve içerik analizi sistemini kodla
-  - AI ile içerik özetleme ve smart collections özelliğini implement et
-  - Duplicate detection ve benzerlik analizi (DuplicateDetector) sistemini geliştir
-  - OpenAI/Claude API entegrasyonu ve confidence scoring kodla
-  - AI processing job queue ve background processing implement et
+- [ ] 23. AI destekli içerik işleme sistemini geliştir (Infrastructure Complete)
+  - [x] AI processing infrastructure
+    - [x] Database migration (015_add_ai_processing.sql)
+    - [x] ai_processing_jobs with job queue system
+    - [x] ai_generated_tags with confidence scoring
+    - [x] ai_content_summaries for content analysis
+    - [x] ai_duplicate_detection with similarity metrics
+  - [ ] Otomatik etiketleme (AutoTagger) - Ready for OpenAI API key
+  - [ ] AI ile içerik özetleme - Ready for OpenAI API key
+  - [ ] Duplicate detection implementation - Similarity algorithm ready
+  - [ ] OpenAI/Claude API integration - Basic service implemented
+  - [ ] Background worker for AI job processing
   - _Gereksinimler: 20.1, 20.2, 20.3, 20.4, 20.5_
 
 - [ ] 24. Gelişmiş mobil entegrasyon ve widget sistemini kodla
@@ -371,12 +377,27 @@
   - Push notification ve kişiselleştirilmiş mobil bildirimler implement et
   - _Gereksinimler: 21.1, 21.2, 21.3, 21.4, 21.5_
 
-- [ ] 25. Full-text search ve gelişmiş keşif sistemini implement et
-  - Elasticsearch entegrasyonu ve full-text search (FullTextSearch) kodla
-  - Görsel arama (VisualSearch) ve computer vision entegrasyonu geliştir
-  - Trending topics ve gerçek zamanlı popüler içerik sistemini implement et
-  - ML tabanlı recommendation engine ve kişiselleştirme algoritması kodla
-  - Advanced search filters ve relevans skorlama sistemini geliştir
+- [x] 25. Full-text search ve gelişmiş keşif sistemini implement et ✅
+  - [x] Elasticsearch entegrasyonu ve full-text search (FullTextSearch) kodla
+    - [x] ElasticsearchService with multi-index search
+    - [x] Fuzzy search, highlighting, relevance scoring
+    - [x] PostgreSQL fallback when Elasticsearch unavailable
+    - [x] API endpoint: /api/search/advanced
+  - [x] Görsel arama (VisualSearch) ve computer vision entegrasyonu geliştir
+    - [x] VisualSearchService with Google Vision API
+    - [x] Image analysis, OCR, safe search
+    - [x] API endpoint: /api/search/visual
+  - [x] Trending topics ve gerçek zamanlı popüler içerik sistemini implement et
+    - [x] TrendingSystem with velocity calculation
+    - [x] Trending bookmarks, collections, personalized
+    - [x] API endpoint: /api/search/trending
+  - [x] ML tabanlı recommendation engine ve kişiselleştirme algoritması kodla
+    - [x] RecommendationEngine (collaborative + content-based)
+    - [x] Similar user discovery
+    - [x] API endpoint: /api/recommendations
+  - [x] Advanced search filters ve relevans skorlama sistemini geliştir
+    - [x] Search analytics, autocomplete suggestions
+    - [x] Filter by types, tags, dates, public/private
   - _Gereksinimler: 22.1, 22.2, 22.3, 22.4, 22.5_
 
 - [ ] 26. Developer tools ve API ekosistemini geliştir
