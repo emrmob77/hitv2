@@ -3,7 +3,7 @@
  * View and manage individual user details
  */
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient, createSupabaseAdminClient } from '@/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -62,10 +62,13 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
   // Get email from auth.users
   const { data: authUser } = await supabase.auth.admin.getUserById(id);
 
+  // Use admin client to bypass RLS policies for fetching user data
+  const adminClient = createSupabaseAdminClient();
+
   // Get user's bookmarks
-  const { data: bookmarks, count: bookmarksCount, error: bookmarksError } = await supabase
+  const { data: bookmarks, count: bookmarksCount, error: bookmarksError } = await adminClient
     .from('bookmarks')
-    .select('id, title, url, created_at, is_public', { count: 'exact' })
+    .select('id, title, url, created_at, privacy_level', { count: 'exact' })
     .eq('user_id', id)
     .order('created_at', { ascending: false })
     .limit(10);
@@ -75,9 +78,9 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
   }
 
   // Get user's collections
-  const { data: collections, count: collectionsCount, error: collectionsError } = await supabase
+  const { data: collections, count: collectionsCount, error: collectionsError } = await adminClient
     .from('collections')
-    .select('id, name, description, created_at, is_public', { count: 'exact' })
+    .select('id, name, description, created_at, privacy_level', { count: 'exact' })
     .eq('user_id', id)
     .order('created_at', { ascending: false })
     .limit(10);
@@ -286,8 +289,8 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
                     <p className="text-xs text-muted-foreground">{bookmark.url}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={bookmark.is_public ? 'default' : 'outline'}>
-                      {bookmark.is_public ? 'Public' : 'Private'}
+                    <Badge variant={bookmark.privacy_level === 'public' ? 'default' : 'outline'}>
+                      {bookmark.privacy_level === 'public' ? 'Public' : bookmark.privacy_level === 'private' ? 'Private' : 'Subscribers'}
                     </Badge>
                     <p className="text-xs text-muted-foreground" suppressHydrationWarning>
                       {new Date(bookmark.created_at).toLocaleDateString()}
@@ -322,8 +325,8 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={collection.is_public ? 'default' : 'outline'}>
-                      {collection.is_public ? 'Public' : 'Private'}
+                    <Badge variant={collection.privacy_level === 'public' ? 'default' : 'outline'}>
+                      {collection.privacy_level === 'public' ? 'Public' : collection.privacy_level === 'private' ? 'Private' : 'Subscribers'}
                     </Badge>
                     <p className="text-xs text-muted-foreground" suppressHydrationWarning>
                       {new Date(collection.created_at).toLocaleDateString()}

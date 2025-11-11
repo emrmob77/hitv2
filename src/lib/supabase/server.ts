@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 import { env } from "@/lib/env";
 import type { Database } from "@/lib/supabase/types";
@@ -42,3 +43,22 @@ export async function createSupabaseServerClient({ strict = true }: CreateSupaba
     },
   });
 };
+
+/**
+ * Create admin Supabase client with service role key
+ * This bypasses RLS policies - use only for admin operations
+ */
+export function createSupabaseAdminClient(): SupabaseClient<Database> {
+  if (!env.supabaseUrl || !env.serviceRoleKey) {
+    throw new Error(
+      "Supabase admin client için gerekli ortam değişkenleri eksik. SUPABASE_SERVICE_ROLE_KEY gerekli."
+    );
+  }
+
+  return createClient<Database>(env.supabaseUrl, env.serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
