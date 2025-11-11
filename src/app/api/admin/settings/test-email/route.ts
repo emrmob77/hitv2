@@ -3,12 +3,12 @@
  * POST - Send a test email
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const emailSettings = await request.json();
 
     // Check if user is admin
