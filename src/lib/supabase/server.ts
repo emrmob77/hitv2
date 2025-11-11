@@ -34,8 +34,9 @@ export async function createSupabaseServerClient({ strict = true }: CreateSupaba
             cookieStore.set(name, value, options);
           });
         } catch (error) {
-          // Server Component context'te cookies.set desteklenmediğinde hata alınmasını engelleriz.
-          console.warn("Supabase cookie set hatası", error);
+          // Server Component context'te cookies.set desteklenmediğinde sessizce devam et.
+          // Bu Next.js 15'te layout ve page component'lerinde beklenen bir durumdur.
+          // Cookie'ler sadece Server Actions ve Route Handlers'da değiştirilebilir.
         }
       },
     },
