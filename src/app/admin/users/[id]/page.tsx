@@ -60,20 +60,32 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
   const { data: authUser } = await supabase.auth.admin.getUserById(params.id);
 
   // Get user's bookmarks
-  const { data: bookmarks, count: bookmarksCount } = await supabase
+  const { data: bookmarks, count: bookmarksCount, error: bookmarksError } = await supabase
     .from('bookmarks')
     .select('id, title, url, created_at, is_public', { count: 'exact' })
     .eq('user_id', params.id)
     .order('created_at', { ascending: false })
     .limit(10);
 
+  if (bookmarksError) {
+    console.error('Error fetching bookmarks:', bookmarksError);
+  }
+
   // Get user's collections
-  const { data: collections, count: collectionsCount } = await supabase
+  const { data: collections, count: collectionsCount, error: collectionsError } = await supabase
     .from('collections')
     .select('id, name, description, created_at, is_public', { count: 'exact' })
     .eq('user_id', params.id)
     .order('created_at', { ascending: false })
     .limit(10);
+
+  if (collectionsError) {
+    console.error('Error fetching collections:', collectionsError);
+  }
+
+  console.log('Debug - User ID:', params.id);
+  console.log('Debug - Bookmarks count:', bookmarksCount);
+  console.log('Debug - Collections count:', collectionsCount);
 
   const email = authUser?.user?.email || userProfile.email || 'N/A';
   const fullName = userProfile.full_name || userProfile.display_name || 'N/A';
