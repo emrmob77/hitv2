@@ -27,12 +27,15 @@ interface PageProps {
 }
 
 export default async function AdminUserDetailPage({ params }: PageProps) {
+  // Await params in Next.js 15
+  const { id } = await params;
+
   const supabase = await createSupabaseServerClient();
 
   // Check admin auth
   const { data: { user: currentUser } } = await supabase.auth.getUser();
   if (!currentUser) {
-    redirect('/auth/sign-in?redirect=/admin/users/' + params.id);
+    redirect('/auth/sign-in?redirect=/admin/users/' + id);
   }
 
   const { data: adminProfile } = await supabase
@@ -49,7 +52,7 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
   const { data: userProfile, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !userProfile) {
@@ -57,13 +60,13 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
   }
 
   // Get email from auth.users
-  const { data: authUser } = await supabase.auth.admin.getUserById(params.id);
+  const { data: authUser } = await supabase.auth.admin.getUserById(id);
 
   // Get user's bookmarks
   const { data: bookmarks, count: bookmarksCount, error: bookmarksError } = await supabase
     .from('bookmarks')
     .select('id, title, url, created_at, is_public', { count: 'exact' })
-    .eq('user_id', params.id)
+    .eq('user_id', id)
     .order('created_at', { ascending: false })
     .limit(10);
 
@@ -75,7 +78,7 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
   const { data: collections, count: collectionsCount, error: collectionsError } = await supabase
     .from('collections')
     .select('id, name, description, created_at, is_public', { count: 'exact' })
-    .eq('user_id', params.id)
+    .eq('user_id', id)
     .order('created_at', { ascending: false })
     .limit(10);
 
@@ -83,7 +86,7 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
     console.error('Error fetching collections:', collectionsError);
   }
 
-  console.log('Debug - User ID:', params.id);
+  console.log('Debug - User ID:', id);
   console.log('Debug - Bookmarks count:', bookmarksCount);
   console.log('Debug - Collections count:', collectionsCount);
 
