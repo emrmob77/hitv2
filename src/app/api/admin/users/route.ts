@@ -20,35 +20,40 @@ export async function GET() {
     }
 
     // Check admin status
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('is_admin')
+      .select('*')
       .eq('id', user.id)
       .single();
 
+    if (profileError) {
+      console.error('Error fetching admin profile:', profileError);
+      return NextResponse.json({ error: 'Profile not found: ' + profileError.message }, { status: 500 });
+    }
+
     if (!profile?.is_admin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({
+        error: 'Forbidden - User is not admin',
+        profile: profile,
+        userId: user.id
+      }, { status: 403 });
     }
 
     // Fetch all users with their stats
     const { data: users, error } = await supabase
       .from('profiles')
-      .select(
-        `
-        id,
-        email,
-        full_name,
-        avatar_url,
-        subscription_tier,
-        is_suspended,
-        is_admin,
-        created_at,
-        last_sign_in_at
-      `
-      )
+      .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching profiles:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    console.log('Fetched users count:', users?.length);
+    if (users && users.length > 0) {
+      console.log('Sample user data:', users[0]);
+    }
 
     // Get bookmark counts for each user
     const userIds = users?.map((u) => u.id) || [];
@@ -73,9 +78,27 @@ export async function GET() {
       return acc;
     }, {} as Record<string, number>);
 
-    // Enrich users with counts
-    const enrichedUsers = users?.map((user) => ({
-      ...user,
+    // Get email addresses from auth.users
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+
+    const emailMap: Record<string, string> = {};
+    if (authUsers?.users) {
+      authUsers.users.forEach(u => {
+        emailMap[u.id] = u.email || '';
+      });
+    }
+
+    // Enrich users with counts and emails
+    const enrichedUsers = users?.map((user: any) => ({
+      id: user.id,
+      email: emailMap[user.id] || user.email || '',
+      full_name: user.full_name || user.display_name || '',
+      avatar_url: user.avatar_url || user.profile_image_url || '',
+      subscription_tier: user.subscription_tier || 'free',
+      is_suspended: user.is_suspended || false,
+      is_admin: user.is_admin || false,
+      created_at: user.created_at,
+      last_sign_in_at: user.last_sign_in_at || user.updated_at,
       bookmarks_count: bookmarkCountMap[user.id] || 0,
       collections_count: collectionCountMap[user.id] || 0,
     }));
