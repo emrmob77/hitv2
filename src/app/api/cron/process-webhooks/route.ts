@@ -11,6 +11,8 @@
  *     "schedule": "0 0,5,10,15,20,25,30,35,40,45,50,55 * * *"
  *   }]
  * }
+ *
+ * Note: Schedule runs every 5 minutes (at minutes 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
