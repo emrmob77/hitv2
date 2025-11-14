@@ -4,15 +4,9 @@
  * This endpoint should be called periodically (e.g., every 5 minutes) by a cron job
  * to process pending webhook deliveries.
  *
- * Configure in vercel.json or similar:
- * {
- *   "crons": [{
- *     "path": "/api/cron/process-webhooks",
- *     "schedule": "0 0,5,10,15,20,25,30,35,40,45,50,55 * * *"
- *   }]
- * }
- *
- * Note: Schedule runs every 5 minutes (at minutes 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
+ * Configure in vercel.json or similar with schedule:
+ * "0 0,5,10,15,20,25,30,35,40,45,50,55 * * *"
+ * This runs every 5 minutes at the top of each 5-minute interval.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
