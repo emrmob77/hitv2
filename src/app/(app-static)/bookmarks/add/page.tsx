@@ -1,5 +1,5 @@
-import { renderDataHtml } from "@/lib/html";
+import { redirect } from 'next/navigation';
 
 export default function BookmarkAddPage() {
-  return renderDataHtml("add-bookmarks.html", { stripHeader: false, stripFooter: false });
+  redirect('/dashboard/bookmarks/add');
 }

@@ -1,17 +1,9 @@
-import { Metadata } from 'next';
+'use client';
+
 import Link from 'next/link';
 import { WifiOff, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
-export const metadata: Metadata = {
-  title: 'Offline',
-  description: 'You are currently offline',
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
 
 export default function OfflinePage() {
   return (
