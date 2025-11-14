@@ -111,8 +111,12 @@ export function LinkGroupCard({ group, baseUrl = DEFAULT_BASE_URL }: LinkGroupCa
           </div>
         )}
 
-        <p className="mt-4 text-xs text-neutral-400">
-          Created {new Date(group.created_at).toLocaleDateString()}
+        <p className="mt-4 text-xs text-neutral-400" suppressHydrationWarning>
+          Created {new Date(group.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          })}
         </p>
       </CardContent>
     </Card>

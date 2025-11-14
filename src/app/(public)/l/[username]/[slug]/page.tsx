@@ -82,7 +82,7 @@ export default async function PublicLinkGroupPage({
 
   return (
     <div
-      className="min-h-screen py-12 px-4"
+      className="min-h-screen py-8 px-4 sm:py-12 sm:px-6"
       style={{
         backgroundColor: theme.backgroundColor,
         color: theme.textColor,
@@ -90,34 +90,34 @@ export default async function PublicLinkGroupPage({
     >
       <div className="mx-auto max-w-2xl">
         {/* Profile Section */}
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center sm:mb-8">
           {profile.avatar_url && (
             <img
               src={profile.avatar_url}
               alt={profile.display_name || profile.username}
-              className="mx-auto mb-4 h-24 w-24 rounded-full object-cover ring-4 ring-white shadow-lg"
+              className="mx-auto mb-3 h-20 w-20 rounded-full object-cover ring-4 ring-white shadow-lg sm:mb-4 sm:h-24 sm:w-24"
             />
           )}
-          <h1 className="mb-2 text-3xl font-bold">
+          <h1 className="mb-2 text-2xl font-bold sm:text-3xl">
             {group.name}
           </h1>
           {group.description && (
-            <p className="mb-4 text-base opacity-80">
+            <p className="mb-3 px-2 text-sm opacity-80 sm:mb-4 sm:text-base">
               {group.description}
             </p>
           )}
           {profile.bio && (
-            <p className="text-sm opacity-70">
+            <p className="px-2 text-xs opacity-70 sm:text-sm">
               {profile.bio}
             </p>
           )}
         </div>
 
         {/* Links */}
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           {items.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-white/50 p-8 text-center">
-              <p className="text-sm text-gray-600">No links available yet</p>
+            <div className="rounded-lg border border-dashed border-gray-300 bg-white/50 p-6 text-center sm:p-8">
+              <p className="text-xs text-gray-600 sm:text-sm">No links available yet</p>
             </div>
           ) : (
             items.map((item) => (
@@ -126,30 +126,30 @@ export default async function PublicLinkGroupPage({
                 href={`/api/link-redirect/${item.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-6 py-4 shadow-sm transition-all hover:scale-105 hover:shadow-md"
+                className="flex min-h-[56px] items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:shadow-md sm:min-h-0 sm:px-6 sm:py-4 sm:hover:scale-105"
                 style={{
                   borderRadius: theme.buttonStyle === 'rounded' ? '0.5rem' : theme.buttonStyle === 'pill' ? '9999px' : '0.25rem',
                 }}
               >
                 <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-gray-900">{item.title}</div>
+                  <div className="text-sm font-semibold text-gray-900 sm:text-base">{item.title}</div>
                   {item.description && (
-                    <div className="text-sm text-gray-600 line-clamp-1">
+                    <div className="text-xs text-gray-600 line-clamp-1 sm:text-sm">
                       {item.description}
                     </div>
                   )}
                 </div>
-                <ExternalLinkIcon className="h-5 w-5 flex-shrink-0 text-gray-400" />
+                <ExternalLinkIcon className="h-4 w-4 flex-shrink-0 text-gray-400 sm:h-5 sm:w-5" />
               </a>
             ))
           )}
         </div>
 
         {/* Footer */}
-        <div className="mt-12 text-center">
+        <div className="mt-8 text-center sm:mt-12">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm opacity-60 hover:opacity-100"
+            className="inline-flex items-center gap-2 text-xs opacity-60 transition-opacity hover:opacity-100 sm:text-sm"
           >
             <span>Powered by</span>
             <span className="font-semibold">HitTags</span>

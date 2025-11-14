@@ -9,6 +9,7 @@ import { NotificationSettingsSection } from '@/components/settings/notification-
 import { DataExportSection } from '@/components/settings/data-export-section';
 import { DangerZoneSection } from '@/components/settings/danger-zone-section';
 import { BillingSubscriptionSection } from '@/components/settings/billing-subscription-section';
+import { CheckoutSuccessBanner } from '@/components/settings/checkout-success-banner';
 import { FeatureGate } from '@/lib/features/feature-gate';
 
 export const metadata: Metadata = {
@@ -60,6 +61,11 @@ export default async function SettingsPage() {
           Manage your account settings and preferences
         </p>
       </header>
+
+      {/* Success/Portal Messages */}
+      <div className="mx-auto w-full max-w-5xl">
+        <CheckoutSuccessBanner />
+      </div>
 
       {/* Profile Settings */}
       <div className="mx-auto w-full max-w-5xl">
