@@ -90,7 +90,7 @@ DATABASE_URL=postgresql://user:password@host:port/database
 
 4. **Redirect URL'i ayarlayın:**
    - Supabase Dashboard → Authentication → URL Configuration
-   - Redirect URLs listesine ekleyin: `https://gorillablaze-eo8yv1.stormkit.dev/auth/callback`
+   - Redirect URLs listesine ekleyin: `https://spearfate-n8sh8h.stormkit.dev/auth/callback`
 
 5. **Kaydedin ve yeni deployment tetikleyin**
 
