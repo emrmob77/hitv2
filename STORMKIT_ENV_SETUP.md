@@ -15,13 +15,13 @@ SUPABASE_REDIRECT_URL=https://your-domain.stormkit.dev/auth/callback
 ```
 
 **Önemli:** `SUPABASE_REDIRECT_URL` değerini Stormkit.io domain'inize göre ayarlayın:
-- Production: `https://gorillablaze-eo8yv1.stormkit.dev/auth/callback`
+- Production: `https://spearfate-n8sh8h.stormkit.dev/auth/callback`
 - Veya custom domain: `https://yourdomain.com/auth/callback`
 
 ## 🟡 ÖNEMLİ (IMPORTANT) - Site URL
 
 ```
-NEXT_PUBLIC_SITE_URL=https://gorillablaze-eo8yv1.stormkit.dev
+NEXT_PUBLIC_SITE_URL=https://spearfate-n8sh8h.stormkit.dev
 ```
 
 Bu değer SEO, sitemap ve paylaşım linkleri için kullanılır.
