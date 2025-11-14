@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Output configuration for deployment
+  output: 'standalone',
+  
   // Ignore errors for build (will be caught by ESLint warnings)
   eslint: {
     ignoreDuringBuilds: true,
