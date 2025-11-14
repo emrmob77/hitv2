@@ -39,31 +39,40 @@ const nextConfig: NextConfig = {
 
   // Headers for Performance and Security
   async headers() {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const hasSSL = process.env.VERCEL || process.env.STORMKIT; // Stormkit and Vercel provide SSL
+    
+    const securityHeaders = [
+      {
+        key: 'X-DNS-Prefetch-Control',
+        value: 'on'
+      },
+      {
+        key: 'X-Frame-Options',
+        value: 'SAMEORIGIN'
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff'
+      },
+      {
+        key: 'Referrer-Policy',
+        value: 'origin-when-cross-origin'
+      },
+    ];
+
+    // Only add HSTS in production with SSL
+    if (isProduction && hasSSL) {
+      securityHeaders.push({
+        key: 'Strict-Transport-Security',
+        value: 'max-age=63072000; includeSubDomains'
+      });
+    }
+
     return [
       {
         source: '/:path*',
-        headers: [
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on'
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload'
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
-          },
-        ],
+        headers: securityHeaders,
       },
       // Cache static assets
       {
