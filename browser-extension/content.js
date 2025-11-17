@@ -11,6 +11,52 @@ function init() {
 
   // Listen for messages from background script
   chrome.runtime.onMessage.addListener(handleMessage);
+
+  // Sync auth token from website
+  syncAuthToken();
+
+  // Re-sync auth token periodically (every 30 seconds)
+  setInterval(syncAuthToken, 30000);
+}
+
+// Sync auth token from Supabase localStorage
+async function syncAuthToken() {
+  try {
+    // Check if we're on the HitTags domain
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1');
+    const isProduction = window.location.hostname.includes('stormkit.dev') || window.location.hostname.includes('hittags');
+
+    if (!isDevelopment && !isProduction) {
+      return; // Not on HitTags domain, skip
+    }
+
+    // Look for Supabase auth token in localStorage
+    const storageKeys = Object.keys(localStorage);
+    const authKey = storageKeys.find(key => key.startsWith('sb-') && key.includes('-auth-token'));
+
+    if (authKey) {
+      const authData = localStorage.getItem(authKey);
+      if (authData) {
+        try {
+          const parsed = JSON.parse(authData);
+          const accessToken = parsed.access_token || parsed.currentSession?.access_token;
+
+          if (accessToken) {
+            // Save to extension storage
+            await chrome.storage.local.set({
+              authToken: accessToken,
+              lastSync: Date.now()
+            });
+            console.log('✅ HitTags: Auth token synced from website');
+          }
+        } catch (e) {
+          console.error('Failed to parse auth data:', e);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Failed to sync auth token:', error);
+  }
 }
 
 // Handle keyboard shortcuts

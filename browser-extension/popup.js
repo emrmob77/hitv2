@@ -1,6 +1,28 @@
 // Configuration
-const API_BASE_URL = 'https://your-domain.com'; // Update with actual domain
-const DASHBOARD_URL = `${API_BASE_URL}/dashboard`;
+// Set your HitTags URLs here
+const DEVELOPMENT_URL = 'http://localhost:3000';
+const PRODUCTION_URL = 'https://spearfate-n8sh8h.stormkit.dev';
+
+// Try to detect environment from current tab, fallback to production
+let API_BASE_URL = PRODUCTION_URL;
+let DASHBOARD_URL = `${PRODUCTION_URL}/dashboard`;
+
+// Auto-detect API URL from current tab
+async function detectAPIUrl() {
+  try {
+    const tab = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab[0]) {
+      const url = new URL(tab[0].url);
+      if (url.hostname === 'localhost' || url.hostname.includes('127.0.0.1')) {
+        API_BASE_URL = DEVELOPMENT_URL;
+        DASHBOARD_URL = `${DEVELOPMENT_URL}/dashboard`;
+      }
+    }
+  } catch (e) {
+    // Fallback to production
+    console.log('Using production URL');
+  }
+}
 
 // Get current tab info
 async function getCurrentTab() {
@@ -39,6 +61,9 @@ async function getAuthToken() {
 
 // Initialize popup
 async function initPopup() {
+  // Detect API URL from current tab
+  await detectAPIUrl();
+
   const tab = await getCurrentTab();
 
   // Pre-fill form with current page info
