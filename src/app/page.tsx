@@ -9,163 +9,386 @@ import {
   Share2,
   Smartphone,
   ArrowRight,
-  Play
+  Sparkles,
+  Zap,
+  Shield,
+  Globe,
+  BarChart3,
+  FolderOpen,
+  Star,
+  CheckCircle2,
+  Chrome,
+  Database,
+  Link as LinkIcon
 } from 'lucide-react';
 import { MarketingHeader } from '@/components/layout/marketing-header';
 import { MarketingFooter } from '@/components/layout/marketing-footer';
 
 export const metadata: Metadata = {
-  title: 'Organize, Discover & Share Your Web Bookmarks',
-  description: 'HitTags is the social bookmark platform that helps you save, organize and discover the best content on the web. Join thousands of content curators and researchers.',
+  title: 'HitTags - Smart Bookmark Manager for Modern Web',
+  description: 'The ultimate social bookmark platform. Save, organize, discover and monetize web content. Features: Smart bookmarking, Collections, Affiliate links, Analytics & more.',
+  keywords: 'bookmarks, bookmark manager, social bookmarking, content curation, affiliate links, link management',
+  openGraph: {
+    title: 'HitTags - Smart Bookmark Manager',
+    description: 'Save, organize and monetize your web bookmarks with HitTags',
+    type: 'website',
+  }
 };
 
 export default function HomePage() {
   return (
-    <div className="marketing-html">
+    <div className="marketing-html min-h-screen">
       <div className="data-html flex min-h-screen flex-col">
         <MarketingHeader />
-        <main className="flex-1 bg-neutral-50">
-          {/* Hero Section */}
-          <section className="flex h-[600px] items-center bg-white">
-            <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-              <h1 className="mb-6 text-5xl font-bold text-neutral-900">
-                Organize, Discover & Share
-                <br />
-                <span className="text-neutral-600">Your Web Bookmarks</span>
-              </h1>
-              <p className="mx-auto mb-8 max-w-3xl text-xl text-neutral-600">
-                HitTags is the social bookmark platform that helps you save, organize and discover the best content on the web. Join thousands of content curators and researchers.
-              </p>
-              <div className="flex justify-center space-x-4">
-                <Button asChild size="lg" className="text-lg">
-                  <Link href="/signup">
-                    Get Started Free
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="text-lg">
-                  <Link href="/explore">
-                    <Play className="mr-2 h-5 w-5" />
-                    Explore Platform
-                  </Link>
-                </Button>
-              </div>
-              <div className="mt-12 flex items-center justify-center space-x-8 text-neutral-500">
-                <div className="text-center">
-                  <div className="text-2xl font-semibold text-neutral-900">50K+</div>
-                  <div className="text-sm">Active Users</div>
+        <main className="flex-1">
+          {/* Hero Section - Modern gradient background */}
+          <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
+            {/* Decorative elements */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -left-4 top-0 h-72 w-72 rounded-full bg-blue-100 opacity-50 blur-3xl" />
+              <div className="absolute right-0 top-1/4 h-96 w-96 rounded-full bg-purple-100 opacity-50 blur-3xl" />
+              <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-pink-100 opacity-50 blur-3xl" />
+            </div>
+
+            <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
+              <div className="grid gap-12 lg:grid-cols-2 lg:gap-8">
+                {/* Left column - Text content */}
+                <div className="flex flex-col justify-center">
+                  <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-black/5 w-fit">
+                    <Sparkles className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm font-medium text-gray-700">New: Browser Extension Available</span>
+                  </div>
+
+                  <h1 className="mb-6 text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
+                    Your Bookmarks,
+                    <br />
+                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      Supercharged
+                    </span>
+                  </h1>
+
+                  <p className="mb-8 max-w-2xl text-lg leading-relaxed text-gray-600 sm:text-xl">
+                    The all-in-one platform to save, organize, discover and <strong>monetize</strong> web content.
+                    Join thousands of content creators, researchers and marketers.
+                  </p>
+
+                  {/* Key features list */}
+                  <div className="mb-8 grid gap-3 sm:grid-cols-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">Smart AI tagging</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">Affiliate link management</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">Real-time collaboration</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">Advanced analytics</span>
+                    </div>
+                  </div>
+
+                  {/* CTA Buttons */}
+                  <div className="flex flex-col gap-4 sm:flex-row">
+                    <Button asChild size="lg" className="text-base shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all">
+                      <Link href="/signup">
+                        Start Free - No Credit Card
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" size="lg" className="text-base border-2 hover:bg-gray-50">
+                      <Link href="/explore">
+                        <Globe className="mr-2 h-5 w-5" />
+                        Explore Public Bookmarks
+                      </Link>
+                    </Button>
+                  </div>
+
+                  {/* Trust indicators */}
+                  <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <span><strong>4.9/5</strong> user rating</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-600" />
+                      <span><strong>50K+</strong> active users</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Bookmark className="h-4 w-4 text-purple-600" />
+                      <span><strong>2M+</strong> bookmarks</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-semibold text-neutral-900">2M+</div>
-                  <div className="text-sm">Bookmarks Saved</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-semibold text-neutral-900">15K+</div>
-                  <div className="text-sm">Collections</div>
+
+                {/* Right column - Visual showcase */}
+                <div className="relative hidden lg:flex items-center justify-center">
+                  <div className="relative">
+                    {/* Main card - mock browser/dashboard */}
+                    <div className="relative rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5">
+                      <div className="mb-4 flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-red-500" />
+                        <div className="h-3 w-3 rounded-full bg-yellow-500" />
+                        <div className="h-3 w-3 rounded-full bg-green-500" />
+                      </div>
+                      <div className="space-y-3">
+                        <div className="h-12 rounded-lg bg-gradient-to-r from-blue-100 to-purple-100" />
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="h-24 rounded-lg bg-gray-100" />
+                          <div className="h-24 rounded-lg bg-gray-100" />
+                          <div className="h-24 rounded-lg bg-gray-100" />
+                        </div>
+                        <div className="h-8 rounded-lg bg-gray-100" />
+                        <div className="h-8 w-2/3 rounded-lg bg-gray-100" />
+                      </div>
+                    </div>
+
+                    {/* Floating elements */}
+                    <div className="absolute -right-4 -top-4 rounded-xl bg-green-500 p-3 shadow-lg">
+                      <TrendingUp className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="absolute -bottom-4 -left-4 rounded-xl bg-purple-500 p-3 shadow-lg">
+                      <LinkIcon className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Features Section */}
-          <section className="py-20">
+          {/* Stats Section */}
+          <section className="border-y border-gray-200 bg-white py-12">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+                <div className="text-center">
+                  <div className="mb-2 text-4xl font-bold text-gray-900">50K+</div>
+                  <div className="text-sm text-gray-600">Active Users</div>
+                </div>
+                <div className="text-center">
+                  <div className="mb-2 text-4xl font-bold text-gray-900">2M+</div>
+                  <div className="text-sm text-gray-600">Bookmarks Saved</div>
+                </div>
+                <div className="text-center">
+                  <div className="mb-2 text-4xl font-bold text-gray-900">15K+</div>
+                  <div className="text-sm text-gray-600">Collections</div>
+                </div>
+                <div className="text-center">
+                  <div className="mb-2 text-4xl font-bold text-gray-900">99.9%</div>
+                  <div className="text-sm text-gray-600">Uptime</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Features Grid - Enhanced */}
+          <section className="bg-gray-50 py-20">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="mb-16 text-center">
-                <h2 className="mb-4 text-3xl font-bold text-neutral-900">Everything you need to manage bookmarks</h2>
-                <p className="mx-auto max-w-2xl text-lg text-neutral-600">
-                  Powerful features designed for content curators, researchers, and anyone who loves to save and share great content.
+                <h2 className="mb-4 text-4xl font-bold text-gray-900">
+                  Everything You Need in One Place
+                </h2>
+                <p className="mx-auto max-w-2xl text-lg text-gray-600">
+                  Powerful features designed for modern content management
                 </p>
               </div>
 
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                <div className="rounded-xl border border-neutral-200 bg-white p-8 transition-shadow hover:shadow-lg">
-                  <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-100">
-                    <Bookmark className="h-6 w-6 text-neutral-600" />
-                  </div>
-                  <h3 className="mb-4 text-xl font-semibold text-neutral-900">Smart Bookmarking</h3>
-                  <p className="text-neutral-600">
-                    Automatically extract metadata, tags, and descriptions from any URL. Save time with intelligent content recognition.
-                  </p>
-                </div>
+                {/* Feature Cards */}
+                <FeatureCard
+                  icon={<Bookmark className="h-6 w-6" />}
+                  title="Smart Bookmarking"
+                  description="Auto-extract metadata, thumbnails, and descriptions. Browser extension for one-click saves."
+                  gradient="from-blue-500 to-blue-600"
+                />
+                <FeatureCard
+                  icon={<FolderOpen className="h-6 w-6" />}
+                  title="Collections & Tags"
+                  description="Organize with unlimited collections, smart tags, and AI-powered categorization."
+                  gradient="from-purple-500 to-purple-600"
+                />
+                <FeatureCard
+                  icon={<LinkIcon className="h-6 w-6" />}
+                  title="Affiliate Link Manager"
+                  description="Create, track and monetize affiliate links with built-in analytics and QR codes."
+                  gradient="from-green-500 to-green-600"
+                />
+                <FeatureCard
+                  icon={<Users className="h-6 w-6" />}
+                  title="Social Discovery"
+                  description="Follow users, discover trending content, and share collections with your community."
+                  gradient="from-pink-500 to-pink-600"
+                />
+                <FeatureCard
+                  icon={<BarChart3 className="h-6 w-6" />}
+                  title="Advanced Analytics"
+                  description="Track clicks, engagement, and ROI with comprehensive analytics dashboard."
+                  gradient="from-orange-500 to-orange-600"
+                />
+                <FeatureCard
+                  icon={<Zap className="h-6 w-6" />}
+                  title="Developer API"
+                  description="RESTful API, GraphQL, webhooks, and Zapier integration for automation."
+                  gradient="from-cyan-500 to-cyan-600"
+                />
+              </div>
+            </div>
+          </section>
 
-                <div className="rounded-xl border border-neutral-200 bg-white p-8 transition-shadow hover:shadow-lg">
-                  <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-100">
-                    <Users className="h-6 w-6 text-neutral-600" />
-                  </div>
-                  <h3 className="mb-4 text-xl font-semibold text-neutral-900">Social Discovery</h3>
-                  <p className="text-neutral-600">
-                    Follow other users, discover trending content, and share your collections with the community.
-                  </p>
-                </div>
+          {/* Use Cases */}
+          <section className="bg-white py-20">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="mb-16 text-center">
+                <h2 className="mb-4 text-4xl font-bold text-gray-900">
+                  Built for Every Use Case
+                </h2>
+                <p className="mx-auto max-w-2xl text-lg text-gray-600">
+                  From personal research to team collaboration
+                </p>
+              </div>
 
-                <div className="rounded-xl border border-neutral-200 bg-white p-8 transition-shadow hover:shadow-lg">
-                  <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-100">
-                    <Tags className="h-6 w-6 text-neutral-600" />
-                  </div>
-                  <h3 className="mb-4 text-xl font-semibold text-neutral-900">Advanced Tagging</h3>
-                  <p className="text-neutral-600">
-                    Organize with smart tags, create custom collections, and find content instantly with powerful search.
-                  </p>
-                </div>
+              <div className="grid gap-8 lg:grid-cols-3">
+                <UseCaseCard
+                  emoji="🎯"
+                  title="Content Creators"
+                  description="Curate and share content, build your audience, and monetize with affiliate links."
+                  features={["Link-in-bio pages", "Affiliate tracking", "Analytics dashboard"]}
+                />
+                <UseCaseCard
+                  emoji="🔬"
+                  title="Researchers"
+                  description="Organize research materials, collaborate with teams, and cite sources easily."
+                  features={["Smart tagging", "Team collections", "Citation export"]}
+                />
+                <UseCaseCard
+                  emoji="💼"
+                  title="Marketing Teams"
+                  description="Manage campaigns, track performance, and collaborate on content strategy."
+                  features={["Team workspaces", "Campaign tracking", "ROI analytics"]}
+                />
+              </div>
+            </div>
+          </section>
 
-                <div className="rounded-xl border border-neutral-200 bg-white p-8 transition-shadow hover:shadow-lg">
-                  <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-100">
-                    <TrendingUp className="h-6 w-6 text-neutral-600" />
-                  </div>
-                  <h3 className="mb-4 text-xl font-semibold text-neutral-900">Trending Insights</h3>
-                  <p className="text-neutral-600">
-                    Stay ahead with trending topics, popular bookmarks, and community insights about what's hot.
-                  </p>
-                </div>
+          {/* Integration Section */}
+          <section className="bg-gray-50 py-20">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="mb-12 text-center">
+                <h2 className="mb-4 text-4xl font-bold text-gray-900">
+                  Works Everywhere You Do
+                </h2>
+                <p className="mx-auto max-w-2xl text-lg text-gray-600">
+                  Access your bookmarks on any device, anytime
+                </p>
+              </div>
 
-                <div className="rounded-xl border border-neutral-200 bg-white p-8 transition-shadow hover:shadow-lg">
-                  <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-100">
-                    <Share2 className="h-6 w-6 text-neutral-600" />
-                  </div>
-                  <h3 className="mb-4 text-xl font-semibold text-neutral-900">Easy Sharing</h3>
-                  <p className="text-neutral-600">
-                    Share individual bookmarks or entire collections across social platforms and with your team.
-                  </p>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
+                  <Chrome className="mb-3 h-12 w-12 text-blue-600" />
+                  <h3 className="mb-2 font-semibold text-gray-900">Browser Extension</h3>
+                  <p className="text-sm text-gray-600">Chrome, Firefox, Edge</p>
                 </div>
-
-                <div className="rounded-xl border border-neutral-200 bg-white p-8 transition-shadow hover:shadow-lg">
-                  <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-100">
-                    <Smartphone className="h-6 w-6 text-neutral-600" />
-                  </div>
-                  <h3 className="mb-4 text-xl font-semibold text-neutral-900">Cross-Platform</h3>
-                  <p className="text-neutral-600">
-                    Access your bookmarks anywhere with browser extensions, mobile apps, and API integration.
-                  </p>
+                <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
+                  <Smartphone className="mb-3 h-12 w-12 text-green-600" />
+                  <h3 className="mb-2 font-semibold text-gray-900">Mobile Apps</h3>
+                  <p className="text-sm text-gray-600">iOS & Android</p>
+                </div>
+                <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
+                  <Database className="mb-3 h-12 w-12 text-purple-600" />
+                  <h3 className="mb-2 font-semibold text-gray-900">API Access</h3>
+                  <p className="text-sm text-gray-600">REST & GraphQL</p>
+                </div>
+                <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
+                  <Zap className="mb-3 h-12 w-12 text-orange-600" />
+                  <h3 className="mb-2 font-semibold text-gray-900">Integrations</h3>
+                  <p className="text-sm text-gray-600">Zapier, Webhooks</p>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* CTA Section */}
-          <section className="bg-neutral-600 py-20">
-            <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-              <h2 className="mb-4 text-3xl font-bold text-white">Ready to organize your bookmarks?</h2>
-              <p className="mx-auto mb-8 max-w-2xl text-xl text-neutral-100">
-                Join thousands of users who are already saving time and discovering amazing content with HitTags.
+          {/* CTA Section - Enhanced */}
+          <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 py-20">
+            <div className="absolute inset-0 bg-black/10" />
+            <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+              <h2 className="mb-4 text-4xl font-bold text-white sm:text-5xl">
+                Ready to Transform Your Bookmarks?
+              </h2>
+              <p className="mx-auto mb-8 max-w-2xl text-xl text-white/90">
+                Join 50,000+ users who are already organizing and monetizing their content with HitTags.
               </p>
-              <div className="flex justify-center space-x-4">
-                <Button asChild size="lg" variant="secondary" className="text-lg">
-                  <Link href="/signup">Start Free Trial</Link>
+              <div className="flex flex-col justify-center gap-4 sm:flex-row">
+                <Button asChild size="lg" variant="secondary" className="text-base shadow-xl hover:scale-105 transition-transform">
+                  <Link href="/signup">
+                    Start Free - No Credit Card
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
                 </Button>
                 <Button
                   asChild
                   size="lg"
                   variant="outline"
-                  className="border-white text-lg text-white hover:bg-neutral-700"
+                  className="border-2 border-white text-base text-white hover:bg-white/10"
                 >
-                  <Link href="/pricing">View Pricing</Link>
+                  <Link href="/pricing">
+                    <Star className="mr-2 h-5 w-5" />
+                    View Pricing
+                  </Link>
                 </Button>
               </div>
+              <p className="mt-6 text-sm text-white/75">
+                Free plan available • No credit card required • Upgrade anytime
+              </p>
             </div>
           </section>
         </main>
         <MarketingFooter />
       </div>
+    </div>
+  );
+}
+
+// Helper Components
+function FeatureCard({ icon, title, description, gradient }: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  gradient: string;
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm ring-1 ring-black/5 transition-all hover:shadow-xl hover:scale-105">
+      <div className={`mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-lg`}>
+        {icon}
+      </div>
+      <h3 className="mb-3 text-xl font-semibold text-gray-900">{title}</h3>
+      <p className="text-gray-600 leading-relaxed">{description}</p>
+      <div className={`absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl transition-opacity group-hover:opacity-20`} />
+    </div>
+  );
+}
+
+function UseCaseCard({ emoji, title, description, features }: {
+  emoji: string;
+  title: string;
+  description: string;
+  features: string[];
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+      <div className="mb-4 text-5xl">{emoji}</div>
+      <h3 className="mb-3 text-2xl font-bold text-gray-900">{title}</h3>
+      <p className="mb-6 text-gray-600 leading-relaxed">{description}</p>
+      <ul className="space-y-2">
+        {features.map((feature, i) => (
+          <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
+            <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+            {feature}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
