@@ -202,32 +202,32 @@ export default function HomePage() {
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {/* Feature Cards */}
                 <FeatureCard
-                  icon={<Bookmark className="h-6 w-6" />}
+                  icon={<Bookmark className="h-6 w-6 text-slate-700" />}
                   title="Smart Bookmarking"
                   description="Auto-extract metadata, thumbnails, and descriptions. Browser extension for one-click saves."
                 />
                 <FeatureCard
-                  icon={<FolderOpen className="h-6 w-6" />}
+                  icon={<FolderOpen className="h-6 w-6 text-slate-700" />}
                   title="Collections & Tags"
                   description="Organize with unlimited collections, smart tags, and AI-powered categorization."
                 />
                 <FeatureCard
-                  icon={<LinkIcon className="h-6 w-6" />}
+                  icon={<LinkIcon className="h-6 w-6 text-slate-700" />}
                   title="Affiliate Link Manager"
                   description="Create, track and monetize affiliate links with built-in analytics and QR codes."
                 />
                 <FeatureCard
-                  icon={<Users className="h-6 w-6" />}
+                  icon={<Users className="h-6 w-6 text-slate-700" />}
                   title="Social Discovery"
                   description="Follow users, discover trending content, and share collections with your community."
                 />
                 <FeatureCard
-                  icon={<BarChart3 className="h-6 w-6" />}
+                  icon={<BarChart3 className="h-6 w-6 text-slate-700" />}
                   title="Advanced Analytics"
                   description="Track clicks, engagement, and ROI with comprehensive analytics dashboard."
                 />
                 <FeatureCard
-                  icon={<Zap className="h-6 w-6" />}
+                  icon={<Zap className="h-6 w-6 text-slate-700" />}
                   title="Developer API"
                   description="RESTful API, GraphQL, webhooks, and Zapier integration for automation."
                 />
@@ -249,19 +249,19 @@ export default function HomePage() {
 
               <div className="grid gap-8 lg:grid-cols-3">
                 <UseCaseCard
-                  icon={<Target className="h-6 w-6" />}
+                  icon={<Target className="h-6 w-6 text-slate-700" />}
                   title="Content Creators"
                   description="Build your brand with curated collections. Share valuable content and monetize your expertise through affiliate partnerships."
                   features={["Custom link pages", "Revenue tracking", "Engagement metrics"]}
                 />
                 <UseCaseCard
-                  icon={<Microscope className="h-6 w-6" />}
+                  icon={<Microscope className="h-6 w-6 text-slate-700" />}
                   title="Research Teams"
                   description="Streamline academic research with smart organization. Collaborate seamlessly and maintain comprehensive citation databases."
                   features={["Advanced categorization", "Team collaboration", "Export citations"]}
                 />
                 <UseCaseCard
-                  icon={<Briefcase className="h-6 w-6" />}
+                  icon={<Briefcase className="h-6 w-6 text-slate-700" />}
                   title="Enterprise Marketing"
                   description="Coordinate marketing campaigns at scale. Track performance metrics and optimize content strategy with data-driven insights."
                   features={["Campaign management", "Performance analytics", "Team workspaces"]}
@@ -365,7 +365,7 @@ function FeatureCard({ icon, title, description }: {
   return (
     <div className="group relative overflow-hidden rounded-lg border border-gray-200 bg-white p-8 transition-all hover:border-gray-300 hover:shadow-lg">
       {/* Icon container - consistent minimal design */}
-      <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
+      <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-slate-200">
         {icon}
       </div>
 
@@ -385,7 +385,7 @@ function UseCaseCard({ icon, title, description, features }: {
   return (
     <div className="group relative overflow-hidden rounded-lg border border-gray-200 bg-white p-8 transition-all hover:border-gray-300 hover:shadow-lg">
       {/* Icon container */}
-      <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
+      <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-slate-200">
         {icon}
       </div>
 
