@@ -59,12 +59,34 @@ async function getAuthToken() {
   return result.authToken;
 }
 
+// Check and display auth status
+async function checkAuthStatus() {
+  const token = await getAuthToken();
+  const authWarning = document.getElementById('auth-warning');
+  const loginLink = document.getElementById('login-link');
+
+  if (!token) {
+    authWarning.style.display = 'block';
+    loginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.tabs.create({ url: DASHBOARD_URL });
+    });
+    return false;
+  } else {
+    authWarning.style.display = 'none';
+    return true;
+  }
+}
+
 // Initialize popup
 async function initPopup() {
   // Detect API URL from current tab
   await detectAPIUrl();
 
   const tab = await getCurrentTab();
+
+  // Check auth status
+  await checkAuthStatus();
 
   // Pre-fill form with current page info
   document.getElementById('title').value = tab.title;

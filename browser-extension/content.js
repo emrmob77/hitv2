@@ -30,29 +30,58 @@ async function syncAuthToken() {
       return; // Not on HitTags domain, skip
     }
 
-    // Look for Supabase auth token in localStorage
+    console.log('🔍 HitTags: Looking for auth token in localStorage...');
+
+    // Try multiple methods to find Supabase auth token
+    let accessToken = null;
+
+    // Method 1: Look for sb-*-auth-token key
     const storageKeys = Object.keys(localStorage);
     const authKey = storageKeys.find(key => key.startsWith('sb-') && key.includes('-auth-token'));
 
     if (authKey) {
+      console.log('Found auth key:', authKey);
       const authData = localStorage.getItem(authKey);
       if (authData) {
         try {
           const parsed = JSON.parse(authData);
-          const accessToken = parsed.access_token || parsed.currentSession?.access_token;
-
-          if (accessToken) {
-            // Save to extension storage
-            await chrome.storage.local.set({
-              authToken: accessToken,
-              lastSync: Date.now()
-            });
-            console.log('✅ HitTags: Auth token synced from website');
-          }
+          accessToken = parsed.access_token || parsed.currentSession?.access_token;
         } catch (e) {
           console.error('Failed to parse auth data:', e);
         }
       }
+    }
+
+    // Method 2: Check for any key containing 'supabase' or 'auth'
+    if (!accessToken) {
+      for (const key of storageKeys) {
+        if (key.includes('supabase') || (key.includes('auth') && key.includes('token'))) {
+          console.log('Checking key:', key);
+          try {
+            const data = localStorage.getItem(key);
+            const parsed = JSON.parse(data);
+            if (parsed.access_token) {
+              accessToken = parsed.access_token;
+              console.log('Found token in key:', key);
+              break;
+            }
+          } catch (e) {
+            // Skip non-JSON items
+          }
+        }
+      }
+    }
+
+    if (accessToken) {
+      // Save to extension storage
+      await chrome.storage.local.set({
+        authToken: accessToken,
+        lastSync: Date.now()
+      });
+      console.log('✅ HitTags: Auth token synced from website');
+    } else {
+      console.log('⚠️ HitTags: No auth token found in localStorage');
+      console.log('Available keys:', storageKeys);
     }
   } catch (error) {
     console.error('Failed to sync auth token:', error);
