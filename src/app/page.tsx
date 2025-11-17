@@ -202,37 +202,37 @@ export default function HomePage() {
                   icon={<Bookmark className="h-6 w-6" />}
                   title="Smart Bookmarking"
                   description="Auto-extract metadata, thumbnails, and descriptions. Browser extension for one-click saves."
-                  gradient="from-blue-500 to-blue-600"
+                  gradient="from-slate-700 to-slate-800"
                 />
                 <FeatureCard
                   icon={<FolderOpen className="h-6 w-6" />}
                   title="Collections & Tags"
                   description="Organize with unlimited collections, smart tags, and AI-powered categorization."
-                  gradient="from-purple-500 to-purple-600"
+                  gradient="from-slate-700 to-slate-800"
                 />
                 <FeatureCard
                   icon={<LinkIcon className="h-6 w-6" />}
                   title="Affiliate Link Manager"
                   description="Create, track and monetize affiliate links with built-in analytics and QR codes."
-                  gradient="from-green-500 to-green-600"
+                  gradient="from-slate-700 to-slate-800"
                 />
                 <FeatureCard
                   icon={<Users className="h-6 w-6" />}
                   title="Social Discovery"
                   description="Follow users, discover trending content, and share collections with your community."
-                  gradient="from-pink-500 to-pink-600"
+                  gradient="from-slate-700 to-slate-800"
                 />
                 <FeatureCard
                   icon={<BarChart3 className="h-6 w-6" />}
                   title="Advanced Analytics"
                   description="Track clicks, engagement, and ROI with comprehensive analytics dashboard."
-                  gradient="from-orange-500 to-orange-600"
+                  gradient="from-slate-700 to-slate-800"
                 />
                 <FeatureCard
                   icon={<Zap className="h-6 w-6" />}
                   title="Developer API"
                   description="RESTful API, GraphQL, webhooks, and Zapier integration for automation."
-                  gradient="from-cyan-500 to-cyan-600"
+                  gradient="from-slate-700 to-slate-800"
                 />
               </div>
             </div>
@@ -287,22 +287,22 @@ export default function HomePage() {
 
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
-                  <Chrome className="mb-3 h-12 w-12 text-blue-600" />
+                  <Chrome className="mb-3 h-12 w-12 text-slate-700" />
                   <h3 className="mb-2 font-semibold text-gray-900">Browser Extension</h3>
                   <p className="text-sm text-gray-600">Chrome, Firefox, Edge</p>
                 </div>
                 <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
-                  <Smartphone className="mb-3 h-12 w-12 text-green-600" />
+                  <Smartphone className="mb-3 h-12 w-12 text-slate-700" />
                   <h3 className="mb-2 font-semibold text-gray-900">Mobile Apps</h3>
                   <p className="text-sm text-gray-600">iOS & Android</p>
                 </div>
                 <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
-                  <Database className="mb-3 h-12 w-12 text-purple-600" />
+                  <Database className="mb-3 h-12 w-12 text-slate-700" />
                   <h3 className="mb-2 font-semibold text-gray-900">API Access</h3>
                   <p className="text-sm text-gray-600">REST & GraphQL</p>
                 </div>
                 <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
-                  <Zap className="mb-3 h-12 w-12 text-orange-600" />
+                  <Zap className="mb-3 h-12 w-12 text-slate-700" />
                   <h3 className="mb-2 font-semibold text-gray-900">Integrations</h3>
                   <p className="text-sm text-gray-600">Zapier, Webhooks</p>
                 </div>
