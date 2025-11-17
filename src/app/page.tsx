@@ -19,7 +19,10 @@ import {
   CheckCircle2,
   Chrome,
   Database,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Target,
+  Microscope,
+  Briefcase
 } from 'lucide-react';
 import { MarketingHeader } from '@/components/layout/marketing-header';
 import { MarketingFooter } from '@/components/layout/marketing-footer';
@@ -243,31 +246,31 @@ export default function HomePage() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="mb-16 text-center">
                 <h2 className="mb-4 text-4xl font-bold text-gray-900">
-                  Built for Every Use Case
+                  Trusted by Professionals Worldwide
                 </h2>
                 <p className="mx-auto max-w-2xl text-lg text-gray-600">
-                  From personal research to team collaboration
+                  From individual creators to enterprise teams
                 </p>
               </div>
 
               <div className="grid gap-8 lg:grid-cols-3">
                 <UseCaseCard
-                  emoji="🎯"
+                  icon={<Target className="h-6 w-6" />}
                   title="Content Creators"
-                  description="Curate and share content, build your audience, and monetize with affiliate links."
-                  features={["Link-in-bio pages", "Affiliate tracking", "Analytics dashboard"]}
+                  description="Build your brand with curated collections. Share valuable content and monetize your expertise through affiliate partnerships."
+                  features={["Custom link pages", "Revenue tracking", "Engagement metrics"]}
                 />
                 <UseCaseCard
-                  emoji="🔬"
-                  title="Researchers"
-                  description="Organize research materials, collaborate with teams, and cite sources easily."
-                  features={["Smart tagging", "Team collections", "Citation export"]}
+                  icon={<Microscope className="h-6 w-6" />}
+                  title="Research Teams"
+                  description="Streamline academic research with smart organization. Collaborate seamlessly and maintain comprehensive citation databases."
+                  features={["Advanced categorization", "Team collaboration", "Export citations"]}
                 />
                 <UseCaseCard
-                  emoji="💼"
-                  title="Marketing Teams"
-                  description="Manage campaigns, track performance, and collaborate on content strategy."
-                  features={["Team workspaces", "Campaign tracking", "ROI analytics"]}
+                  icon={<Briefcase className="h-6 w-6" />}
+                  title="Enterprise Marketing"
+                  description="Coordinate marketing campaigns at scale. Track performance metrics and optimize content strategy with data-driven insights."
+                  features={["Campaign management", "Performance analytics", "Team workspaces"]}
                 />
               </div>
             </div>
@@ -370,25 +373,32 @@ function FeatureCard({ icon, title, description, gradient }: {
   );
 }
 
-function UseCaseCard({ emoji, title, description, features }: {
-  emoji: string;
+function UseCaseCard({ icon, title, description, features }: {
+  icon: React.ReactNode;
   title: string;
   description: string;
   features: string[];
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
-      <div className="mb-4 text-5xl">{emoji}</div>
-      <h3 className="mb-3 text-2xl font-bold text-gray-900">{title}</h3>
+    <div className="group relative overflow-hidden rounded-lg border border-gray-200 bg-white p-8 transition-all hover:border-gray-300 hover:shadow-lg">
+      {/* Icon container */}
+      <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
+        {icon}
+      </div>
+
+      {/* Content */}
+      <h3 className="mb-3 text-xl font-semibold text-gray-900">{title}</h3>
       <p className="mb-6 text-gray-600 leading-relaxed">{description}</p>
-      <ul className="space-y-2">
+
+      {/* Features list - minimal style */}
+      <div className="space-y-2 border-t border-gray-100 pt-6">
         {features.map((feature, i) => (
-          <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
-            <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-            {feature}
-          </li>
+          <div key={i} className="flex items-start gap-3">
+            <div className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-slate-400" />
+            <span className="text-sm text-gray-600">{feature}</span>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
