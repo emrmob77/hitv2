@@ -64,8 +64,13 @@ async function handleCreateAffiliate(info, tab) {
     },
   });
 
-  // Open extension popup
-  chrome.action.openPopup();
+  // Show notification (popup will auto-open when user clicks icon)
+  chrome.notifications.create({
+    type: 'basic',
+    iconUrl: 'icons/icon-128.png',
+    title: 'Affiliate Link Ready',
+    message: 'Click the extension icon to create your affiliate link',
+  });
 }
 
 // Listen for messages from content script or popup
