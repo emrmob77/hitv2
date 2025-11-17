@@ -1,0 +1,9 @@
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+      <rect width="48" height="48" rx="9.600000000000001" fill="#4F46E5"/>
+      <path d="M 14.399999999999999 12 L 33.599999999999994 12 L 33.599999999999994 36 L 24 31.200000000000003 L 14.399999999999999 36 Z"
+            fill="#FFF" stroke="#FFF" stroke-width="1" stroke-linejoin="round"/>
+      <text x="24" y="26.400000000000002" font-family="Arial" font-size="14.399999999999999"
+            fill="#4F46E5" text-anchor="middle" font-weight="bold">#</text>
+    </svg>
+  

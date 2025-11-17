@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Background -->
+  <rect width="128" height="128" rx="24" fill="#4F46E5"/>
+
+  <!-- Bookmark icon -->
+  <path d="M 40 30 L 88 30 L 88 98 L 64 82 L 40 98 Z" fill="#FFF" stroke="#FFF" stroke-width="2" stroke-linejoin="round"/>
+
+  <!-- Hash/Tag symbol -->
+  <g fill="#4F46E5" stroke="none">
+    <!-- Horizontal lines -->
+    <rect x="48" y="45" width="32" height="4" rx="2"/>
+    <rect x="48" y="65" width="32" height="4" rx="2"/>
+    <!-- Vertical lines -->
+    <rect x="54" y="39" width="4" height="32" rx="2" transform="rotate(15 56 55)"/>
+    <rect x="66" y="39" width="4" height="32" rx="2" transform="rotate(15 68 55)"/>
+  </g>
+</svg>
