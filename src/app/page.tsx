@@ -205,37 +205,31 @@ export default function HomePage() {
                   icon={<Bookmark className="h-6 w-6" />}
                   title="Smart Bookmarking"
                   description="Auto-extract metadata, thumbnails, and descriptions. Browser extension for one-click saves."
-                  gradient="from-slate-700 to-slate-800"
                 />
                 <FeatureCard
                   icon={<FolderOpen className="h-6 w-6" />}
                   title="Collections & Tags"
                   description="Organize with unlimited collections, smart tags, and AI-powered categorization."
-                  gradient="from-slate-700 to-slate-800"
                 />
                 <FeatureCard
                   icon={<LinkIcon className="h-6 w-6" />}
                   title="Affiliate Link Manager"
                   description="Create, track and monetize affiliate links with built-in analytics and QR codes."
-                  gradient="from-slate-700 to-slate-800"
                 />
                 <FeatureCard
                   icon={<Users className="h-6 w-6" />}
                   title="Social Discovery"
                   description="Follow users, discover trending content, and share collections with your community."
-                  gradient="from-slate-700 to-slate-800"
                 />
                 <FeatureCard
                   icon={<BarChart3 className="h-6 w-6" />}
                   title="Advanced Analytics"
                   description="Track clicks, engagement, and ROI with comprehensive analytics dashboard."
-                  gradient="from-slate-700 to-slate-800"
                 />
                 <FeatureCard
                   icon={<Zap className="h-6 w-6" />}
                   title="Developer API"
                   description="RESTful API, GraphQL, webhooks, and Zapier integration for automation."
-                  gradient="from-slate-700 to-slate-800"
                 />
               </div>
             </div>
@@ -289,23 +283,31 @@ export default function HomePage() {
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
-                  <Chrome className="mb-3 h-12 w-12 text-slate-700" />
+                <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
+                    <Chrome className="h-6 w-6" />
+                  </div>
                   <h3 className="mb-2 font-semibold text-gray-900">Browser Extension</h3>
                   <p className="text-sm text-gray-600">Chrome, Firefox, Edge</p>
                 </div>
-                <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
-                  <Smartphone className="mb-3 h-12 w-12 text-slate-700" />
+                <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
+                    <Smartphone className="h-6 w-6" />
+                  </div>
                   <h3 className="mb-2 font-semibold text-gray-900">Mobile Apps</h3>
                   <p className="text-sm text-gray-600">iOS & Android</p>
                 </div>
-                <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
-                  <Database className="mb-3 h-12 w-12 text-slate-700" />
+                <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
+                    <Database className="h-6 w-6" />
+                  </div>
                   <h3 className="mb-2 font-semibold text-gray-900">API Access</h3>
                   <p className="text-sm text-gray-600">REST & GraphQL</p>
                 </div>
-                <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
-                  <Zap className="mb-3 h-12 w-12 text-slate-700" />
+                <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
+                    <Zap className="h-6 w-6" />
+                  </div>
                   <h3 className="mb-2 font-semibold text-gray-900">Integrations</h3>
                   <p className="text-sm text-gray-600">Zapier, Webhooks</p>
                 </div>
@@ -355,20 +357,21 @@ export default function HomePage() {
 }
 
 // Helper Components
-function FeatureCard({ icon, title, description, gradient }: {
+function FeatureCard({ icon, title, description }: {
   icon: React.ReactNode;
   title: string;
   description: string;
-  gradient: string;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm ring-1 ring-black/5 transition-all hover:shadow-xl hover:scale-105">
-      <div className={`mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-lg`}>
+    <div className="group relative overflow-hidden rounded-lg border border-gray-200 bg-white p-8 transition-all hover:border-gray-300 hover:shadow-lg">
+      {/* Icon container - consistent minimal design */}
+      <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
         {icon}
       </div>
+
+      {/* Content */}
       <h3 className="mb-3 text-xl font-semibold text-gray-900">{title}</h3>
       <p className="text-gray-600 leading-relaxed">{description}</p>
-      <div className={`absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl transition-opacity group-hover:opacity-20`} />
     </div>
   );
 }
