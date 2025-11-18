@@ -202,32 +202,32 @@ export default function HomePage() {
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {/* Feature Cards */}
                 <FeatureCard
-                  icon={<Bookmark className="h-6 w-6 text-slate-700" />}
+                  icon={<Bookmark className="h-6 w-6 text-slate-900" />}
                   title="Smart Bookmarking"
                   description="Auto-extract metadata, thumbnails, and descriptions. Browser extension for one-click saves."
                 />
                 <FeatureCard
-                  icon={<FolderOpen className="h-6 w-6 text-slate-700" />}
+                  icon={<FolderOpen className="h-6 w-6 text-slate-900" />}
                   title="Collections & Tags"
                   description="Organize with unlimited collections, smart tags, and AI-powered categorization."
                 />
                 <FeatureCard
-                  icon={<LinkIcon className="h-6 w-6 text-slate-700" />}
+                  icon={<LinkIcon className="h-6 w-6 text-slate-900" />}
                   title="Affiliate Link Manager"
                   description="Create, track and monetize affiliate links with built-in analytics and QR codes."
                 />
                 <FeatureCard
-                  icon={<Users className="h-6 w-6 text-slate-700" />}
+                  icon={<Users className="h-6 w-6 text-slate-900" />}
                   title="Social Discovery"
                   description="Follow users, discover trending content, and share collections with your community."
                 />
                 <FeatureCard
-                  icon={<BarChart3 className="h-6 w-6 text-slate-700" />}
+                  icon={<BarChart3 className="h-6 w-6 text-slate-900" />}
                   title="Advanced Analytics"
                   description="Track clicks, engagement, and ROI with comprehensive analytics dashboard."
                 />
                 <FeatureCard
-                  icon={<Zap className="h-6 w-6 text-slate-700" />}
+                  icon={<Zap className="h-6 w-6 text-slate-900" />}
                   title="Developer API"
                   description="RESTful API, GraphQL, webhooks, and Zapier integration for automation."
                 />
@@ -249,19 +249,19 @@ export default function HomePage() {
 
               <div className="grid gap-8 lg:grid-cols-3">
                 <UseCaseCard
-                  icon={<Target className="h-6 w-6 text-slate-700" />}
+                  icon={<Target className="h-6 w-6 text-slate-900" />}
                   title="Content Creators"
                   description="Build your brand with curated collections. Share valuable content and monetize your expertise through affiliate partnerships."
                   features={["Custom link pages", "Revenue tracking", "Engagement metrics"]}
                 />
                 <UseCaseCard
-                  icon={<Microscope className="h-6 w-6 text-slate-700" />}
+                  icon={<Microscope className="h-6 w-6 text-slate-900" />}
                   title="Research Teams"
                   description="Streamline academic research with smart organization. Collaborate seamlessly and maintain comprehensive citation databases."
                   features={["Advanced categorization", "Team collaboration", "Export citations"]}
                 />
                 <UseCaseCard
-                  icon={<Briefcase className="h-6 w-6 text-slate-700" />}
+                  icon={<Briefcase className="h-6 w-6 text-slate-900" />}
                   title="Enterprise Marketing"
                   description="Coordinate marketing campaigns at scale. Track performance metrics and optimize content strategy with data-driven insights."
                   features={["Campaign management", "Performance analytics", "Team workspaces"]}
@@ -285,28 +285,28 @@ export default function HomePage() {
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
                   <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-slate-200">
-                    <Chrome className="h-6 w-6 text-slate-700" />
+                    <Chrome className="h-6 w-6 text-slate-900" />
                   </div>
                   <h3 className="mb-2 font-semibold text-gray-900">Browser Extension</h3>
                   <p className="text-sm text-gray-600">Chrome, Firefox, Edge</p>
                 </div>
                 <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
                   <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-slate-200">
-                    <Smartphone className="h-6 w-6 text-slate-700" />
+                    <Smartphone className="h-6 w-6 text-slate-900" />
                   </div>
                   <h3 className="mb-2 font-semibold text-gray-900">Mobile Apps</h3>
                   <p className="text-sm text-gray-600">iOS & Android</p>
                 </div>
                 <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
                   <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-slate-200">
-                    <Database className="h-6 w-6 text-slate-700" />
+                    <Database className="h-6 w-6 text-slate-900" />
                   </div>
                   <h3 className="mb-2 font-semibold text-gray-900">API Access</h3>
                   <p className="text-sm text-gray-600">REST & GraphQL</p>
                 </div>
                 <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
                   <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-slate-200">
-                    <Zap className="h-6 w-6 text-slate-700" />
+                    <Zap className="h-6 w-6 text-slate-900" />
                   </div>
                   <h3 className="mb-2 font-semibold text-gray-900">Integrations</h3>
                   <p className="text-sm text-gray-600">Zapier, Webhooks</p>
