@@ -284,29 +284,29 @@ export default function HomePage() {
 
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
-                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
-                    <Chrome className="h-6 w-6" />
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-slate-200">
+                    <Chrome className="h-6 w-6 text-slate-700" />
                   </div>
                   <h3 className="mb-2 font-semibold text-gray-900">Browser Extension</h3>
                   <p className="text-sm text-gray-600">Chrome, Firefox, Edge</p>
                 </div>
                 <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
-                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
-                    <Smartphone className="h-6 w-6" />
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-slate-200">
+                    <Smartphone className="h-6 w-6 text-slate-700" />
                   </div>
                   <h3 className="mb-2 font-semibold text-gray-900">Mobile Apps</h3>
                   <p className="text-sm text-gray-600">iOS & Android</p>
                 </div>
                 <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
-                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
-                    <Database className="h-6 w-6" />
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-slate-200">
+                    <Database className="h-6 w-6 text-slate-700" />
                   </div>
                   <h3 className="mb-2 font-semibold text-gray-900">API Access</h3>
                   <p className="text-sm text-gray-600">REST & GraphQL</p>
                 </div>
                 <div className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center transition-all hover:border-gray-300 hover:shadow-lg">
-                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition-colors group-hover:bg-slate-200">
-                    <Zap className="h-6 w-6" />
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-slate-200">
+                    <Zap className="h-6 w-6 text-slate-700" />
                   </div>
                   <h3 className="mb-2 font-semibold text-gray-900">Integrations</h3>
                   <p className="text-sm text-gray-600">Zapier, Webhooks</p>
