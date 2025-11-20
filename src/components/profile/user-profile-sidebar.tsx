@@ -104,14 +104,36 @@ export function UserProfileSidebar({ profile, stats, isOwnProfile, isSubscribed,
           <CardContent className="space-y-3">
             {isOwnProfile ? (
               <>
-                <p className="text-xs text-gray-600">
-                  Create beautiful link pages to share with your audience
-                </p>
-                <Button asChild variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
-                  <Link href="/dashboard/link-groups">
-                    Manage link groups
-                  </Link>
-                </Button>
+                {linkGroup ? (
+                  <>
+                    <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-3">
+                      <p className="text-sm font-medium text-gray-900">{linkGroup.name}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button asChild variant="outline" size="sm" className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50">
+                        <Link href={`/l/${profile.username}/${linkGroup.slug}`}>
+                          View page
+                        </Link>
+                      </Button>
+                      <Button asChild variant="outline" size="sm" className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50">
+                        <Link href="/dashboard/link-groups">
+                          Manage
+                        </Link>
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-600">
+                      Create beautiful link pages to share with your audience
+                    </p>
+                    <Button asChild variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
+                      <Link href="/dashboard/link-groups">
+                        Create link group
+                      </Link>
+                    </Button>
+                  </>
+                )}
               </>
             ) : linkGroup ? (
               <>
