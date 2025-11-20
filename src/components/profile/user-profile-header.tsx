@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Link as LinkIcon, Calendar, Share2, MoreHorizontal, Settings } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Calendar, Share2, MoreHorizontal, Settings, Bookmark, Folder, Users, Heart, Crown, Lock } from 'lucide-react';
 import { FollowButton } from '@/components/profile/follow-button';
 import { SubscriptionButton } from '@/components/profile/subscription-button';
 import { format } from 'date-fns';
@@ -157,41 +157,62 @@ export function UserProfileHeader({
           </div>
         </div>
 
-        {/* Stats - Minimal design */}
-        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-gray-200 pt-6">
-          <div className="text-center">
-            <div className="text-xl font-bold text-gray-900">{stats.bookmarks}</div>
-            <div className="text-xs text-gray-600">Bookmarks</div>
+        {/* Stats - Minimal boxes with icons */}
+        <div className="mt-8 flex flex-wrap items-center gap-2 border-t border-gray-200 pt-6">
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+            <Bookmark className="h-4 w-4 text-gray-400" strokeWidth={2} />
+            <div>
+              <div className="text-sm font-bold text-gray-900">{stats.bookmarks}</div>
+              <div className="text-xs text-gray-500">Bookmarks</div>
+            </div>
           </div>
 
-          <div className="text-center">
-            <div className="text-xl font-bold text-gray-900">{stats.collections}</div>
-            <div className="text-xs text-gray-600">Collections</div>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+            <Folder className="h-4 w-4 text-gray-400" strokeWidth={2} />
+            <div>
+              <div className="text-sm font-bold text-gray-900">{stats.collections}</div>
+              <div className="text-xs text-gray-500">Collections</div>
+            </div>
           </div>
 
-          <div className="text-center">
-            <div className="text-xl font-bold text-gray-900">{stats.followers}</div>
-            <div className="text-xs text-gray-600">Followers</div>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+            <Users className="h-4 w-4 text-gray-400" strokeWidth={2} />
+            <div>
+              <div className="text-sm font-bold text-gray-900">{stats.followers}</div>
+              <div className="text-xs text-gray-500">Followers</div>
+            </div>
           </div>
 
-          <div className="text-center">
-            <div className="text-xl font-bold text-gray-900">{stats.following}</div>
-            <div className="text-xs text-gray-600">Following</div>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+            <Users className="h-4 w-4 text-gray-400" strokeWidth={2} />
+            <div>
+              <div className="text-sm font-bold text-gray-900">{stats.following}</div>
+              <div className="text-xs text-gray-500">Following</div>
+            </div>
           </div>
 
-          <div className="text-center">
-            <div className="text-xl font-bold text-gray-900">{stats.likes}</div>
-            <div className="text-xs text-gray-600">Total Likes</div>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+            <Heart className="h-4 w-4 text-gray-400" strokeWidth={2} />
+            <div>
+              <div className="text-sm font-bold text-gray-900">{stats.likes}</div>
+              <div className="text-xs text-gray-500">Likes</div>
+            </div>
           </div>
 
-          <div className="text-center">
-            <div className="text-xl font-bold text-gray-900">{stats.subscribers}</div>
-            <div className="text-xs text-gray-600">Subscribers</div>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+            <Crown className="h-4 w-4 text-gray-400" strokeWidth={2} />
+            <div>
+              <div className="text-sm font-bold text-gray-900">{stats.subscribers}</div>
+              <div className="text-xs text-gray-500">Subscribers</div>
+            </div>
           </div>
           {stats.premiumPosts > 0 && (
-            <div className="text-center">
-              <div className="text-xl font-bold text-gray-900">{stats.premiumPosts}</div>
-              <div className="text-xs text-gray-600">Premium Posts</div>
+            <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+              <Lock className="h-4 w-4 text-amber-500" strokeWidth={2} />
+              <div>
+                <div className="text-sm font-bold text-gray-900">{stats.premiumPosts}</div>
+                <div className="text-xs text-gray-500">Premium</div>
+              </div>
             </div>
           )}
         </div>
