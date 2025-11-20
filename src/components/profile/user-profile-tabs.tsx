@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -96,6 +97,12 @@ export function UserProfileTabs({
   premiumPostCount,
   currentUserId,
 }: UserProfileTabsProps) {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const defaultTab = tabParam && ['bookmarks', 'collections', 'likes', 'following', 'premium', 'followers', 'subscribers', 'link-groups'].includes(tabParam)
+    ? tabParam
+    : 'bookmarks';
+
   const [bookmarks, setBookmarks] = useState<ProfileBookmark[]>([]);
   const [collections, setCollections] = useState<ProfileCollection[]>([]);
   const [likedBookmarks, setLikedBookmarks] = useState<ProfileBookmark[]>([]);
@@ -438,7 +445,7 @@ export function UserProfileTabs({
   }, [userId, currentUserId, username]);
 
   return (
-    <Tabs defaultValue="bookmarks" className="w-full">
+    <Tabs defaultValue={defaultTab} className="w-full">
       <TabsList className="mb-8 inline-flex rounded-lg border border-gray-200 bg-white p-1">
         <TabsTrigger
           value="bookmarks"

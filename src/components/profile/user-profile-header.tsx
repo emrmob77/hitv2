@@ -161,7 +161,7 @@ export function UserProfileHeader({
         {/* Stats - Minimal boxes with icons */}
         <div className="mt-8 flex flex-wrap items-center gap-2 border-t border-gray-200 pt-6">
           <Link
-            href={isOwnProfile ? '/dashboard/bookmarks' : `/${profile.username}`}
+            href={isOwnProfile ? '/dashboard/bookmarks' : `/${profile.username}?tab=bookmarks`}
             className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all hover:shadow-md hover:border-gray-300 cursor-pointer"
           >
             <Bookmark className="h-4 w-4 text-gray-400" strokeWidth={2} />
@@ -172,7 +172,7 @@ export function UserProfileHeader({
           </Link>
 
           <Link
-            href={isOwnProfile ? '/dashboard/collections' : `/${profile.username}`}
+            href={isOwnProfile ? '/dashboard/collections' : `/${profile.username}?tab=collections`}
             className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all hover:shadow-md hover:border-gray-300 cursor-pointer"
           >
             <Folder className="h-4 w-4 text-gray-400" strokeWidth={2} />
@@ -184,7 +184,7 @@ export function UserProfileHeader({
 
           {stats.linkGroups > 0 && (
             <Link
-              href={isOwnProfile ? '/dashboard/link-groups' : `/${profile.username}`}
+              href={isOwnProfile ? '/dashboard/link-groups' : `/${profile.username}?tab=link-groups`}
               className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 transition-all hover:shadow-md hover:border-blue-300 hover:bg-blue-100 cursor-pointer"
             >
               <Link2 className="h-4 w-4 text-blue-600" strokeWidth={2} />
@@ -196,7 +196,7 @@ export function UserProfileHeader({
           )}
 
           <Link
-            href={isOwnProfile ? '/dashboard' : `/${profile.username}`}
+            href={isOwnProfile ? '/dashboard' : `/${profile.username}?tab=followers`}
             className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all hover:shadow-md hover:border-gray-300 cursor-pointer"
           >
             <Users className="h-4 w-4 text-gray-400" strokeWidth={2} />
@@ -207,7 +207,7 @@ export function UserProfileHeader({
           </Link>
 
           <Link
-            href={isOwnProfile ? '/dashboard' : `/${profile.username}`}
+            href={isOwnProfile ? '/dashboard' : `/${profile.username}?tab=following`}
             className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all hover:shadow-md hover:border-gray-300 cursor-pointer"
           >
             <Users className="h-4 w-4 text-gray-400" strokeWidth={2} />
@@ -218,7 +218,7 @@ export function UserProfileHeader({
           </Link>
 
           <Link
-            href={isOwnProfile ? '/dashboard' : `/${profile.username}`}
+            href={isOwnProfile ? '/dashboard' : `/${profile.username}?tab=likes`}
             className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all hover:shadow-md hover:border-gray-300 cursor-pointer"
           >
             <Heart className="h-4 w-4 text-gray-400" strokeWidth={2} />
@@ -229,7 +229,7 @@ export function UserProfileHeader({
           </Link>
 
           <Link
-            href={isOwnProfile ? '/dashboard/subscribers' : `/${profile.username}`}
+            href={isOwnProfile ? '/dashboard/subscribers' : `/${profile.username}?tab=subscribers`}
             className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all hover:shadow-md hover:border-gray-300 cursor-pointer"
           >
             <Crown className="h-4 w-4 text-gray-400" strokeWidth={2} />
@@ -240,7 +240,7 @@ export function UserProfileHeader({
           </Link>
           {stats.premiumPosts > 0 && (
             <Link
-              href={isOwnProfile ? '/dashboard/posts' : `/${profile.username}`}
+              href={isOwnProfile ? '/dashboard/posts' : `/${profile.username}?tab=premium`}
               className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all hover:shadow-md hover:border-gray-300 cursor-pointer"
             >
               <Lock className="h-4 w-4 text-amber-500" strokeWidth={2} />
