@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Twitter, Github, Globe, Crown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Twitter, Github, Globe, Crown, DollarSign } from 'lucide-react';
 
 import { SubscriptionButton } from '@/components/profile/subscription-button';
 
@@ -183,6 +184,33 @@ export function UserProfileSidebar({ profile, stats, isOwnProfile, isSubscribed,
                 Sign in to subscribe and view premium releases.
               </p>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Affiliate Links - Only show for own profile */}
+      {isOwnProfile && isPremium && (
+        <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50/50 to-white shadow-sm">
+          <CardHeader className="space-y-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50">
+                <DollarSign className="h-4 w-4 text-emerald-600" strokeWidth={2.5} />
+              </div>
+              Affiliate Links
+            </CardTitle>
+            <CardDescription className="text-xs text-gray-600">
+              Monetize your bookmarks with affiliate tracking
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-xs text-gray-600">
+              Track clicks and earnings from your affiliate links
+            </p>
+            <Button asChild variant="outline" size="sm" className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+              <Link href="/dashboard/affiliate">
+                Manage affiliate links
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       )}
