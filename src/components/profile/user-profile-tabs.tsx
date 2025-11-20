@@ -439,41 +439,41 @@ export function UserProfileTabs({
 
   return (
     <Tabs defaultValue="bookmarks" className="w-full">
-      <TabsList className="mb-6 flex w-full flex-wrap gap-2 rounded-xl border border-neutral-200 bg-neutral-50/80 p-1">
+      <TabsList className="mb-6 flex w-full flex-wrap gap-2 rounded-xl border border-gray-200 bg-gray-50/80 p-2">
         <TabsTrigger
           value="bookmarks"
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          className="flex items-center gap-2 rounded-lg px-5 py-3 text-base font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-md"
         >
-          <Bookmark className="h-4 w-4 text-neutral-500" />
+          <Bookmark className="h-5 w-5 text-slate-900" strokeWidth={2.5} />
           Bookmarks
         </TabsTrigger>
         <TabsTrigger
           value="collections"
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          className="flex items-center gap-2 rounded-lg px-5 py-3 text-base font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-md"
         >
-          <Folder className="h-4 w-4 text-neutral-500" />
+          <Folder className="h-5 w-5 text-slate-900" strokeWidth={2.5} />
           Collections
         </TabsTrigger>
         <TabsTrigger
           value="likes"
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          className="flex items-center gap-2 rounded-lg px-5 py-3 text-base font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-md"
         >
-          <Heart className="h-4 w-4 text-neutral-500" />
+          <Heart className="h-5 w-5 text-slate-900" strokeWidth={2.5} />
           Likes
         </TabsTrigger>
         <TabsTrigger
           value="following"
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          className="flex items-center gap-2 rounded-lg px-5 py-3 text-base font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-md"
         >
-          <Users className="h-4 w-4 text-neutral-500" />
+          <Users className="h-5 w-5 text-slate-900" strokeWidth={2.5} />
           Following
         </TabsTrigger>
         {showPremiumTab && (
           <TabsTrigger
             value="premium"
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            className="flex items-center gap-2 rounded-lg px-5 py-3 text-base font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-md"
           >
-            <Lock className="h-4 w-4 text-amber-600" />
+            <Lock className="h-5 w-5 text-amber-600" strokeWidth={2.5} />
             Premium
           </TabsTrigger>
         )}
@@ -481,12 +481,14 @@ export function UserProfileTabs({
 
       <TabsContent value="bookmarks" className="space-y-4">
         {loading ? (
-          <div className="text-center text-neutral-500">Loading bookmarks...</div>
+          <div className="text-center text-gray-600 font-medium">Loading bookmarks...</div>
         ) : bookmarks.length === 0 ? (
-          <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
-            <Bookmark className="mx-auto mb-4 h-12 w-12 text-neutral-400" />
-            <h3 className="mb-2 text-lg font-medium text-neutral-900">No bookmarks yet</h3>
-            <p className="text-sm text-neutral-600">
+          <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
+              <Bookmark className="h-10 w-10 text-slate-900" strokeWidth={2.5} />
+            </div>
+            <h3 className="mb-2 text-xl font-semibold text-gray-900">No bookmarks yet</h3>
+            <p className="text-base text-gray-600">
               {isOwnProfile
                 ? 'Start adding bookmarks to build your collection'
                 : `${username} hasn't added any public bookmarks yet`}
@@ -515,12 +517,14 @@ export function UserProfileTabs({
 
       <TabsContent value="collections" className="space-y-4">
         {loading ? (
-          <div className="text-center text-neutral-500">Loading collections...</div>
+          <div className="text-center text-gray-600 font-medium">Loading collections...</div>
         ) : collections.length === 0 ? (
-          <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
-            <Folder className="mx-auto mb-4 h-12 w-12 text-neutral-400" />
-            <h3 className="mb-2 text-lg font-medium text-neutral-900">No collections yet</h3>
-            <p className="text-sm text-neutral-600">
+          <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
+              <Folder className="h-10 w-10 text-slate-900" strokeWidth={2.5} />
+            </div>
+            <h3 className="mb-2 text-xl font-semibold text-gray-900">No collections yet</h3>
+            <p className="text-base text-gray-600">
               {isOwnProfile
                 ? 'Create collections to organize your bookmarks'
                 : `${username} hasn't created any public collections yet`}
@@ -537,12 +541,14 @@ export function UserProfileTabs({
 
       <TabsContent value="likes" className="space-y-4">
         {loading ? (
-          <div className="text-center text-neutral-500">Loading liked bookmarks...</div>
+          <div className="text-center text-gray-600 font-medium">Loading liked bookmarks...</div>
         ) : likedBookmarks.length === 0 ? (
-          <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
-            <Heart className="mx-auto mb-4 h-12 w-12 text-neutral-400" />
-            <h3 className="mb-2 text-lg font-medium text-neutral-900">No liked bookmarks yet</h3>
-            <p className="text-sm text-neutral-600">
+          <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
+              <Heart className="h-10 w-10 text-slate-900" strokeWidth={2.5} />
+            </div>
+            <h3 className="mb-2 text-xl font-semibold text-gray-900">No liked bookmarks yet</h3>
+            <p className="text-base text-gray-600">
               {isOwnProfile
                 ? 'Start liking bookmarks to see them listed here'
                 : `${username} hasn't liked any public bookmarks yet`}
@@ -573,15 +579,17 @@ export function UserProfileTabs({
 
       <TabsContent value="following" className="space-y-4">
         {loading ? (
-          <div className="text-center text-neutral-500">Loading following list...</div>
+          <div className="text-center text-gray-600 font-medium">Loading following list...</div>
         ) : followingUsers.length === 0 ? (
-          <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
-            <Users className="mx-auto mb-4 h-12 w-12 text-neutral-400" />
-            <h3 className="mb-2 text-lg font-medium text-neutral-900">Not following anyone yet</h3>
-            <p className="text-sm text-neutral-600">
+          <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
+              <Users className="h-10 w-10 text-slate-900" strokeWidth={2.5} />
+            </div>
+            <h3 className="mb-2 text-xl font-semibold text-gray-900">Not following anyone yet</h3>
+            <p className="text-base text-gray-600">
               {isOwnProfile
                 ? 'Discover creators to follow from the explore page'
-                : `${username} isn’t following anyone yet`}
+                : `${username} isn't following anyone yet`}
             </p>
           </div>
         ) : (
@@ -633,11 +641,11 @@ export function UserProfileTabs({
 
       {showPremiumTab && (
         <TabsContent value="premium" className="space-y-6">
-          <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/70 via-white to-neutral-50 p-6">
+          <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/70 via-white to-gray-50 p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="max-w-2xl space-y-2">
-                <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">
-                  <Sparkles className="h-3.5 w-3.5" />
+                <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-900">
+                  <Sparkles className="h-5 w-5" strokeWidth={2.5} />
                   Premium feed
                 </div>
                 <h3 className="text-xl font-semibold text-neutral-900">
@@ -668,19 +676,21 @@ export function UserProfileTabs({
           </div>
 
           {loading ? (
-            <div className="text-center text-neutral-500">Loading premium posts...</div>
+            <div className="text-center text-gray-600 font-medium">Loading premium posts...</div>
           ) : visiblePremiumPosts.length === 0 ? (
-            <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
-              <Lock className="mx-auto mb-4 h-12 w-12 text-amber-400" />
-              <h3 className="mb-2 text-lg font-medium text-neutral-900">
+            <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+              <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-lg border border-amber-200 bg-amber-50">
+                <Lock className="h-10 w-10 text-amber-600" strokeWidth={2.5} />
+              </div>
+              <h3 className="mb-2 text-xl font-semibold text-gray-900">
                 {hasHiddenPremiumPosts ? 'Premium posts are locked' : 'No premium drops yet'}
               </h3>
-              <p className="text-sm text-neutral-600">
+              <p className="text-base text-gray-600">
                 {hasHiddenPremiumPosts
                   ? 'Subscribe to unlock the full archive of premium content.'
                   : isOwnProfile
                   ? 'Publish your first premium post to give subscribers something special.'
-                  : `${username} hasn’t published any premium posts yet.`}
+                  : `${username} hasn't published any premium posts yet.`}
               </p>
             </div>
           ) : (
