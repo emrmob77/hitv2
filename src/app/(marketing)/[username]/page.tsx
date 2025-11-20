@@ -98,6 +98,17 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', profile.id);
 
+  // Get link groups (for sidebar)
+  const { data: linkGroups } = await supabase
+    .from('link_groups')
+    .select('slug, name, is_active')
+    .eq('user_id', profile.id)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  const firstLinkGroup = linkGroups?.[0] || null;
+
   // Check if current user follows this profile
   let isFollowing = false;
   let isSubscribed = false;
@@ -174,6 +185,7 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
               isOwnProfile={isOwnProfile}
               isSubscribed={isSubscribed}
               currentUserId={user?.id}
+              linkGroup={firstLinkGroup}
             />
           </div>
         </div>

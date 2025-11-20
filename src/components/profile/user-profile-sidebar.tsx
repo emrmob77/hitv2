@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Twitter, Github, Globe, Crown, DollarSign } from 'lucide-react';
+import { Twitter, Github, Globe, Crown, LinkIcon } from 'lucide-react';
 
 import { SubscriptionButton } from '@/components/profile/subscription-button';
 
@@ -20,9 +20,14 @@ interface UserProfileSidebarProps {
   isOwnProfile: boolean;
   isSubscribed: boolean;
   currentUserId?: string;
+  linkGroup?: {
+    slug: string;
+    name: string;
+    is_active: boolean;
+  } | null;
 }
 
-export function UserProfileSidebar({ profile, stats, isOwnProfile, isSubscribed, currentUserId }: UserProfileSidebarProps) {
+export function UserProfileSidebar({ profile, stats, isOwnProfile, isSubscribed, currentUserId, linkGroup }: UserProfileSidebarProps) {
   const subscriptionTier = profile.subscription_tier || profile.plan_type || 'free';
   const isPremium = (typeof profile.is_premium === 'boolean' ? profile.is_premium : undefined) ?? subscriptionTier !== 'free';
   return (
@@ -188,29 +193,47 @@ export function UserProfileSidebar({ profile, stats, isOwnProfile, isSubscribed,
         </Card>
       )}
 
-      {/* Affiliate Links - Only show for own profile */}
-      {isOwnProfile && isPremium && (
-        <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50/50 to-white shadow-sm">
+      {/* Link Groups */}
+      {isPremium && (isOwnProfile || linkGroup) && (
+        <Card className="border-blue-200 bg-gradient-to-br from-blue-50/50 to-white shadow-sm">
           <CardHeader className="space-y-2">
             <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50">
-                <DollarSign className="h-4 w-4 text-emerald-600" strokeWidth={2.5} />
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-blue-200 bg-blue-50">
+                <LinkIcon className="h-4 w-4 text-blue-600" strokeWidth={2.5} />
               </div>
-              Affiliate Links
+              Link Groups
             </CardTitle>
             <CardDescription className="text-xs text-gray-600">
-              Monetize your bookmarks with affiliate tracking
+              {isOwnProfile
+                ? 'Share all your important links in one place'
+                : `Check out ${profile.display_name || profile.username}'s curated links`
+              }
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-xs text-gray-600">
-              Track clicks and earnings from your affiliate links
-            </p>
-            <Button asChild variant="outline" size="sm" className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-              <Link href="/dashboard/affiliate">
-                Manage affiliate links
-              </Link>
-            </Button>
+            {isOwnProfile ? (
+              <>
+                <p className="text-xs text-gray-600">
+                  Create beautiful link pages to share with your audience
+                </p>
+                <Button asChild variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
+                  <Link href="/dashboard/link-groups">
+                    Manage link groups
+                  </Link>
+                </Button>
+              </>
+            ) : linkGroup ? (
+              <>
+                <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-3">
+                  <p className="text-sm font-medium text-gray-900">{linkGroup.name}</p>
+                </div>
+                <Button asChild variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
+                  <Link href={`/l/${profile.username}/${linkGroup.slug}`}>
+                    View all links
+                  </Link>
+                </Button>
+              </>
+            ) : null}
           </CardContent>
         </Card>
       )}
