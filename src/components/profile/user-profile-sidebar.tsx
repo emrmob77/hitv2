@@ -84,6 +84,95 @@ export function UserProfileSidebar({ profile, stats, isOwnProfile, isSubscribed,
         </Card>
       )}
 
+      {/* Link Groups - Priority #1 for content discovery */}
+      {isPremium && (isOwnProfile || linkGroup) && (
+        <Card className="border-blue-200 bg-gradient-to-br from-blue-50/50 to-white shadow-sm">
+          <CardHeader className="space-y-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-blue-200 bg-blue-50">
+                <LinkIcon className="h-4 w-4 text-blue-600" strokeWidth={2.5} />
+              </div>
+              Link Groups
+            </CardTitle>
+            <CardDescription className="text-xs text-gray-600">
+              {isOwnProfile
+                ? 'Share all your important links in one place'
+                : `Check out ${profile.display_name || profile.username}'s curated links`
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {isOwnProfile ? (
+              <>
+                <p className="text-xs text-gray-600">
+                  Create beautiful link pages to share with your audience
+                </p>
+                <Button asChild variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
+                  <Link href="/dashboard/link-groups">
+                    Manage link groups
+                  </Link>
+                </Button>
+              </>
+            ) : linkGroup ? (
+              <>
+                <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-3">
+                  <p className="text-sm font-medium text-gray-900">{linkGroup.name}</p>
+                </div>
+                <Button asChild variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
+                  <Link href={`/l/${profile.username}/${linkGroup.slug}`}>
+                    View all links
+                  </Link>
+                </Button>
+              </>
+            ) : null}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Premium Content - Priority #2 for monetization */}
+      {isPremium && (
+        <Card className="border-amber-200 bg-gradient-to-br from-amber-50/50 to-white shadow-sm">
+          <CardHeader className="space-y-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-200 bg-amber-50">
+                <Crown className="h-4 w-4 text-amber-600" strokeWidth={2.5} />
+              </div>
+              Premium Content
+            </CardTitle>
+            <CardDescription className="text-xs text-gray-600">
+              {isOwnProfile
+                ? 'Track how your premium drops perform.'
+                : `Unlock exclusive posts from ${profile.display_name || profile.username}.`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-gray-700">Published posts</span>
+              <Badge className="bg-amber-100 text-amber-900 border-0 font-semibold text-xs">{stats.premiumPosts}</Badge>
+            </div>
+
+            {isOwnProfile ? (
+              <Link
+                href="/dashboard/posts"
+                className="inline-flex items-center text-sm font-semibold text-gray-900 underline-offset-2 hover:underline"
+              >
+                Manage premium posts
+              </Link>
+            ) : currentUserId ? (
+              isSubscribed ? (
+                <p className="text-xs text-gray-600 font-medium">You are subscribed to this creator.</p>
+              ) : (
+                <SubscriptionButton creatorId={profile.id} isSubscribed={isSubscribed} />
+              )
+            ) : (
+              <p className="text-xs text-gray-600 font-medium">
+                Sign in to subscribe and view premium releases.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Activity Stats */}
       <Card className="border-gray-200 shadow-sm">
         <CardHeader>
@@ -146,94 +235,6 @@ export function UserProfileSidebar({ profile, stats, isOwnProfile, isSubscribed,
                 <Badge variant="secondary" className="bg-gray-100 text-gray-900 font-semibold text-xs">25+ Subscribers</Badge>
               )}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {isPremium && (
-        <Card className="border-amber-200 bg-gradient-to-br from-amber-50/50 to-white shadow-sm">
-          <CardHeader className="space-y-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-200 bg-amber-50">
-                <Crown className="h-4 w-4 text-amber-600" strokeWidth={2.5} />
-              </div>
-              Premium Content
-            </CardTitle>
-            <CardDescription className="text-xs text-gray-600">
-              {isOwnProfile
-                ? 'Track how your premium drops perform.'
-                : `Unlock exclusive posts from ${profile.display_name || profile.username}.`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-gray-700">Published posts</span>
-              <Badge className="bg-amber-100 text-amber-900 border-0 font-semibold text-xs">{stats.premiumPosts}</Badge>
-            </div>
-
-            {isOwnProfile ? (
-              <Link
-                href="/dashboard/posts"
-                className="inline-flex items-center text-sm font-semibold text-gray-900 underline-offset-2 hover:underline"
-              >
-                Manage premium posts
-              </Link>
-            ) : currentUserId ? (
-              isSubscribed ? (
-                <p className="text-xs text-gray-600 font-medium">You are subscribed to this creator.</p>
-              ) : (
-                <SubscriptionButton creatorId={profile.id} isSubscribed={isSubscribed} />
-              )
-            ) : (
-              <p className="text-xs text-gray-600 font-medium">
-                Sign in to subscribe and view premium releases.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Link Groups */}
-      {isPremium && (isOwnProfile || linkGroup) && (
-        <Card className="border-blue-200 bg-gradient-to-br from-blue-50/50 to-white shadow-sm">
-          <CardHeader className="space-y-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-blue-200 bg-blue-50">
-                <LinkIcon className="h-4 w-4 text-blue-600" strokeWidth={2.5} />
-              </div>
-              Link Groups
-            </CardTitle>
-            <CardDescription className="text-xs text-gray-600">
-              {isOwnProfile
-                ? 'Share all your important links in one place'
-                : `Check out ${profile.display_name || profile.username}'s curated links`
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {isOwnProfile ? (
-              <>
-                <p className="text-xs text-gray-600">
-                  Create beautiful link pages to share with your audience
-                </p>
-                <Button asChild variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
-                  <Link href="/dashboard/link-groups">
-                    Manage link groups
-                  </Link>
-                </Button>
-              </>
-            ) : linkGroup ? (
-              <>
-                <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-3">
-                  <p className="text-sm font-medium text-gray-900">{linkGroup.name}</p>
-                </div>
-                <Button asChild variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
-                  <Link href={`/l/${profile.username}/${linkGroup.slug}`}>
-                    View all links
-                  </Link>
-                </Button>
-              </>
-            ) : null}
           </CardContent>
         </Card>
       )}

@@ -98,7 +98,13 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', profile.id);
 
-  // Get link groups (for sidebar)
+  // Get link groups count and first group
+  const { count: linkGroupCount } = await supabase
+    .from('link_groups')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', profile.id)
+    .eq('is_active', true);
+
   const { data: linkGroups } = await supabase
     .from('link_groups')
     .select('slug, name, is_active')
@@ -145,6 +151,7 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
     likes: profile.total_likes_received || 0,
     subscribers: subscriberCount || 0,
     premiumPosts: premiumPostCount || 0,
+    linkGroups: linkGroupCount || 0,
   };
 
   const isOwnProfile = user?.id === profile.id;

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Link as LinkIcon, Calendar, Share2, MoreHorizontal, Settings, Bookmark, Folder, Users, Heart, Crown, Lock } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Calendar, Share2, MoreHorizontal, Settings, Bookmark, Folder, Users, Heart, Crown, Lock, Link2 } from 'lucide-react';
 import { FollowButton } from '@/components/profile/follow-button';
 import { SubscriptionButton } from '@/components/profile/subscription-button';
 import { format } from 'date-fns';
@@ -19,6 +19,7 @@ interface UserProfileHeaderProps {
     likes: number;
     subscribers: number;
     premiumPosts: number;
+    linkGroups: number;
   };
   isFollowing: boolean;
   isSubscribed: boolean;
@@ -174,6 +175,16 @@ export function UserProfileHeader({
               <div className="text-xs text-gray-500">Collections</div>
             </div>
           </div>
+
+          {stats.linkGroups > 0 && (
+            <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+              <Link2 className="h-4 w-4 text-blue-600" strokeWidth={2} />
+              <div>
+                <div className="text-sm font-bold text-blue-900">{stats.linkGroups}</div>
+                <div className="text-xs text-blue-700">Link Groups</div>
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
             <Users className="h-4 w-4 text-gray-400" strokeWidth={2} />
