@@ -157,41 +157,41 @@ export function UserProfileHeader({
           </div>
         </div>
 
-        {/* Stats - Modern card grid */}
-        <div className="mt-8 grid grid-cols-2 gap-3 border-t border-gray-200 pt-8 sm:grid-cols-3 lg:grid-cols-6">
-          <div className="group rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition-all hover:border-gray-300 hover:shadow">
-            <div className="mb-1 text-2xl font-bold text-gray-900">{stats.bookmarks}</div>
-            <div className="text-xs font-medium text-gray-600">Bookmarks</div>
+        {/* Stats - Minimal design */}
+        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-gray-200 pt-6">
+          <div className="text-center">
+            <div className="text-xl font-bold text-gray-900">{stats.bookmarks}</div>
+            <div className="text-xs text-gray-600">Bookmarks</div>
           </div>
 
-          <div className="group rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition-all hover:border-gray-300 hover:shadow">
-            <div className="mb-1 text-2xl font-bold text-gray-900">{stats.collections}</div>
-            <div className="text-xs font-medium text-gray-600">Collections</div>
+          <div className="text-center">
+            <div className="text-xl font-bold text-gray-900">{stats.collections}</div>
+            <div className="text-xs text-gray-600">Collections</div>
           </div>
 
-          <div className="group rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition-all hover:border-gray-300 hover:shadow">
-            <div className="mb-1 text-2xl font-bold text-gray-900">{stats.followers}</div>
-            <div className="text-xs font-medium text-gray-600">Followers</div>
+          <div className="text-center">
+            <div className="text-xl font-bold text-gray-900">{stats.followers}</div>
+            <div className="text-xs text-gray-600">Followers</div>
           </div>
 
-          <div className="group rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition-all hover:border-gray-300 hover:shadow">
-            <div className="mb-1 text-2xl font-bold text-gray-900">{stats.following}</div>
-            <div className="text-xs font-medium text-gray-600">Following</div>
+          <div className="text-center">
+            <div className="text-xl font-bold text-gray-900">{stats.following}</div>
+            <div className="text-xs text-gray-600">Following</div>
           </div>
 
-          <div className="group rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition-all hover:border-gray-300 hover:shadow">
-            <div className="mb-1 text-2xl font-bold text-gray-900">{stats.likes}</div>
-            <div className="text-xs font-medium text-gray-600">Total Likes</div>
+          <div className="text-center">
+            <div className="text-xl font-bold text-gray-900">{stats.likes}</div>
+            <div className="text-xs text-gray-600">Total Likes</div>
           </div>
 
-          <div className="group rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition-all hover:border-gray-300 hover:shadow">
-            <div className="mb-1 text-2xl font-bold text-gray-900">{stats.subscribers}</div>
-            <div className="text-xs font-medium text-gray-600">Subscribers</div>
+          <div className="text-center">
+            <div className="text-xl font-bold text-gray-900">{stats.subscribers}</div>
+            <div className="text-xs text-gray-600">Subscribers</div>
           </div>
           {stats.premiumPosts > 0 && (
-            <div className="group rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition-all hover:border-gray-300 hover:shadow">
-              <div className="mb-1 text-2xl font-bold text-gray-900">{stats.premiumPosts}</div>
-              <div className="text-xs font-medium text-gray-600">Premium Posts</div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-gray-900">{stats.premiumPosts}</div>
+              <div className="text-xs text-gray-600">Premium Posts</div>
             </div>
           )}
         </div>

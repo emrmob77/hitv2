@@ -439,41 +439,41 @@ export function UserProfileTabs({
 
   return (
     <Tabs defaultValue="bookmarks" className="w-full">
-      <TabsList className="mb-6 flex w-full flex-wrap gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1.5">
+      <TabsList className="mb-8 flex w-full items-center justify-start gap-6 border-b border-gray-200 bg-transparent p-0">
         <TabsTrigger
           value="bookmarks"
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:font-semibold"
+          className="flex items-center gap-2 border-b-2 border-transparent bg-transparent px-1 pb-3 text-sm font-medium text-gray-600 transition-all hover:text-gray-900 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
         >
-          <Bookmark className="h-4 w-4 text-slate-900" strokeWidth={2.5} />
+          <Bookmark className="h-4 w-4" strokeWidth={2} />
           Bookmarks
         </TabsTrigger>
         <TabsTrigger
           value="collections"
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:font-semibold"
+          className="flex items-center gap-2 border-b-2 border-transparent bg-transparent px-1 pb-3 text-sm font-medium text-gray-600 transition-all hover:text-gray-900 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
         >
-          <Folder className="h-4 w-4 text-slate-900" strokeWidth={2.5} />
+          <Folder className="h-4 w-4" strokeWidth={2} />
           Collections
         </TabsTrigger>
         <TabsTrigger
           value="likes"
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:font-semibold"
+          className="flex items-center gap-2 border-b-2 border-transparent bg-transparent px-1 pb-3 text-sm font-medium text-gray-600 transition-all hover:text-gray-900 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
         >
-          <Heart className="h-4 w-4 text-slate-900" strokeWidth={2.5} />
+          <Heart className="h-4 w-4" strokeWidth={2} />
           Likes
         </TabsTrigger>
         <TabsTrigger
           value="following"
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:font-semibold"
+          className="flex items-center gap-2 border-b-2 border-transparent bg-transparent px-1 pb-3 text-sm font-medium text-gray-600 transition-all hover:text-gray-900 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
         >
-          <Users className="h-4 w-4 text-slate-900" strokeWidth={2.5} />
+          <Users className="h-4 w-4" strokeWidth={2} />
           Following
         </TabsTrigger>
         {showPremiumTab && (
           <TabsTrigger
             value="premium"
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:font-semibold"
+            className="flex items-center gap-2 border-b-2 border-transparent bg-transparent px-1 pb-3 text-sm font-medium text-amber-700 transition-all hover:text-amber-900 data-[state=active]:border-amber-600 data-[state=active]:text-amber-900 data-[state=active]:font-semibold"
           >
-            <Lock className="h-4 w-4 text-amber-600" strokeWidth={2.5} />
+            <Lock className="h-4 w-4" strokeWidth={2} />
             Premium
           </TabsTrigger>
         )}
