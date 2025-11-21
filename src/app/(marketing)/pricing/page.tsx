@@ -212,7 +212,8 @@ function PricingContent() {
       {/* Pricing Cards */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Add top padding to grid to accommodate badge */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
             {STRIPE_PLANS.map((plan, index) => {
               const price = getPrice(plan);
               const yearlyDiscount = getYearlyDiscount(plan);
@@ -221,7 +222,7 @@ function PricingContent() {
                 <Card
                   key={plan.id}
                   className={cn(
-                    'relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl animate-slide-up',
+                    'relative overflow-visible transition-all duration-300 hover:scale-105 hover:shadow-2xl animate-slide-up',
                     plan.highlighted
                       ? 'border-2 border-purple-600 shadow-xl ring-4 ring-purple-100 bg-gradient-to-br from-purple-50 to-white'
                       : 'border border-gray-200 shadow-md hover:border-purple-300'
@@ -230,24 +231,22 @@ function PricingContent() {
                     animationDelay: `${index * 100}ms`,
                   }}
                 >
+                  {/* Most Popular Badge - positioned absolutely above card */}
+                  {plan.highlighted && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
+                        <Crown className="h-4 w-4" />
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
+
                   {/* Gradient overlay for highlighted plan */}
                   {plan.highlighted && (
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600" />
                   )}
 
-                  {/* Badge Space - Always reserve space to prevent layout shift */}
-                  <div className="h-4 mb-2">
-                    {plan.highlighted && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
-                          <Crown className="h-4 w-4" />
-                          Most Popular
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <CardHeader className="text-center pb-8 pt-4">
+                  <CardHeader className="text-center pb-8 pt-8">
                     {/* Plan icon */}
                     <div className={cn(
                       "mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full",
