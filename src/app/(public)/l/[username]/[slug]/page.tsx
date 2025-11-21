@@ -166,11 +166,9 @@ export default async function PublicLinkGroupPage({
                 href={`/api/link-redirect/${item.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative block overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-blue-300 hover:shadow-lg sm:p-6"
+                className="group relative block overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-blue-300 hover:shadow-lg sm:p-6 animate-slide-up"
                 style={{
                   animationDelay: `${index * 50}ms`,
-                  animation: 'slideUp 0.4s ease-out forwards',
-                  opacity: 0,
                 }}
               >
                 {/* Gradient hover effect */}
@@ -212,20 +210,6 @@ export default async function PublicLinkGroupPage({
           </Link>
         </div>
       </div>
-
-      {/* Animation styles */}
-      <style jsx>{`
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }
