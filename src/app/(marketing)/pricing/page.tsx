@@ -98,35 +98,41 @@ function PricingContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 py-20 sm:py-24">
-        {/* Background decoration */}
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
-        <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 translate-y-12 -translate-x-12 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 py-20 sm:py-24">
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -left-4 top-0 h-96 w-96 rounded-full bg-blue-200 opacity-20 blur-3xl" />
+          <div className="absolute -right-4 top-40 h-96 w-96 rounded-full bg-purple-200 opacity-20 blur-3xl" />
+          <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-pink-200 opacity-20 blur-3xl" />
+        </div>
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 mb-6">
-            <Sparkles className="h-4 w-4 text-white" />
-            <span className="text-sm font-medium text-white">Trusted by 10,000+ users worldwide</span>
+          <div className="mb-8 flex justify-center">
+            <div className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-100 to-purple-100 px-4 py-2 text-sm font-medium text-blue-900">
+              <Sparkles className="mr-2 h-4 w-4 text-blue-600" />
+              Trusted by 10,000+ users worldwide
+            </div>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 animate-slide-up">
-            Choose Your Perfect Plan
+          <h1 className="mb-6 text-5xl sm:text-6xl font-bold leading-tight tracking-tight animate-slide-up">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Choose Your Perfect Plan
+            </span>
           </h1>
-          <p className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+          <p className="mx-auto mb-10 max-w-3xl text-xl leading-relaxed text-slate-600">
             Start organizing your digital life today. Simple pricing, powerful features.
           </p>
 
           {/* Billing Toggle */}
-          <div className="inline-flex items-center gap-6 bg-white/10 backdrop-blur-md rounded-full p-2 border border-white/20">
+          <div className="inline-flex items-center gap-4 bg-white rounded-full p-1.5 shadow-md border border-slate-200">
             <button
               onClick={() => setBillingInterval('monthly')}
               className={cn(
-                'px-6 py-3 rounded-full text-sm font-semibold transition-all',
+                'px-6 py-2.5 rounded-full text-sm font-semibold transition-all',
                 billingInterval === 'monthly'
-                  ? 'bg-white text-purple-600 shadow-lg'
-                  : 'text-white hover:text-white/90'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900'
               )}
             >
               Monthly
@@ -134,34 +140,32 @@ function PricingContent() {
             <button
               onClick={() => setBillingInterval('yearly')}
               className={cn(
-                'px-6 py-3 rounded-full text-sm font-semibold transition-all flex items-center gap-2',
+                'px-6 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2',
                 billingInterval === 'yearly'
-                  ? 'bg-white text-purple-600 shadow-lg'
-                  : 'text-white hover:text-white/90'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900'
               )}
             >
               Yearly
-              {billingInterval === 'yearly' && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-green-500 px-2 py-0.5 text-xs font-bold text-white">
-                  Save 17%
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1 rounded-full bg-green-500 px-2 py-0.5 text-xs font-bold text-white">
+                Save 17%
+              </span>
             </button>
           </div>
 
           {/* Trust indicators */}
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-white/80">
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-slate-600">
             <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              <span className="text-sm">30-day money back</span>
+              <Shield className="h-5 w-5 text-blue-600" />
+              <span className="text-sm font-medium">30-day money back</span>
             </div>
             <div className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              <span className="text-sm">Secure payment</span>
+              <Lock className="h-5 w-5 text-blue-600" />
+              <span className="text-sm font-medium">Secure payment</span>
             </div>
             <div className="flex items-center gap-2">
-              <Star className="h-5 w-5" />
-              <span className="text-sm">Cancel anytime</span>
+              <Star className="h-5 w-5 text-blue-600" />
+              <span className="text-sm font-medium">Cancel anytime</span>
             </div>
           </div>
         </div>
@@ -629,54 +633,58 @@ function PricingContent() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-600 py-20">
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 mb-6">
-            <Star className="h-4 w-4 text-white" />
-            <span className="text-sm font-medium text-white">Join 10,000+ satisfied users</span>
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 py-24">
+        <div className="absolute inset-0">
+          <div className="absolute left-1/4 top-0 h-96 w-96 rounded-full bg-white opacity-5 blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-white opacity-5 blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+          <div className="mb-6 inline-flex items-center rounded-full bg-white/20 px-4 py-2 backdrop-blur-sm">
+            <Zap className="mr-2 h-5 w-5 text-yellow-300" />
+            <span className="text-sm font-semibold text-white">Start organizing in seconds</span>
           </div>
 
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-            Ready to Transform Your Digital Life?
+          <h2 className="mb-6 text-4xl font-bold text-white md:text-5xl">
+            Ready to organize your digital life?
           </h2>
-          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-            Start your 14-day free trial today. No credit card required. Cancel anytime.
+          <p className="mx-auto mb-10 max-w-2xl text-xl text-blue-100">
+            Join thousands of users who are already saving time and discovering amazing content with HitTags. No credit card required.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+          <div className="flex flex-wrap justify-center gap-4">
             <Button
               asChild
               size="lg"
-              className="bg-white text-purple-600 hover:bg-gray-100 shadow-xl text-lg px-8 py-6 h-auto group"
+              className="h-14 border-2 border-white bg-white px-8 text-lg font-semibold text-blue-600 shadow-xl transition-all hover:bg-blue-50"
             >
-              <Link href="/auth/register" className="flex items-center gap-2">
+              <Link href="/auth/sign-up">
                 Start Free Trial
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button
               asChild
               variant="outline"
               size="lg"
-              className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 h-auto"
+              className="h-14 border-2 border-white bg-transparent px-8 text-lg font-semibold text-white hover:bg-white/10"
             >
               <Link href="mailto:sales@hittags.com">Contact Sales</Link>
             </Button>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/80">
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4" />
-              <span>No credit card required</span>
+          <div className="mt-8 flex items-center justify-center space-x-6 text-sm text-blue-100">
+            <div className="flex items-center">
+              <Check className="mr-2 h-5 w-5 text-green-300" />
+              Free 14-day trial
             </div>
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4" />
-              <span>14-day free trial</span>
+            <div className="flex items-center">
+              <Check className="mr-2 h-5 w-5 text-green-300" />
+              No credit card
             </div>
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4" />
-              <span>Cancel anytime</span>
+            <div className="flex items-center">
+              <Check className="mr-2 h-5 w-5 text-green-300" />
+              Cancel anytime
             </div>
           </div>
         </div>
