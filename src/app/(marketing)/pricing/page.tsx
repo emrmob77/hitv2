@@ -140,15 +140,17 @@ function PricingContent() {
             <button
               onClick={() => setBillingInterval('yearly')}
               className={cn(
-                'px-6 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2',
+                'px-6 py-2.5 rounded-full text-sm font-semibold transition-all',
                 billingInterval === 'yearly'
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
                   : 'text-slate-600 hover:text-slate-900'
               )}
             >
-              Yearly
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-500 px-2 py-0.5 text-xs font-bold text-white">
-                Save 17%
+              <span className="inline-flex items-center gap-2">
+                Yearly
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-500 px-2 py-0.5 text-xs font-bold text-white">
+                  Save 17%
+                </span>
               </span>
             </button>
           </div>
@@ -233,16 +235,19 @@ function PricingContent() {
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600" />
                   )}
 
-                  {plan.highlighted && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
-                        <Crown className="h-4 w-4" />
-                        Most Popular
-                      </span>
-                    </div>
-                  )}
+                  {/* Badge Space - Always reserve space to prevent layout shift */}
+                  <div className="h-4 mb-2">
+                    {plan.highlighted && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
+                          <Crown className="h-4 w-4" />
+                          Most Popular
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
-                  <CardHeader className="text-center pb-8 pt-8">
+                  <CardHeader className="text-center pb-8 pt-4">
                     {/* Plan icon */}
                     <div className={cn(
                       "mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full",
