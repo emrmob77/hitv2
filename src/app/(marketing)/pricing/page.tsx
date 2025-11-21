@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Check, Crown, Sparkles, Loader2, XCircle, AlertCircle } from 'lucide-react';
+import { Check, Crown, Sparkles, Loader2, XCircle, AlertCircle, Zap, Shield, TrendingUp, Users, Star, ArrowRight, Lock } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -96,57 +96,109 @@ function PricingContent() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       {/* Hero Section */}
-      <section className="bg-white py-16 border-b border-neutral-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold text-neutral-900 mb-4">
-            Simple, transparent pricing
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 py-20 sm:py-24">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
+        <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute bottom-0 left-0 translate-y-12 -translate-x-12 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 mb-6">
+            <Sparkles className="h-4 w-4 text-white" />
+            <span className="text-sm font-medium text-white">Trusted by 10,000+ users worldwide</span>
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 animate-slide-up">
+            Choose Your Perfect Plan
           </h1>
-          <p className="text-xl text-neutral-600 mb-8">
-            Choose the plan that works best for you
+          <p className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+            Start organizing your digital life today. Simple pricing, powerful features.
           </p>
 
           {/* Billing Toggle */}
-          <div className="flex items-center justify-center mb-8 gap-4">
-            <span
+          <div className="inline-flex items-center gap-6 bg-white/10 backdrop-blur-md rounded-full p-2 border border-white/20">
+            <button
+              onClick={() => setBillingInterval('monthly')}
               className={cn(
-                'text-sm font-medium transition-colors',
-                billingInterval === 'monthly' ? 'text-neutral-900' : 'text-neutral-500'
+                'px-6 py-3 rounded-full text-sm font-semibold transition-all',
+                billingInterval === 'monthly'
+                  ? 'bg-white text-purple-600 shadow-lg'
+                  : 'text-white hover:text-white/90'
               )}
             >
               Monthly
-            </span>
-            <button
-              onClick={() =>
-                setBillingInterval(billingInterval === 'monthly' ? 'yearly' : 'monthly')
-              }
-              className={cn(
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                billingInterval === 'yearly' ? 'bg-neutral-900' : 'bg-neutral-300'
-              )}
-            >
-              <span
-                className={cn(
-                  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                  billingInterval === 'yearly' ? 'translate-x-6' : 'translate-x-1'
-                )}
-              />
             </button>
-            <span
+            <button
+              onClick={() => setBillingInterval('yearly')}
               className={cn(
-                'text-sm font-medium transition-colors',
-                billingInterval === 'yearly' ? 'text-neutral-900' : 'text-neutral-500'
+                'px-6 py-3 rounded-full text-sm font-semibold transition-all flex items-center gap-2',
+                billingInterval === 'yearly'
+                  ? 'bg-white text-purple-600 shadow-lg'
+                  : 'text-white hover:text-white/90'
               )}
             >
               Yearly
-            </span>
-            {billingInterval === 'yearly' && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                <Sparkles className="h-3 w-3" />
-                Save up to 17%
-              </span>
-            )}
+              {billingInterval === 'yearly' && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-500 px-2 py-0.5 text-xs font-bold text-white">
+                  Save 17%
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Trust indicators */}
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-white/80">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              <span className="text-sm">30-day money back</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              <span className="text-sm">Secure payment</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Star className="h-5 w-5" />
+              <span className="text-sm">Cancel anytime</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof */}
+      <section className="py-12 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Users className="h-5 w-5 text-blue-600" />
+                <p className="text-3xl font-bold text-gray-900">10,000+</p>
+              </div>
+              <p className="text-sm text-gray-600">Active Users</p>
+            </div>
+            <div>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                <p className="text-3xl font-bold text-gray-900">500K+</p>
+              </div>
+              <p className="text-sm text-gray-600">Bookmarks Saved</p>
+            </div>
+            <div>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Star className="h-5 w-5 text-yellow-500" />
+                <p className="text-3xl font-bold text-gray-900">4.9/5</p>
+              </div>
+              <p className="text-sm text-gray-600">User Rating</p>
+            </div>
+            <div>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Zap className="h-5 w-5 text-purple-600" />
+                <p className="text-3xl font-bold text-gray-900">99.9%</p>
+              </div>
+              <p className="text-sm text-gray-600">Uptime</p>
+            </div>
           </div>
         </div>
       </section>
@@ -155,7 +207,7 @@ function PricingContent() {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {STRIPE_PLANS.map((plan) => {
+            {STRIPE_PLANS.map((plan, index) => {
               const price = getPrice(plan);
               const yearlyDiscount = getYearlyDiscount(plan);
 
@@ -163,37 +215,68 @@ function PricingContent() {
                 <Card
                   key={plan.id}
                   className={cn(
-                    'relative',
-                    plan.highlighted &&
-                      'border-2 border-neutral-900 shadow-lg ring-4 ring-neutral-100'
+                    'relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl animate-slide-up',
+                    plan.highlighted
+                      ? 'border-2 border-purple-600 shadow-xl ring-4 ring-purple-100 bg-gradient-to-br from-purple-50 to-white'
+                      : 'border border-gray-200 shadow-md hover:border-purple-300'
                   )}
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                  }}
                 >
+                  {/* Gradient overlay for highlighted plan */}
                   {plan.highlighted && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-neutral-900 px-4 py-1 text-sm font-medium text-white">
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600" />
+                  )}
+
+                  {plan.highlighted && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
                         <Crown className="h-4 w-4" />
                         Most Popular
                       </span>
                     </div>
                   )}
 
-                  <CardHeader className="text-center pb-8">
+                  <CardHeader className="text-center pb-8 pt-8">
+                    {/* Plan icon */}
+                    <div className={cn(
+                      "mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full",
+                      plan.highlighted
+                        ? "bg-gradient-to-br from-purple-600 to-blue-600"
+                        : plan.tier === 'free'
+                        ? "bg-gray-200"
+                        : "bg-gradient-to-br from-gray-700 to-gray-900"
+                    )}>
+                      {plan.tier === 'free' && <Sparkles className="h-8 w-8 text-gray-600" />}
+                      {plan.tier === 'pro' && <Zap className="h-8 w-8 text-white" />}
+                      {plan.tier === 'enterprise' && <Crown className="h-8 w-8 text-white" />}
+                    </div>
+
                     <CardTitle className="text-2xl mb-2">{plan.name}</CardTitle>
-                    <CardDescription className="text-base mb-6">
+                    <CardDescription className="text-base mb-6 min-h-[48px]">
                       {plan.description}
                     </CardDescription>
 
                     <div className="mb-6">
                       <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-4xl font-bold text-neutral-900">
+                        <span className={cn(
+                          "text-5xl font-bold",
+                          plan.highlighted ? "text-purple-600" : "text-gray-900"
+                        )}>
                           ${price}
                         </span>
-                        <span className="text-neutral-600">/month</span>
+                        <span className="text-gray-600 text-lg">/month</span>
                       </div>
                       {billingInterval === 'yearly' && plan.monthlyPrice > 0 && (
-                        <p className="text-sm text-neutral-500 mt-2">
-                          ${plan.yearlyPrice} billed yearly
-                        </p>
+                        <div className="mt-2 space-y-1">
+                          <p className="text-sm text-gray-500">
+                            ${plan.yearlyPrice} billed yearly
+                          </p>
+                          <p className="text-xs font-semibold text-green-600">
+                            Save ${(plan.monthlyPrice * 12 - plan.yearlyPrice).toFixed(0)}/year
+                          </p>
+                        </div>
                       )}
                     </div>
 
@@ -201,9 +284,9 @@ function PricingContent() {
                       onClick={() => handleUpgrade(plan)}
                       variant={plan.highlighted ? 'default' : 'outline'}
                       className={cn(
-                        'w-full',
+                        'w-full group',
                         plan.highlighted &&
-                          'bg-neutral-900 hover:bg-neutral-800 text-white'
+                          'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg'
                       )}
                       size="lg"
                       disabled={loadingPlanId !== null}
@@ -214,22 +297,39 @@ function PricingContent() {
                           Processing...
                         </>
                       ) : (
-                        plan.ctaText
+                        <>
+                          {plan.ctaText}
+                          <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        </>
                       )}
                     </Button>
+
+                    {plan.tier === 'pro' && (
+                      <p className="mt-3 text-xs text-gray-500">14-day free trial • No credit card required</p>
+                    )}
                   </CardHeader>
 
                   <CardContent>
+                    <div className="mb-4">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                        Everything in {plan.tier === 'pro' ? 'Free' : plan.tier === 'enterprise' ? 'Pro' : 'this plan'}, plus:
+                      </p>
+                    </div>
                     <ul className="space-y-3">
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-start gap-3">
-                          <Check
-                            className={cn(
-                              'h-5 w-5 flex-shrink-0 mt-0.5',
-                              plan.highlighted ? 'text-neutral-900' : 'text-neutral-600'
-                            )}
-                          />
-                          <span className="text-sm text-neutral-700">{feature}</span>
+                          <div className={cn(
+                            "flex-shrink-0 mt-0.5 rounded-full p-0.5",
+                            plan.highlighted ? "bg-purple-100" : "bg-gray-100"
+                          )}>
+                            <Check
+                              className={cn(
+                                'h-4 w-4',
+                                plan.highlighted ? 'text-purple-600' : 'text-gray-600'
+                              )}
+                            />
+                          </div>
+                          <span className="text-sm text-gray-700">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -242,145 +342,185 @@ function PricingContent() {
       </section>
 
       {/* Feature Comparison Table */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gradient-to-br from-gray-50 via-white to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-neutral-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-4">
               Compare features
             </h2>
-            <p className="text-neutral-600">See what's included in each plan</p>
+            <p className="text-gray-600 text-lg">See what's included in each plan</p>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full border border-neutral-200 rounded-lg">
-              <thead className="bg-neutral-50">
+            <table className="w-full border border-gray-200 rounded-xl shadow-lg bg-white overflow-hidden">
+              <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
                 <tr>
-                  <th className="text-left py-4 px-6 font-semibold text-neutral-900">
+                  <th className="text-left py-5 px-6 font-bold text-gray-900">
                     Features
                   </th>
-                  <th className="text-center py-4 px-6 font-semibold text-neutral-900">
+                  <th className="text-center py-5 px-6 font-bold text-gray-900">
                     Free
                   </th>
-                  <th className="text-center py-4 px-6 font-semibold text-neutral-900">
-                    Pro
+                  <th className="text-center py-5 px-6 font-bold text-purple-600">
+                    Pro ✨
                   </th>
-                  <th className="text-center py-4 px-6 font-semibold text-neutral-900">
+                  <th className="text-center py-5 px-6 font-bold text-gray-900">
                     Enterprise
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-200">
-                <tr>
-                  <td className="py-4 px-6 text-neutral-700">Bookmarks</td>
-                  <td className="text-center py-4 px-6 text-neutral-600">20</td>
-                  <td className="text-center py-4 px-6 text-neutral-600">
+              <tbody className="divide-y divide-gray-200">
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Bookmarks</td>
+                  <td className="text-center py-4 px-6 text-gray-600 font-semibold">20</td>
+                  <td className="text-center py-4 px-6 text-purple-600 font-semibold">
                     Unlimited
                   </td>
-                  <td className="text-center py-4 px-6 text-neutral-600">
-                    Unlimited
-                  </td>
-                </tr>
-                <tr className="bg-neutral-50">
-                  <td className="py-4 px-6 text-neutral-700">Collections</td>
-                  <td className="text-center py-4 px-6 text-neutral-600">3</td>
-                  <td className="text-center py-4 px-6 text-neutral-600">
-                    Unlimited
-                  </td>
-                  <td className="text-center py-4 px-6 text-neutral-600">
+                  <td className="text-center py-4 px-6 text-gray-600 font-semibold">
                     Unlimited
                   </td>
                 </tr>
-                <tr>
-                  <td className="py-4 px-6 text-neutral-700">Public Sharing</td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Collections</td>
+                  <td className="text-center py-4 px-6 text-gray-600 font-semibold">3</td>
+                  <td className="text-center py-4 px-6 text-purple-600 font-semibold">
+                    Unlimited
                   </td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
-                  </td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                  <td className="text-center py-4 px-6 text-gray-600 font-semibold">
+                    Unlimited
                   </td>
                 </tr>
-                <tr className="bg-neutral-50">
-                  <td className="py-4 px-6 text-neutral-700">Premium Posts</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Public Sharing</td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
                   </td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 text-neutral-700">Link Groups</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
                   </td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
                   </td>
                 </tr>
-                <tr className="bg-neutral-50">
-                  <td className="py-4 px-6 text-neutral-700">Affiliate Links</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Premium Posts</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
                   </td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 text-neutral-700">Subscriber System</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
-                  </td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
                   </td>
                 </tr>
-                <tr className="bg-neutral-50">
-                  <td className="py-4 px-6 text-neutral-700">Advanced Analytics</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Link Groups</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
                   </td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 text-neutral-700">Team Collaboration</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
-                  <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
                   </td>
                 </tr>
-                <tr className="bg-neutral-50">
-                  <td className="py-4 px-6 text-neutral-700">Priority Support</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Affiliate Links</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
                   </td>
                   <td className="text-center py-4 px-6">
-                    <Check className="h-5 w-5 text-green-600 inline" />
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
                   </td>
                 </tr>
-                <tr>
-                  <td className="py-4 px-6 text-neutral-700">API Access</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
-                  <td className="text-center py-4 px-6 text-neutral-600 text-sm">Coming soon</td>
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Subscriber System</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6">
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
+                  </td>
                 </tr>
-                <tr className="bg-neutral-50">
-                  <td className="py-4 px-6 text-neutral-700">Custom Domain</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
-                  <td className="text-center py-4 px-6 text-neutral-400 text-sm">-</td>
-                  <td className="text-center py-4 px-6 text-neutral-600 text-sm">Coming soon</td>
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Advanced Analytics</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6">
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
+                  </td>
+                </tr>
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Team Collaboration</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6">
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
+                  </td>
+                </tr>
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Priority Support</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6">
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <Check className="h-5 w-5 text-green-600" />
+                    </div>
+                  </td>
+                </tr>
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">API Access</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                      Coming soon
+                    </span>
+                  </td>
+                </tr>
+                <tr className="hover:bg-blue-50/50 transition-colors">
+                  <td className="py-4 px-6 font-medium text-gray-900">Custom Domain</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6 text-gray-400 text-sm">-</td>
+                  <td className="text-center py-4 px-6">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                      Coming soon
+                    </span>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -389,77 +529,96 @@ function PricingContent() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16">
+      <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-neutral-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-4">
               Frequently asked questions
             </h2>
-            <p className="text-neutral-600">
+            <p className="text-gray-600 text-lg">
               Everything you need to know about our pricing
             </p>
           </div>
 
-          <div className="space-y-6">
-            <Card>
+          <div className="space-y-4">
+            <Card className="border-2 border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-lg">
+                <CardTitle className="text-lg font-bold text-gray-900 flex items-start gap-3">
+                  <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-sm font-bold">
+                    ?
+                  </span>
                   Can I change my plan at any time?
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-neutral-600">
+                <p className="text-gray-600 ml-9">
                   Yes, you can upgrade or downgrade your plan at any time. Changes will
                   be reflected in your next billing cycle.
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-2 border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-lg">
+                <CardTitle className="text-lg font-bold text-gray-900 flex items-start gap-3">
+                  <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-sm font-bold">
+                    ?
+                  </span>
                   Is there a free trial for Pro plans?
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-neutral-600">
+                <p className="text-gray-600 ml-9">
                   Yes, we offer a 14-day free trial for the Pro plan. No credit card
                   required.
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-2 border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-lg">
+                <CardTitle className="text-lg font-bold text-gray-900 flex items-start gap-3">
+                  <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-sm font-bold">
+                    ?
+                  </span>
                   What payment methods do you accept?
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-neutral-600">
+                <p className="text-gray-600 ml-9">
                   We accept all major credit cards through Stripe, our payment processor.
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-2 border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-lg">Can I export my data?</CardTitle>
+                <CardTitle className="text-lg font-bold text-gray-900 flex items-start gap-3">
+                  <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-sm font-bold">
+                    ?
+                  </span>
+                  Can I export my data?
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-neutral-600">
+                <p className="text-gray-600 ml-9">
                   Yes, all users can export their bookmarks and collections in various
                   formats including JSON, CSV, and HTML.
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-2 border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-lg">Do you offer refunds?</CardTitle>
+                <CardTitle className="text-lg font-bold text-gray-900 flex items-start gap-3">
+                  <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-sm font-bold">
+                    ?
+                  </span>
+                  Do you offer refunds?
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-neutral-600">
+                <p className="text-gray-600 ml-9">
                   We offer a 30-day money-back guarantee for all paid plans. Contact our
                   support team for assistance.
                 </p>
@@ -470,21 +629,55 @@ function PricingContent() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-neutral-900 mb-4">
-            Ready to get started?
+      <section className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-600 py-20">
+        <div className="absolute inset-0 bg-grid-white/10 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 mb-6">
+            <Star className="h-4 w-4 text-white" />
+            <span className="text-sm font-medium text-white">Join 10,000+ satisfied users</span>
+          </div>
+
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+            Ready to Transform Your Digital Life?
           </h2>
-          <p className="text-xl text-neutral-600 mb-8">
-            Join thousands of users who organize their web content with HitTags
+          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+            Start your 14-day free trial today. No credit card required. Cancel anytime.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-neutral-900 hover:bg-neutral-800">
-              <Link href="/auth/register">Start Free Trial</Link>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Button
+              asChild
+              size="lg"
+              className="bg-white text-purple-600 hover:bg-gray-100 shadow-xl text-lg px-8 py-6 h-auto group"
+            >
+              <Link href="/auth/register" className="flex items-center gap-2">
+                Start Free Trial
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 h-auto"
+            >
               <Link href="mailto:sales@hittags.com">Contact Sales</Link>
             </Button>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/80">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4" />
+              <span>No credit card required</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4" />
+              <span>14-day free trial</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4" />
+              <span>Cancel anytime</span>
+            </div>
           </div>
         </div>
       </section>
