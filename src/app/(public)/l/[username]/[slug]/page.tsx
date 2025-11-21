@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { ExternalLinkIcon, Eye, Share2, User } from 'lucide-react';
+import { ExternalLinkIcon, Eye, User } from 'lucide-react';
+import { ShareButton } from '@/components/link-groups/share-button';
 
 interface LinkGroupData {
   id: string;
@@ -140,23 +141,11 @@ export default async function PublicLinkGroupPage({
               <Eye className="h-3.5 w-3.5" />
               <span>{group.view_count.toLocaleString()} views</span>
             </div>
-            <button
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: group.name,
-                    text: group.description || `Check out ${group.name}`,
-                    url: window.location.href,
-                  });
-                } else {
-                  navigator.clipboard.writeText(window.location.href);
-                }
-              }}
-              className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm transition-all hover:bg-gray-50 hover:shadow"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-              <span>Share</span>
-            </button>
+            <ShareButton
+              title={group.name}
+              description={group.description || undefined}
+              url={`${process.env.NEXT_PUBLIC_APP_URL || 'https://hittags.com'}/l/${profile.username}/${group.slug}`}
+            />
           </div>
         </div>
 
