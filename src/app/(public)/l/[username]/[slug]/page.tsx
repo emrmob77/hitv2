@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { ExternalLinkIcon } from 'lucide-react';
+import { ExternalLinkIcon, Eye, Share2, User } from 'lucide-react';
 
 interface LinkGroupData {
   id: string;
@@ -81,81 +81,162 @@ export default async function PublicLinkGroupPage({
   };
 
   return (
-    <div
-      className="min-h-screen py-8 px-4 sm:py-12 sm:px-6"
-      style={{
-        backgroundColor: theme.backgroundColor,
-        color: theme.textColor,
-      }}
-    >
-      <div className="mx-auto max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-grid-gray-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] pointer-events-none" />
+
+      <div className="relative mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16">
         {/* Profile Section */}
-        <div className="mb-6 text-center sm:mb-8">
-          {profile.avatar_url && (
-            <img
-              src={profile.avatar_url}
-              alt={profile.display_name || profile.username}
-              className="mx-auto mb-3 h-20 w-20 rounded-full object-cover ring-4 ring-white shadow-lg sm:mb-4 sm:h-24 sm:w-24"
-            />
-          )}
-          <h1 className="mb-2 text-2xl font-bold sm:text-3xl">
+        <div className="mb-8 text-center">
+          {/* Avatar */}
+          <div className="relative mb-6 inline-block">
+            {profile.avatar_url ? (
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 blur-lg opacity-30" />
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.display_name || profile.username}
+                  className="relative h-24 w-24 rounded-full border-4 border-white object-cover shadow-xl sm:h-28 sm:w-28"
+                />
+              </div>
+            ) : (
+              <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600 shadow-xl sm:h-28 sm:w-28">
+                <User className="h-12 w-12 text-white sm:h-14 sm:w-14" />
+              </div>
+            )}
+          </div>
+
+          {/* Name & Title */}
+          <h1 className="mb-2 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
             {group.name}
           </h1>
+
+          {/* Username */}
+          <Link
+            href={`/${profile.username}`}
+            className="group mb-4 inline-flex items-center gap-1.5 text-sm text-gray-600 transition-colors hover:text-blue-600"
+          >
+            <span>@{profile.username}</span>
+            <ExternalLinkIcon className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+          </Link>
+
+          {/* Description */}
           {group.description && (
-            <p className="mb-3 px-2 text-sm opacity-80 sm:mb-4 sm:text-base">
+            <p className="mb-4 text-base text-gray-600 sm:text-lg">
               {group.description}
             </p>
           )}
+
+          {/* Bio */}
           {profile.bio && (
-            <p className="px-2 text-xs opacity-70 sm:text-sm">
+            <p className="text-sm text-gray-500">
               {profile.bio}
             </p>
           )}
+
+          {/* Stats & Share */}
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <div className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm">
+              <Eye className="h-3.5 w-3.5" />
+              <span>{group.view_count.toLocaleString()} views</span>
+            </div>
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: group.name,
+                    text: group.description || `Check out ${group.name}`,
+                    url: window.location.href,
+                  });
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                }
+              }}
+              className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm transition-all hover:bg-gray-50 hover:shadow"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              <span>Share</span>
+            </button>
+          </div>
         </div>
 
-        {/* Links */}
-        <div className="space-y-2.5 sm:space-y-3">
+        {/* Links Section */}
+        <div className="space-y-3">
           {items.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-white/50 p-6 text-center sm:p-8">
-              <p className="text-xs text-gray-600 sm:text-sm">No links available yet</p>
+            <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white/50 p-12 text-center backdrop-blur-sm">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                <ExternalLinkIcon className="h-6 w-6 text-gray-400" />
+              </div>
+              <p className="text-sm font-medium text-gray-900">No links yet</p>
+              <p className="text-xs text-gray-500">Links will appear here when added</p>
             </div>
           ) : (
-            items.map((item) => (
+            items.map((item, index) => (
               <a
                 key={item.id}
                 href={`/api/link-redirect/${item.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex min-h-[56px] items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:shadow-md sm:min-h-0 sm:px-6 sm:py-4 sm:hover:scale-105"
+                className="group relative block overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-blue-300 hover:shadow-lg sm:p-6"
                 style={{
-                  borderRadius: theme.buttonStyle === 'rounded' ? '0.5rem' : theme.buttonStyle === 'pill' ? '9999px' : '0.25rem',
+                  animationDelay: `${index * 50}ms`,
+                  animation: 'slideUp 0.4s ease-out forwards',
+                  opacity: 0,
                 }}
               >
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold text-gray-900 sm:text-base">{item.title}</div>
-                  {item.description && (
-                    <div className="text-xs text-gray-600 line-clamp-1 sm:text-sm">
-                      {item.description}
+                {/* Gradient hover effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-50/0 via-purple-50/0 to-pink-50/0 opacity-0 transition-opacity group-hover:opacity-100" />
+
+                <div className="relative flex items-center gap-4">
+                  {/* Content */}
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <h3 className="font-semibold text-gray-900 transition-colors group-hover:text-blue-600 sm:text-lg">
+                        {item.title}
+                      </h3>
                     </div>
-                  )}
+                    {item.description && (
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Arrow Icon */}
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-50 transition-all group-hover:bg-blue-100 sm:h-12 sm:w-12">
+                    <ExternalLinkIcon className="h-5 w-5 text-gray-400 transition-colors group-hover:text-blue-600 sm:h-6 sm:w-6" />
+                  </div>
                 </div>
-                <ExternalLinkIcon className="h-4 w-4 flex-shrink-0 text-gray-400 sm:h-5 sm:w-5" />
               </a>
             ))
           )}
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center sm:mt-12">
+        <div className="mt-12 text-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-xs opacity-60 transition-opacity hover:opacity-100 sm:text-sm"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-900"
           >
             <span>Powered by</span>
             <span className="font-semibold">HitTags</span>
           </Link>
         </div>
       </div>
+
+      {/* Animation styles */}
+      <style jsx>{`
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
